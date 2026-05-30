@@ -1,4 +1,4 @@
-const DATA_URL = "./data/words.json";
+const DATA_URL = "/api/words";
 const MAX_ROWS = 150;
 
 const state = {
@@ -232,8 +232,6 @@ function renderFlashcard() {
 function renderTable() {
   elements.wordTableBody.innerHTML = "";
   elements.emptyState.hidden = state.filteredWords.length > 0;
-  elements.wordTable.hidden = state.mode !== "list";
-
   const rows = state.filteredWords.slice(0, MAX_ROWS);
 
   for (const [index, word] of rows.entries()) {
@@ -298,7 +296,7 @@ function toggleFlip() {
 function renderError(error) {
   elements.cardExpression.textContent = "Không tải được dữ liệu";
   elements.cardReading.textContent =
-    "Hãy chạy builder và mở site qua static server.";
+    "Hãy chạy `yarn build` và khởi động local server Express.";
   elements.cardMeaning.textContent = String(error.message || error);
 }
 

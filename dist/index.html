@@ -3,108 +3,116 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Learn JP Wordlist</title>
+    <title>Kotoba Engawa</title>
     <meta
       name="description"
-      content="Static website for studying Japanese vocabulary from local JLPT CSV wordlists."
+      content="Study Japanese vocabulary from local JLPT CSV wordlists through a local Node.js server."
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="site-header">
-      <div class="site-header__inner">
-        <a class="site-brand" href="./index.html">日本語NET Wordlist</a>
-        <nav class="site-nav">
-          <a href="#flashcard-panel">Flashcard</a>
-          <a href="#list-panel">Word Bank</a>
-          <a href="#study-sidebar">Study Tools</a>
-        </nav>
-      </div>
-    </header>
+    <div class="page-frame">
+      <header class="topbar">
+        <div class="topbar__inner">
+          <a class="brand" href="/">言葉縁側</a>
+          <nav class="topnav">
+            <a href="#focus-card">Card</a>
+            <a href="#word-bank">Word Bank</a>
+            <a href="#study-tools">Study Tools</a>
+          </nav>
+        </div>
+      </header>
 
-    <div class="page-shell">
-      <div class="breadcrumb">
-        <span>Home</span>
-        <span>/</span>
-        <span>JLPT</span>
-        <span>/</span>
-        <span>Wordlist</span>
-      </div>
-
-      <main class="page-layout">
-        <section class="main-column">
-          <article class="article-card">
-            <div class="article-card__head">
-              <p class="article-label">JLPT Vocabulary</p>
-              <h1>日本語の単語をレベル別に学習する</h1>
-              <p class="article-lead">
-                Giao diện này đã được đổi sang kiểu bài viết giống `sample.html`:
-                nội dung chính ở giữa, phần hỗ trợ học tập ở sidebar bên phải,
-                nhưng dữ liệu vẫn load hoàn toàn từ file tĩnh trong project.
-              </p>
+      <main class="page-shell">
+        <section class="hero">
+          <div class="hero__copy">
+            <p class="hero__eyebrow">JLPT Word Study</p>
+            <h1>Học từ vựng Nhật trong một không gian gọn, tĩnh và dễ tập trung</h1>
+            <p class="hero__lead">
+              Dữ liệu được đọc từ CSV trong project, build thành site tĩnh và phục vụ
+              qua local server Node.js để thuận tiện cho integration về sau.
+            </p>
+            <div class="hero__actions">
+              <a class="hero-link hero-link--primary" href="#focus-card">Bắt đầu học</a>
+              <a class="hero-link" href="#word-bank">Xem danh sách từ</a>
             </div>
+          </div>
 
-            <div class="article-meta">
-              <div class="meta-box">
-                <span class="meta-box__label">Tổng từ</span>
-                <strong class="meta-box__value" data-stat="totalWords">-</strong>
-              </div>
-              <div class="meta-box">
-                <span class="meta-box__label">Level</span>
-                <strong class="meta-box__value" data-stat="totalLevels">-</strong>
-              </div>
-              <div class="meta-box">
-                <span class="meta-box__label">Đang lọc</span>
-                <strong class="meta-box__value" data-stat="visibleWords">-</strong>
-              </div>
+          <div class="hero__summary">
+            <div class="summary-card">
+              <span class="summary-card__label">Tổng từ</span>
+              <strong class="summary-card__value" data-stat="totalWords">-</strong>
             </div>
+            <div class="summary-card">
+              <span class="summary-card__label">Level</span>
+              <strong class="summary-card__value" data-stat="totalLevels">-</strong>
+            </div>
+            <div class="summary-card">
+              <span class="summary-card__label">Đang lọc</span>
+              <strong class="summary-card__value" data-stat="visibleWords">-</strong>
+            </div>
+          </div>
+        </section>
 
-            <section class="content-block">
-              <h2>Mục tiêu học từ</h2>
-              <div class="note-card">
-                <p>
-                  Chọn level JLPT, tìm theo kana hoặc nghĩa, sau đó học theo
-                  dạng flashcard hoặc xem danh sách từ chi tiết.
-                </p>
+        <div class="content-grid">
+          <section class="content-column">
+            <article class="paper paper--hero">
+              <div class="paper__heading">
+                <p class="paper__eyebrow">Study Rhythm</p>
+                <h2>Nhịp học gợi ý</h2>
               </div>
-            </section>
+              <div class="rhythm-grid">
+                <div class="rhythm-card">
+                  <span>1</span>
+                  <p>Chọn JLPT level phù hợp với mục tiêu hiện tại.</p>
+                </div>
+                <div class="rhythm-card">
+                  <span>2</span>
+                  <p>Đọc mặt trước, tự nhớ reading và nghĩa trước khi lật.</p>
+                </div>
+                <div class="rhythm-card">
+                  <span>3</span>
+                  <p>Dùng list mode để rà lại toàn bộ từ trong bộ lọc.</p>
+                </div>
+              </div>
+            </article>
 
-            <section class="content-block" id="flashcard-panel">
-              <div class="section-title">
-                <h2>Flashcard</h2>
-                <p id="card-position" class="section-title__meta">-</p>
+            <article class="paper" id="focus-card">
+              <div class="section-heading">
+                <div>
+                  <p class="paper__eyebrow">Focus Card</p>
+                  <h2>Flashcard hiện tại</h2>
+                </div>
+                <p id="card-position" class="section-heading__meta">-</p>
               </div>
 
               <article class="flashcard" id="flashcard" tabindex="0" role="button">
-                <div class="flashcard__face flashcard__face--front">
-                  <p class="flashcard__label">Mặt trước</p>
+                <div class="flashcard__front flashcard__face">
+                  <p class="flashcard__label">Omote</p>
                   <h3 id="card-expression">Đang tải...</h3>
                   <p id="card-reading" class="flashcard__reading"></p>
                 </div>
-                <div class="flashcard__face flashcard__face--back">
-                  <p class="flashcard__label">Mặt sau</p>
+                <div class="flashcard__back flashcard__face">
+                  <p class="flashcard__label">Ura</p>
                   <p id="card-meaning" class="flashcard__meaning"></p>
                   <div id="card-tags" class="tag-list"></div>
                 </div>
               </article>
 
               <div class="card-actions">
-                <button id="prev-btn" class="button button--ghost" type="button">
-                  Trước
-                </button>
-                <button id="flip-btn" class="button button--primary" type="button">
-                  Lật thẻ
-                </button>
-                <button id="next-btn" class="button button--ghost" type="button">
-                  Sau
-                </button>
+                <button id="prev-btn" class="button button--ghost" type="button">Trước</button>
+                <button id="flip-btn" class="button button--primary" type="button">Lật thẻ</button>
+                <button id="next-btn" class="button button--ghost" type="button">Sau</button>
               </div>
-            </section>
+            </article>
 
-            <section class="content-block" id="list-panel">
-              <div class="section-title">
-                <h2>Danh sách từ</h2>
-                <p id="results-summary" class="section-title__meta">-</p>
+            <article class="paper" id="word-bank">
+              <div class="section-heading">
+                <div>
+                  <p class="paper__eyebrow">Word Bank</p>
+                  <h2>Danh sách từ vựng</h2>
+                </div>
+                <p id="results-summary" class="section-heading__meta">-</p>
               </div>
 
               <div id="empty-state" class="empty-state" hidden>
@@ -124,57 +132,58 @@
                   <tbody id="word-table-body"></tbody>
                 </table>
               </div>
-            </section>
-          </article>
-        </section>
+            </article>
+          </section>
 
-        <aside class="sidebar" id="study-sidebar">
-          <section class="sidebar-card">
-            <h2>Study Tools</h2>
-            <label class="field">
-              <span>Tìm kiếm</span>
-              <input
-                id="search-input"
-                type="search"
-                placeholder="Ví dụ: あう, blue, meet..."
-                autocomplete="off"
-              />
-            </label>
-
-            <div class="field">
-              <span>JLPT level</span>
-              <div class="level-grid" id="level-filters"></div>
-            </div>
-
-            <div class="field">
-              <span>Chế độ học</span>
-              <div class="segmented-control" id="study-mode">
-                <button class="is-active" data-mode="flashcard" type="button">
-                  Flashcard
-                </button>
-                <button data-mode="list" type="button">Danh sách</button>
+          <aside class="sidebar" id="study-tools">
+            <section class="paper paper--sidebar">
+              <div class="paper__heading">
+                <p class="paper__eyebrow">Study Tools</p>
+                <h2>Bộ điều khiển</h2>
               </div>
-            </div>
 
-            <div class="actions">
-              <button id="random-btn" class="button button--primary" type="button">
-                Từ ngẫu nhiên
-              </button>
-              <button id="shuffle-btn" class="button button--ghost" type="button">
-                Trộn bộ lọc hiện tại
-              </button>
-            </div>
-          </section>
+              <label class="field">
+                <span>Tìm kiếm</span>
+                <input
+                  id="search-input"
+                  type="search"
+                  placeholder="Ví dụ: 語彙, ごい, vocabulary..."
+                  autocomplete="off"
+                />
+              </label>
 
-          <section class="sidebar-card sidebar-card--muted">
-            <h2>Mẹo học</h2>
-            <ul class="tips">
-              <li>Đọc expression trước, sau đó tự nhớ reading và meaning.</li>
-              <li>Dùng list mode khi cần quét nhanh cả bộ từ của một level.</li>
-              <li>Dùng nút random để tránh học theo thứ tự cố định.</li>
-            </ul>
-          </section>
-        </aside>
+              <div class="field">
+                <span>JLPT level</span>
+                <div class="level-grid" id="level-filters"></div>
+              </div>
+
+              <div class="field">
+                <span>Chế độ học</span>
+                <div class="segmented-control" id="study-mode">
+                  <button class="is-active" data-mode="flashcard" type="button">Flashcard</button>
+                  <button data-mode="list" type="button">Danh sách</button>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button id="random-btn" class="button button--primary" type="button">Từ ngẫu nhiên</button>
+                <button id="shuffle-btn" class="button button--ghost" type="button">Trộn bộ hiện tại</button>
+              </div>
+            </section>
+
+            <section class="paper paper--sidebar paper--quiet">
+              <div class="paper__heading">
+                <p class="paper__eyebrow">Mindset</p>
+                <h2>Mẹo ghi nhớ</h2>
+              </div>
+              <ul class="tips">
+                <li>Ưu tiên nhớ cụm âm đọc trước khi nhìn nghĩa.</li>
+                <li>Học theo nhịp ngắn 10-15 phút hiệu quả hơn nhồi dài.</li>
+                <li>Đổi qua lại giữa level gần và level cao hơn một chút.</li>
+              </ul>
+            </section>
+          </aside>
+        </div>
       </main>
     </div>
 

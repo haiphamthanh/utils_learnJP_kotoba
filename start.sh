@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PID_FILE="$ROOT_DIR/.server.pid"
 LOG_FILE="$ROOT_DIR/.server.log"
 PORT="${PORT:-8000}"
+EXPRESS_PACKAGE="$ROOT_DIR/node_modules/express/package.json"
 
 if [[ -f "$PID_FILE" ]]; then
   EXISTING_PID="$(cat "$PID_FILE")"
@@ -16,8 +17,13 @@ if [[ -f "$PID_FILE" ]]; then
 fi
 
 cd "$ROOT_DIR"
-python3 build.py
-nohup python3 -m http.server "$PORT" --directory dist >"$LOG_FILE" 2>&1 &
+if [[ ! -f "$EXPRESS_PACKAGE" ]]; then
+  echo "Missing dependencies. Run: yarn install"
+  exit 1
+fi
+
+PORT="$PORT" yarn build
+nohup env PORT="$PORT" node server.js >"$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 echo "$SERVER_PID" >"$PID_FILE"
 sleep 1
