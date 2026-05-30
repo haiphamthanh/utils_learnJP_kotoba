@@ -53,6 +53,8 @@ API local:
 - `POST /api/examples`
 - `PUT /api/examples/:expression`
 - `DELETE /api/examples/:expression`
+- `POST /api/actions`
+- `GET /api/stats?range=day|week|month`
 
 ## MySQL examples
 
@@ -60,6 +62,7 @@ Server sẽ tự tạo 2 bảng khi có cấu hình MySQL:
 
 - `vocabulary`: lưu từ vựng với primary key là `expression`
 - `vocabulary_examples`: lưu tối đa 3 example cho mỗi `expression`
+- `vocabulary_action_logs`: lưu các action `view`, `learned`, `unlearned`, `favorite`, `unfavorite` kèm thời gian và metadata
 
 Tạo database trước:
 

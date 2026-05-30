@@ -124,6 +124,83 @@ app.delete("/api/examples/:expression", async (request, response) => {
   }
 });
 
+app.post("/api/actions", async (request, response) => {
+  const expression = String(request.body?.expression || "").trim();
+  const action = String(request.body?.action || "").trim();
+  const metadata = request.body?.metadata || {};
+
+  if (!expression || !isValidAction(action)) {
+    response.status(400).json({
+      ok: false,
+      message: "Body must include expression and a valid action.",
+    });
+    return;
+  }
+
+  if (!dbPool) {
+    response.status(202).json({
+      ok: true,
+      stored: false,
+      message: "MySQL is not configured.",
+    });
+    return;
+  }
+
+  try {
+    await upsertVocabulary(expression);
+    await dbPool.execute(
+      `INSERT INTO vocabulary_action_logs (expression, action, metadata)
+       VALUES (?, ?, ?)`,
+      [expression, action, JSON.stringify(metadata)],
+    );
+
+    response.status(201).json({ ok: true, stored: true });
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      message: "Failed to store action log.",
+      error: formatError(error),
+    });
+  }
+});
+
+app.get("/api/stats", async (request, response) => {
+  const range = String(request.query.range || "day");
+  const safeRange = ["day", "week", "month"].includes(range) ? range : "day";
+
+  if (!dbPool) {
+    response.json({ range: safeRange, rows: [], source: "default" });
+    return;
+  }
+
+  try {
+    const bucketExpression = getBucketExpression(safeRange);
+    const [rows] = await dbPool.execute(
+      `SELECT
+        ${bucketExpression} AS bucket,
+        COUNT(*) AS total_actions,
+        SUM(action = 'view') AS view_count,
+        SUM(action = 'learned') AS learned_count,
+        SUM(action = 'unlearned') AS unlearned_count,
+        SUM(action = 'favorite') AS favorite_count,
+        SUM(action = 'unfavorite') AS unfavorite_count
+       FROM vocabulary_action_logs
+       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)
+       GROUP BY bucket
+       ORDER BY bucket DESC
+       LIMIT 12`,
+    );
+
+    response.json({ range: safeRange, rows, source: "mysql" });
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      message: "Failed to load study stats.",
+      error: formatError(error),
+    });
+  }
+});
+
 app.use(express.static(DIST_DIR));
 
 app.get("*", (_request, response) => {
@@ -175,6 +252,22 @@ async function initDatabase() {
           FOREIGN KEY (expression) REFERENCES vocabulary(expression)
           ON DELETE CASCADE,
         INDEX idx_vocabulary_examples_expression (expression)
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    await dbPool.execute(`
+      CREATE TABLE IF NOT EXISTS vocabulary_action_logs (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        expression VARCHAR(255) NOT NULL,
+        action ENUM('view', 'learned', 'unlearned', 'favorite', 'unfavorite') NOT NULL,
+        metadata JSON NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_vocabulary_action_logs_expression
+          FOREIGN KEY (expression) REFERENCES vocabulary(expression)
+          ON DELETE CASCADE,
+        INDEX idx_vocabulary_action_logs_expression (expression),
+        INDEX idx_vocabulary_action_logs_created_at (created_at),
+        INDEX idx_vocabulary_action_logs_action (action)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
@@ -296,6 +389,24 @@ async function saveExamples(request, response, statusCode) {
 
 function formatError(error) {
   return error instanceof Error ? error.message : String(error);
+}
+
+function isValidAction(action) {
+  return ["view", "learned", "unlearned", "favorite", "unfavorite"].includes(
+    action,
+  );
+}
+
+function getBucketExpression(range) {
+  if (range === "week") {
+    return "DATE_FORMAT(created_at, '%x-W%v')";
+  }
+
+  if (range === "month") {
+    return "DATE_FORMAT(created_at, '%Y-%m')";
+  }
+
+  return "DATE(created_at)";
 }
 
 function loadEnvFile() {

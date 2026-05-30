@@ -170,9 +170,10 @@ button {
 }
 
 .study-layout.is-list-mode {
+  grid-template-columns: 280px minmax(0, 1fr) 250px;
   grid-template-areas:
-    "tools bank bank"
-    "tools bank bank";
+    "tools bank side"
+    "tools bank side";
 }
 
 .panel-heading {
@@ -230,10 +231,8 @@ input[type="search"]:focus {
   box-shadow: 0 0 0 3px rgba(38, 58, 99, 0.12);
 }
 
-.level-grid,
 .segmented-control,
 .actions,
-.card-actions,
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -242,8 +241,7 @@ input[type="search"]:focus {
 
 .button,
 .level-chip,
-.segmented-control button,
-.icon-button {
+.segmented-control button {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: #ffffff;
@@ -256,10 +254,71 @@ input[type="search"]:focus {
     transform 140ms ease;
 }
 
+.level-table-wrap {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+}
+
+.level-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.level-table th,
+.level-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(23, 20, 18, 0.08);
+  text-align: left;
+}
+
+.level-table th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.level-table td:last-child,
+.level-table th:last-child {
+  text-align: right;
+}
+
+.level-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.level-table .level-chip {
+  width: 64px;
+  justify-content: center;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.filter-grid button {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.filter-grid button.is-active {
+  border-color: var(--indigo);
+  background: var(--indigo);
+  color: #ffffff;
+}
+
 .button:hover,
 .level-chip:hover,
-.segmented-control button:hover,
-.icon-button:hover {
+.segmented-control button:hover {
   transform: translateY(-1px);
 }
 
@@ -306,6 +365,32 @@ input[type="search"]:focus {
 .section-heading > span {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.heading-tools {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.view-switch {
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.view-switch button {
+  display: grid;
+  width: 34px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .flashcard {
@@ -384,19 +469,61 @@ input[type="search"]:focus {
   font-weight: 700;
 }
 
-.card-actions {
+.gamepad-actions {
+  display: grid;
+  grid-template-columns: 90px 118px 90px;
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
   justify-content: center;
+  gap: 8px;
   margin-top: 14px;
 }
 
-.icon-button {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
+.gamepad-button {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 700;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
+}
+
+.gamepad-button:hover {
+  transform: translateY(-1px);
+}
+
+.gamepad-button--up {
+  grid-area: up;
+  border-color: var(--moss);
+  background: var(--moss);
+  color: #ffffff;
+}
+
+.gamepad-button--down {
+  grid-area: down;
+  border-color: rgba(86, 112, 90, 0.35);
+  color: var(--moss);
+}
+
+.gamepad-button--left {
+  grid-area: left;
   color: var(--indigo);
   font-size: 1.55rem;
-  line-height: 1;
+}
+
+.gamepad-button--right {
+  grid-area: right;
+  color: var(--indigo);
+  font-size: 1.55rem;
 }
 
 .mini-panel {
@@ -414,19 +541,97 @@ input[type="search"]:focus {
   line-height: 1.3;
 }
 
+.stats-panel strong {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.study-stats dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.stats-range {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.stats-range button {
+  min-height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.stats-range button.is-active {
+  border-color: var(--indigo);
+  background: var(--indigo);
+  color: #ffffff;
+}
+
+.study-stats div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(23, 20, 18, 0.08);
+}
+
+.study-stats dt {
+  color: var(--muted);
+}
+
+.study-stats dd {
+  margin: 0;
+  font-weight: 700;
+}
+
 .mini-panel--accent {
   border-color: rgba(180, 68, 52, 0.22);
   background: rgba(232, 184, 181, 0.16);
-}
-
-.mini-panel--examples {
-  min-height: 292px;
 }
 
 .examples-list {
   display: grid;
   gap: 10px;
   margin-top: 10px;
+}
+
+.examples-panel {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(23, 20, 18, 0.1);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.examples-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.examples-heading p {
+  margin: 0;
+  color: var(--vermillion);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.examples-heading span {
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .examples-list > p {
@@ -505,6 +710,21 @@ input[type="search"]:focus {
   background: rgba(38, 58, 99, 0.05);
 }
 
+.word-table tbody tr.is-selected {
+  background: rgba(180, 68, 52, 0.1);
+}
+
+.word-table tbody tr.is-current {
+  outline: 2px solid rgba(38, 58, 99, 0.18);
+  outline-offset: -2px;
+}
+
+.inline-star {
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--gold);
+}
+
 .level-badge {
   display: inline-flex;
   padding: 4px 8px;
@@ -524,6 +744,105 @@ input[type="search"]:focus {
   background: rgba(255, 255, 255, 0.7);
 }
 
+.favorite-button {
+  display: grid;
+  width: 38px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.favorite-button.is-starred {
+  border-color: rgba(185, 149, 82, 0.5);
+  background: rgba(185, 149, 82, 0.14);
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 20, 18, 0.36);
+}
+
+.modal__panel {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.modal__eyebrow {
+  margin: 0;
+  color: var(--vermillion);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modal__panel h2 {
+  margin: 6px 42px 18px 0;
+  font-size: 2rem;
+}
+
+.modal__details {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.modal__details div {
+  padding-top: 10px;
+  border-top: 1px solid rgba(23, 20, 18, 0.1);
+}
+
+.modal__details dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.modal__details dd {
+  margin: 4px 0 0;
+}
+
 @media (max-width: 1080px) {
   .study-layout {
     grid-template-columns: 280px minmax(0, 1fr);
@@ -538,9 +857,10 @@ input[type="search"]:focus {
   }
 
   .study-layout.is-list-mode {
+    grid-template-columns: 280px minmax(0, 1fr);
     grid-template-areas:
       "tools bank"
-      "tools bank";
+      "tools side";
   }
 }
 
@@ -587,5 +907,13 @@ input[type="search"]:focus {
   .section-heading {
     align-items: start;
     flex-direction: column;
+  }
+
+  .heading-tools {
+    justify-items: start;
+  }
+
+  .gamepad-actions {
+    grid-template-columns: 78px 112px 78px;
   }
 }

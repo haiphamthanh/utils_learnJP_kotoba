@@ -10,29 +10,36 @@ const state = {
   activeLevel: "all",
   query: "",
   mode: "flashcard",
+  filterMode: "all",
+  statsRange: "day",
   filteredWords: [],
   sessionWords: [],
   currentIndex: 0,
+  selectedListExpression: "",
   learnedExpressions: new Set(),
+  starredExpressions: new Set(),
   seenExpressions: new Set(),
   exampleRequestId: 0,
+  lastLoggedViewExpression: "",
 };
 
 const elements = {
   searchInput: document.querySelector("#search-input"),
   levelFilters: document.querySelector("#level-filters"),
+  cardFilter: document.querySelector("#card-filter"),
+  statsRange: document.querySelector("#stats-range"),
   studyMode: document.querySelector("#study-mode"),
   randomBtn: document.querySelector("#random-btn"),
   newSessionBtn: document.querySelector("#new-session-btn"),
   prevBtn: document.querySelector("#prev-btn"),
   nextBtn: document.querySelector("#next-btn"),
-  flipBtn: document.querySelector("#flip-btn"),
   learnedBtn: document.querySelector("#learned-btn"),
   unlearnedBtn: document.querySelector("#unlearned-btn"),
+  favoriteBtn: document.querySelector("#favorite-btn"),
+  sessionActions: document.querySelector(".session-actions"),
   studyLayout: document.querySelector(".study-layout"),
   focusArea: document.querySelector("#focus-card"),
   wordBank: document.querySelector("#word-bank"),
-  sidePanel: document.querySelector(".side-panel"),
   flashcard: document.querySelector("#flashcard"),
   cardExpression: document.querySelector("#card-expression"),
   cardReading: document.querySelector("#card-reading"),
@@ -44,6 +51,12 @@ const elements = {
   wordTable: document.querySelector("#word-table"),
   wordTableBody: document.querySelector("#word-table-body"),
   examplesList: document.querySelector("#examples-list"),
+  studyStats: document.querySelector("#study-stats"),
+  wordModal: document.querySelector("#word-modal"),
+  modalTitle: document.querySelector("#modal-title"),
+  modalReading: document.querySelector("#modal-reading"),
+  modalMeaning: document.querySelector("#modal-meaning"),
+  modalLevel: document.querySelector("#modal-level"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
   statTotalLevels: document.querySelector('[data-stat="totalLevels"]'),
   statVisibleWords: document.querySelector('[data-stat="visibleWords"]'),
@@ -63,6 +76,9 @@ async function init() {
     restoreState();
     renderLevelFilters();
     bindEvents();
+    updateFilterButtons();
+    updateStatsRangeButtons();
+    updateModeButtons();
     applyFilters({ preserveSession: true });
   } catch (error) {
     renderError(error);
@@ -78,7 +94,31 @@ function bindEvents() {
     applyFilters({ preserveSession: false });
   });
 
-  elements.studyMode.addEventListener("click", (event) => {
+  elements.cardFilter.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-filter]");
+    if (!button) {
+      return;
+    }
+
+    state.filterMode = button.dataset.filter;
+    state.currentIndex = 0;
+    updateFilterButtons();
+    applyFilters({ preserveSession: false });
+  });
+
+  elements.statsRange.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-range]");
+    if (!button) {
+      return;
+    }
+
+    state.statsRange = button.dataset.range;
+    updateStatsRangeButtons();
+    renderStats();
+    persistState();
+  });
+
+  document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-mode]");
     if (!button) {
       return;
@@ -105,9 +145,9 @@ function bindEvents() {
 
   elements.prevBtn.addEventListener("click", () => stepCard(-1));
   elements.nextBtn.addEventListener("click", () => stepCard(1));
-  elements.flipBtn.addEventListener("click", toggleFlip);
   elements.learnedBtn.addEventListener("click", markCurrentLearned);
   elements.unlearnedBtn.addEventListener("click", markCurrentUnlearned);
+  elements.favoriteBtn.addEventListener("click", toggleFavorite);
   elements.flashcard.addEventListener("click", toggleFlip);
   elements.flashcard.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -131,25 +171,52 @@ function bindEvents() {
     } else if (event.key === "ArrowDown") {
       event.preventDefault();
       markCurrentUnlearned();
+    } else if (event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      toggleFavorite();
     } else if (event.key.toLowerCase() === "f") {
       toggleFlip();
+    }
+  });
+
+  elements.wordModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-modal-close]")) {
+      closeWordModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeWordModal();
     }
   });
 }
 
 function renderLevelFilters() {
-  const levels = [{ key: "all", label: "All" }, ...state.levels];
+  const counts = getLevelCounts();
+  const levels = [
+    { key: "all", label: "All", count: state.words.length },
+    ...state.levels.map((level) => ({
+      ...level,
+      count: counts.get(level.key) || 0,
+    })),
+  ];
 
   elements.levelFilters.innerHTML = levels
     .map(
       (level) => `
-        <button
-          type="button"
-          class="level-chip ${level.key === state.activeLevel ? "is-active" : ""}"
-          data-level="${level.key}"
-        >
-          ${level.label}
-        </button>
+        <tr>
+          <td>
+            <button
+              type="button"
+              class="level-chip ${level.key === state.activeLevel ? "is-active" : ""}"
+              data-level="${level.key}"
+            >
+              ${level.label}
+            </button>
+          </td>
+          <td>${formatNumber(level.count)}</td>
+        </tr>
       `,
     )
     .join("");
@@ -175,6 +242,10 @@ function applyFilters({ preserveSession }) {
     const matchesLevel =
       state.activeLevel === "all" || word.level === state.activeLevel;
     if (!matchesLevel) {
+      return false;
+    }
+
+    if (!matchesFilterMode(word)) {
       return false;
     }
 
@@ -207,9 +278,12 @@ function applyFilters({ preserveSession }) {
 }
 
 function createSession() {
-  const availableWords = state.filteredWords.filter(
-    (word) => !state.learnedExpressions.has(word.expression),
-  );
+  const availableWords =
+    state.filterMode === "all"
+      ? state.filteredWords.filter(
+          (word) => !state.learnedExpressions.has(word.expression),
+        )
+      : state.filteredWords;
 
   const newWords = shuffle(
     availableWords.filter((word) => !state.seenExpressions.has(word.expression)),
@@ -235,9 +309,12 @@ function createSession() {
 
 function render() {
   updateStats();
+  updateFilterButtons();
+  updateModeButtons();
   updateModeVisibility();
   renderFlashcard();
   renderTable();
+  renderStats();
   persistState();
 }
 
@@ -253,8 +330,8 @@ function updateStats() {
         state.activeLevel.toUpperCase();
 
   elements.resultsSummary.textContent = `${levelLabel} • ${formatNumber(
-    state.sessionWords.length,
-  )}/${SESSION_SIZE} in this batch`;
+    state.filteredWords.length,
+  )} matching words`;
 }
 
 function renderFlashcard() {
@@ -273,6 +350,7 @@ function renderFlashcard() {
   }
 
   state.seenExpressions.add(currentWord.expression);
+  logView(currentWord);
   elements.cardExpression.textContent = currentWord.expression;
   elements.cardReading.textContent = currentWord.reading;
   elements.cardMeaning.textContent = currentWord.meaning;
@@ -281,6 +359,7 @@ function renderFlashcard() {
     .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join("");
   elements.cardPosition.textContent = `${state.currentIndex + 1} / ${state.sessionWords.length}`;
+  updateFavoriteButton(currentWord);
   renderExamples(currentWord);
 }
 
@@ -295,24 +374,30 @@ function renderTable() {
       (item) => item.expression === word.expression,
     );
     row.dataset.expression = word.expression;
+    row.classList.toggle(
+      "is-selected",
+      state.selectedListExpression === word.expression,
+    );
     row.innerHTML = `
-      <td><strong>${escapeHtml(word.expression)}</strong></td>
+      <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
       <td>${escapeHtml(word.reading)}</td>
       <td>${escapeHtml(word.meaning)}</td>
       <td><span class="level-badge">${escapeHtml(word.levelLabel)}</span></td>
     `;
 
     row.addEventListener("click", () => {
+      state.selectedListExpression = word.expression;
+      syncSelectedTableRow();
+      persistState();
+    });
+
+    row.addEventListener("dblclick", () => {
+      state.selectedListExpression = word.expression;
       if (sessionIndex >= 0) {
         state.currentIndex = sessionIndex;
-      } else {
-        state.sessionWords.unshift(word);
-        state.sessionWords = state.sessionWords.slice(0, SESSION_SIZE);
-        state.currentIndex = 0;
       }
-      state.mode = "flashcard";
-      updateModeButtons();
-      render();
+      syncSelectedTableRow();
+      openWordModal(word);
     });
 
     elements.wordTableBody.appendChild(row);
@@ -324,10 +409,14 @@ function renderTable() {
 function syncSelectedTableRow() {
   const currentWord = getCurrentWord();
   for (const row of elements.wordTableBody.querySelectorAll("tr")) {
-    row.style.background =
-      currentWord && row.dataset.expression === currentWord.expression
-        ? "rgba(38, 58, 99, 0.08)"
-        : "";
+    row.classList.toggle(
+      "is-current",
+      currentWord && row.dataset.expression === currentWord.expression,
+    );
+    row.classList.toggle(
+      "is-selected",
+      row.dataset.expression === state.selectedListExpression,
+    );
   }
 }
 
@@ -335,11 +424,11 @@ function updateModeVisibility() {
   elements.studyLayout.classList.toggle("is-list-mode", state.mode === "list");
   elements.focusArea.hidden = state.mode !== "flashcard";
   elements.wordBank.hidden = state.mode !== "list";
-  elements.sidePanel.hidden = state.mode !== "flashcard";
+  elements.sessionActions.hidden = state.mode !== "flashcard";
 }
 
 function updateModeButtons() {
-  for (const item of elements.studyMode.querySelectorAll("button")) {
+  for (const item of document.querySelectorAll("[data-mode]")) {
     item.classList.toggle("is-active", item.dataset.mode === state.mode);
   }
 }
@@ -364,6 +453,7 @@ function markCurrentLearned() {
 
   state.learnedExpressions.add(currentWord.expression);
   state.seenExpressions.add(currentWord.expression);
+  logAction("learned", currentWord);
   state.sessionWords = state.sessionWords.filter(
     (word) => word.expression !== currentWord.expression,
   );
@@ -383,6 +473,7 @@ function markCurrentUnlearned() {
 
   state.learnedExpressions.delete(currentWord.expression);
   state.seenExpressions.add(currentWord.expression);
+  logAction("unlearned", currentWord);
   state.sessionWords.splice(state.currentIndex, 1);
   state.sessionWords.push(currentWord);
 
@@ -398,6 +489,32 @@ function toggleFlip() {
     return;
   }
   elements.flashcard.classList.toggle("is-flipped");
+}
+
+function toggleFavorite() {
+  const currentWord = getCurrentWord();
+  if (!currentWord) {
+    return;
+  }
+
+  const isStarred = state.starredExpressions.has(currentWord.expression);
+  if (isStarred) {
+    state.starredExpressions.delete(currentWord.expression);
+    logAction("unfavorite", currentWord);
+  } else {
+    state.starredExpressions.add(currentWord.expression);
+    logAction("favorite", currentWord);
+  }
+
+  updateFavoriteButton(currentWord);
+  renderTable();
+  persistState();
+}
+
+function updateFavoriteButton(word) {
+  const isStarred = state.starredExpressions.has(word.expression);
+  elements.favoriteBtn.classList.toggle("is-starred", isStarred);
+  elements.favoriteBtn.textContent = isStarred ? "★" : "☆";
 }
 
 async function renderExamples(word) {
@@ -473,8 +590,12 @@ function restoreState() {
     state.activeLevel = stored.activeLevel || state.activeLevel;
     state.query = stored.query || "";
     state.mode = stored.mode || state.mode;
+    state.filterMode = stored.filterMode || state.filterMode;
+    state.statsRange = stored.statsRange || state.statsRange;
     state.currentIndex = Number(stored.currentIndex || 0);
+    state.selectedListExpression = stored.selectedListExpression || "";
     state.learnedExpressions = new Set(stored.learnedExpressions || []);
+    state.starredExpressions = new Set(stored.starredExpressions || []);
     state.seenExpressions = new Set(stored.seenExpressions || []);
   } catch (_error) {
     localStorage.removeItem(STORAGE_KEY);
@@ -512,8 +633,12 @@ function persistState() {
     query: state.query,
     mode: state.mode,
     currentIndex: state.currentIndex,
+    selectedListExpression: state.selectedListExpression,
+    filterMode: state.filterMode,
+    statsRange: state.statsRange,
     sessionExpressions: state.sessionWords.map((word) => word.expression),
     learnedExpressions: [...state.learnedExpressions],
+    starredExpressions: [...state.starredExpressions],
     seenExpressions: [...state.seenExpressions],
   };
 
@@ -522,6 +647,127 @@ function persistState() {
 
 function getCurrentWord() {
   return state.sessionWords[state.currentIndex];
+}
+
+function updateFilterButtons() {
+  for (const item of elements.cardFilter.querySelectorAll("[data-filter]")) {
+    item.classList.toggle("is-active", item.dataset.filter === state.filterMode);
+  }
+}
+
+function updateStatsRangeButtons() {
+  for (const item of elements.statsRange.querySelectorAll("[data-range]")) {
+    item.classList.toggle("is-active", item.dataset.range === state.statsRange);
+  }
+}
+
+function matchesFilterMode(word) {
+  if (state.filterMode === "starred") {
+    return state.starredExpressions.has(word.expression);
+  }
+
+  if (state.filterMode === "unstarred") {
+    return !state.starredExpressions.has(word.expression);
+  }
+
+  if (state.filterMode === "learned") {
+    return state.learnedExpressions.has(word.expression);
+  }
+
+  if (state.filterMode === "unlearned") {
+    return !state.learnedExpressions.has(word.expression);
+  }
+
+  return true;
+}
+
+function getLevelCounts() {
+  const counts = new Map();
+  for (const word of state.words) {
+    counts.set(word.level, (counts.get(word.level) || 0) + 1);
+  }
+  return counts;
+}
+
+function renderStar(word) {
+  return state.starredExpressions.has(word.expression)
+    ? '<span class="inline-star">★</span>'
+    : "";
+}
+
+function openWordModal(word) {
+  elements.modalTitle.textContent = word.expression;
+  elements.modalReading.textContent = word.reading || "-";
+  elements.modalMeaning.textContent = word.meaning || "-";
+  elements.modalLevel.textContent = word.levelLabel || "-";
+  elements.wordModal.hidden = false;
+}
+
+function closeWordModal() {
+  elements.wordModal.hidden = true;
+}
+
+function logView(word) {
+  if (state.lastLoggedViewExpression === word.expression) {
+    return;
+  }
+
+  state.lastLoggedViewExpression = word.expression;
+  logAction("view", word);
+}
+
+function logAction(action, word) {
+  fetch("/api/actions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      expression: word.expression,
+      action,
+      metadata: {
+        level: word.level,
+        mode: state.mode,
+        filterMode: state.filterMode,
+      },
+    }),
+  }).catch(() => {});
+}
+
+async function renderStats() {
+  try {
+    const response = await fetch(`/api/stats?range=${state.statsRange}`);
+    if (!response.ok) {
+      throw new Error("stats unavailable");
+    }
+
+    const payload = await response.json();
+    const row = payload.rows?.[0];
+    if (!row) {
+      renderLocalStats();
+      return;
+    }
+
+    elements.studyStats.innerHTML = `
+      <dl>
+        <div><dt>Views</dt><dd>${formatNumber(Number(row.view_count || 0))}</dd></div>
+        <div><dt>Learned</dt><dd>${formatNumber(Number(row.learned_count || 0))}</dd></div>
+        <div><dt>Not yet</dt><dd>${formatNumber(Number(row.unlearned_count || 0))}</dd></div>
+        <div><dt>Stars</dt><dd>${formatNumber(Number(row.favorite_count || 0))}</dd></div>
+        <div><dt>Unstars</dt><dd>${formatNumber(Number(row.unfavorite_count || 0))}</dd></div>
+      </dl>
+    `;
+  } catch (_error) {
+    renderLocalStats();
+  }
+}
+
+function renderLocalStats() {
+  elements.studyStats.innerHTML = `
+    <dl>
+      <div><dt>Learned</dt><dd>${formatNumber(state.learnedExpressions.size)}</dd></div>
+      <div><dt>Starred</dt><dd>${formatNumber(state.starredExpressions.size)}</dd></div>
+      <div><dt>Batch</dt><dd>${formatNumber(state.sessionWords.length)}</dd></div>
+    </dl>
+  `;
 }
 
 function renderError(error) {

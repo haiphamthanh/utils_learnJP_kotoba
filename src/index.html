@@ -56,20 +56,31 @@
 
           <section class="field">
             <span>JLPT Level</span>
-            <div class="level-grid" id="level-filters"></div>
-          </section>
-
-          <section class="field">
-            <span>View</span>
-            <div class="segmented-control" id="study-mode">
-              <button class="is-active" data-mode="flashcard" type="button">
-                Card
-              </button>
-              <button data-mode="list" type="button">List</button>
+            <div class="level-table-wrap">
+              <table class="level-table">
+                <thead>
+                  <tr>
+                    <th>Level</th>
+                    <th>Number</th>
+                  </tr>
+                </thead>
+                <tbody id="level-filters"></tbody>
+              </table>
             </div>
           </section>
 
-          <div class="actions">
+          <section class="field">
+            <span>Filter</span>
+            <div class="filter-grid" id="card-filter">
+              <button class="is-active" data-filter="all" type="button">All</button>
+              <button data-filter="starred" type="button">Starred</button>
+              <button data-filter="unstarred" type="button">No star</button>
+              <button data-filter="learned" type="button">Learned</button>
+              <button data-filter="unlearned" type="button">Not yet</button>
+            </div>
+          </section>
+
+          <div class="actions session-actions">
             <button id="random-btn" class="button button--primary" type="button">
               Random
             </button>
@@ -85,7 +96,31 @@
               <p>Focus Card</p>
               <h2>今日の言葉</h2>
             </div>
-            <span id="card-position">-</span>
+            <div class="heading-tools">
+              <button id="favorite-btn" class="favorite-button" type="button" title="Toggle favorite (S)" aria-label="Toggle favorite">
+                ☆
+              </button>
+              <div class="segmented-control view-switch" id="study-mode">
+                <button
+                  class="is-active"
+                  data-mode="flashcard"
+                  type="button"
+                  title="Card view"
+                  aria-label="Card view"
+                >
+                  ◧
+                </button>
+                <button
+                  data-mode="list"
+                  type="button"
+                  title="List view"
+                  aria-label="List view"
+                >
+                  ☷
+                </button>
+              </div>
+              <span id="card-position">-</span>
+            </div>
           </div>
 
           <article class="flashcard" id="flashcard" tabindex="0" role="button">
@@ -101,34 +136,43 @@
             </div>
           </article>
 
-          <div class="card-actions">
-            <button id="prev-btn" class="icon-button" type="button" title="Previous">
+          <div class="gamepad-actions" aria-label="Card controls">
+            <button id="learned-btn" class="gamepad-button gamepad-button--up" type="button">
+              Up: Learned
+            </button>
+            <button id="prev-btn" class="gamepad-button gamepad-button--left" type="button" title="Previous">
               <span aria-hidden="true">‹</span>
             </button>
-            <button id="unlearned-btn" class="button button--secondary" type="button">
-              Down: not yet
-            </button>
-            <button id="flip-btn" class="button button--primary" type="button">
-              Flip
-            </button>
-            <button id="learned-btn" class="button button--success" type="button">
-              Up: learned
-            </button>
-            <button id="next-btn" class="icon-button" type="button" title="Next">
+            <button id="next-btn" class="gamepad-button gamepad-button--right" type="button" title="Next">
               <span aria-hidden="true">›</span>
             </button>
+            <button id="unlearned-btn" class="gamepad-button gamepad-button--down" type="button">
+              Down: not yet
+            </button>
+          </div>
+
+          <div class="examples-panel">
+            <div class="examples-heading">
+              <p>Examples</p>
+              <span>3 sample sentences</span>
+            </div>
+            <div id="examples-list" class="examples-list">
+              <p>Loading examples...</p>
+            </div>
           </div>
         </section>
 
         <aside class="side-panel">
-          <section class="mini-panel">
-            <p class="mini-panel__label">Current Filter</p>
+          <section class="mini-panel stats-panel">
+            <p class="mini-panel__label">Study Stats</p>
             <strong id="results-summary">-</strong>
-          </section>
-          <section class="mini-panel mini-panel--examples">
-            <p class="mini-panel__label">Examples</p>
-            <div id="examples-list" class="examples-list">
-              <p>Loading examples...</p>
+            <div class="stats-range" id="stats-range">
+              <button class="is-active" data-range="day" type="button">Day</button>
+              <button data-range="week" type="button">Week</button>
+              <button data-range="month" type="button">Month</button>
+            </div>
+            <div id="study-stats" class="study-stats">
+              <p>Loading stats...</p>
             </div>
           </section>
         </aside>
@@ -138,6 +182,27 @@
             <div>
               <p>Word Bank</p>
               <h2>Vocabulary</h2>
+            </div>
+            <div class="heading-tools">
+              <div class="segmented-control view-switch" id="list-study-mode">
+                <button
+                  data-mode="flashcard"
+                  type="button"
+                  title="Card view"
+                  aria-label="Card view"
+                >
+                  ◧
+                </button>
+                <button
+                  class="is-active"
+                  data-mode="list"
+                  type="button"
+                  title="List view"
+                  aria-label="List view"
+                >
+                  ☷
+                </button>
+              </div>
             </div>
           </div>
 
@@ -160,6 +225,29 @@
           </div>
         </section>
       </main>
+
+      <div id="word-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-modal-close></div>
+        <article class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <button class="modal__close" data-modal-close type="button" aria-label="Close">×</button>
+          <p class="modal__eyebrow">Vocabulary Detail</p>
+          <h2 id="modal-title">-</h2>
+          <dl class="modal__details">
+            <div>
+              <dt>Reading</dt>
+              <dd id="modal-reading">-</dd>
+            </div>
+            <div>
+              <dt>Meaning</dt>
+              <dd id="modal-meaning">-</dd>
+            </div>
+            <div>
+              <dt>Level</dt>
+              <dd id="modal-level">-</dd>
+            </div>
+          </dl>
+        </article>
+      </div>
     </div>
 
     <script type="module" src="./app.js"></script>
