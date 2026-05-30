@@ -38,6 +38,19 @@ Sau đó truy cập `http://localhost:8000`.
 ./stop.sh
 ```
 
+## Menu quản lý port
+
+Chạy menu shell:
+
+```bash
+./port_menu.sh
+```
+
+Menu hỗ trợ:
+
+- xem port hiện tại đang được process nào sử dụng
+- dừng process đang listen trên một port cụ thể
+
 ## Cập nhật word list
 
 1. Sửa hoặc thêm file CSV trong `word-list/`
