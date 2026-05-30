@@ -27,10 +27,16 @@ Sau khi build, dữ liệu từ `word-list/*.csv` sẽ được chuyển thành:
 Nên mở bằng static server thay vì `file://` để `fetch()` đọc được JSON:
 
 ```bash
-python3 -m http.server 8000 --directory dist
+./start.sh
 ```
 
 Sau đó truy cập `http://localhost:8000`.
+
+Để dừng server:
+
+```bash
+./stop.sh
+```
 
 ## Cập nhật word list
 
