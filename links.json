@@ -1,0 +1,2552 @@
+{
+  "n1": [
+    {
+      "title": "【JLPT N１】文法・例文：〜にかかっては / 〜にかかったら / 〜にかかると / 〜かかれば",
+      "link": "https://nihongokyoshi-net.com/2020/06/18/jlptn1-grammar-nikakattewa/",
+      "grammarName": "〜にかかっては / 〜にかかったら / 〜にかかると / 〜かかれば"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に言わせれば",
+      "link": "https://nihongokyoshi-net.com/2020/06/16/jlptn1-grammar-niiwasereba/",
+      "grammarName": "〜に言わせれば"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ともなく / 〜ともなしに",
+      "link": "https://nihongokyoshi-net.com/2020/06/11/jlptn1-grammar-tomonaku/",
+      "grammarName": "〜ともなく / 〜ともなしに"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜つくす",
+      "link": "https://nihongokyoshi-net.com/2020/06/02/jlptn1-grammar-tsukusu/",
+      "grammarName": "〜つくす"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜たら〜たで",
+      "link": "https://nihongokyoshi-net.com/2020/06/02/jlptn1-grammar-tara-tade/",
+      "grammarName": "〜たら〜たで"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜たためしがない",
+      "link": "https://nihongokyoshi-net.com/2020/05/28/jlptn1-grammar-tatameshiganai/",
+      "grammarName": "〜たためしがない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜わ〜わで",
+      "link": "https://nihongokyoshi-net.com/2020/03/11/jlptn1-grammar-wa-wade/",
+      "grammarName": "〜わ〜わで"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜といい〜といい",
+      "link": "https://nihongokyoshi-net.com/2020/02/18/jlptn1-grammar-toii-toii/",
+      "grammarName": "〜といい〜といい"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を兼ねて",
+      "link": "https://nihongokyoshi-net.com/2020/02/11/jlptn1-grammar-wokanete/",
+      "grammarName": "〜を兼ねて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に〜を重ねて",
+      "link": "https://nihongokyoshi-net.com/2020/01/31/jlptn1-grammar-wokasanete/",
+      "grammarName": "〜に〜を重ねて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜たところで",
+      "link": "https://nihongokyoshi-net.com/2020/01/20/jlptn1-grammar-tatokorode/",
+      "grammarName": "〜たところで"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜弾みに / 〜た拍子に",
+      "link": "https://nihongokyoshi-net.com/2020/01/17/jlptn1-grammar-tahazumini/",
+      "grammarName": "〜弾みに / 〜た拍子に"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に限ったことではない",
+      "link": "https://nihongokyoshi-net.com/2020/01/13/jlptn1-grammar-nikagittakotodewanai/",
+      "grammarName": "〜に限ったことではない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜なりとも",
+      "link": "https://nihongokyoshi-net.com/2019/12/18/jlptn1-grammar-naritomo/",
+      "grammarName": "〜なりとも"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にかこつけて",
+      "link": "https://nihongokyoshi-net.com/2019/12/11/jlptn1-grammar-nikakotsukete/",
+      "grammarName": "〜にかこつけて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜びる",
+      "link": "https://nihongokyoshi-net.com/2019/11/26/jlptn1-grammar-biru/",
+      "grammarName": "〜びる"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ほどのことではない",
+      "link": "https://nihongokyoshi-net.com/2019/11/23/jlptn1-grammar-hodonokotodehanai/",
+      "grammarName": "〜ほどのことではない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にもほどがある",
+      "link": "https://nihongokyoshi-net.com/2019/11/21/jlptn1-grammar-nimohodogaaru/",
+      "grammarName": "〜にもほどがある"
+    },
+    {
+      "title": "【JLPT N1】文法・例文：〜というもの",
+      "link": "https://nihongokyoshi-net.com/2019/11/20/jlptn1-grammar-toiumono/",
+      "grammarName": "〜というもの"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：～もそこそこに",
+      "link": "https://nihongokyoshi-net.com/2019/11/19/jlptn1-grammar-mosokosokoni/",
+      "grammarName": "～もそこそこに"
+    },
+    {
+      "title": "【JLPT N1】文法・例文：〜てからというもの",
+      "link": "https://nihongokyoshi-net.com/2019/11/15/jlptn1-grammar-tekaratoiumono/",
+      "grammarName": "〜てからというもの"
+    },
+    {
+      "title": "【JLPT N1】文法・例文：〜だの〜だの",
+      "link": "https://nihongokyoshi-net.com/2019/10/25/jlptn1-grammar-dano/",
+      "grammarName": "〜だの〜だの"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜た分だけ",
+      "link": "https://nihongokyoshi-net.com/2019/09/25/jlptn1-grammar-tabundake/",
+      "grammarName": "〜た分だけ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜術がない",
+      "link": "https://nihongokyoshi-net.com/2019/09/23/jlptn1-grammar-subeganai/",
+      "grammarName": "〜術がない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜には無理がある",
+      "link": "https://nihongokyoshi-net.com/2019/09/20/jlptn1-grammar-niwamurigaaru/",
+      "grammarName": "〜には無理がある"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜だに",
+      "link": "https://nihongokyoshi-net.com/2019/09/19/jlptn1-grammar-dani/",
+      "grammarName": "〜だに"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を顧みず / 〜も顧みず",
+      "link": "https://nihongokyoshi-net.com/2019/09/16/jlptn1-grammar-kaerimizu/",
+      "grammarName": "〜を顧みず / 〜も顧みず"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を境に",
+      "link": "https://nihongokyoshi-net.com/2019/09/15/jlptn1-grammar-sakaini/",
+      "grammarName": "〜を境に"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を押して / 〜を押し切って",
+      "link": "https://nihongokyoshi-net.com/2019/09/15/jlptn1-grammar-wooshite-wooshikitte/",
+      "grammarName": "〜を押して / 〜を押し切って"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜こととて",
+      "link": "https://nihongokyoshi-net.com/2019/09/12/jlptn1-grammar-kototote/",
+      "grammarName": "〜こととて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜より",
+      "link": "https://nihongokyoshi-net.com/2019/09/11/jlptn1-grammar-yori/",
+      "grammarName": "〜より"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に忍びない",
+      "link": "https://nihongokyoshi-net.com/2019/09/09/jlptn1-grammar-nishinobinai/",
+      "grammarName": "〜に忍びない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜までだ / 〜までのことだ",
+      "link": "https://nihongokyoshi-net.com/2019/08/21/jlptn1-grammar-madeda/",
+      "grammarName": "〜までだ / 〜までのことだ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜たまでだ / 〜たまでのことだ",
+      "link": "https://nihongokyoshi-net.com/2019/08/21/jlptn1-grammar-tamadeda/",
+      "grammarName": "〜たまでだ / 〜たまでのことだ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜かれ〜かれ",
+      "link": "https://nihongokyoshi-net.com/2019/08/19/jlptn1-grammar-kare-kare/",
+      "grammarName": "〜かれ〜かれ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜も同然だ / 〜同然だ",
+      "link": "https://nihongokyoshi-net.com/2019/08/18/jlptn1-grammar-modouzenda/",
+      "grammarName": "〜も同然だ / 〜同然だ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を経て",
+      "link": "https://nihongokyoshi-net.com/2019/08/16/jlptn1-grammar-hete/",
+      "grammarName": "〜を経て"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にかまけて",
+      "link": "https://nihongokyoshi-net.com/2019/08/08/jlptn1-grammar-nikamakete/",
+      "grammarName": "〜にかまけて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜きっての",
+      "link": "https://nihongokyoshi-net.com/2019/08/05/jlptn1-grammar-kitteno/",
+      "grammarName": "〜きっての"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に則って",
+      "link": "https://nihongokyoshi-net.com/2019/08/04/jlptn1-grammar-ninottotte/",
+      "grammarName": "〜に則って"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜んがために",
+      "link": "https://nihongokyoshi-net.com/2019/08/02/jlptn1-grammar-ngatameni/",
+      "grammarName": "〜んがために"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜んばかりに",
+      "link": "https://nihongokyoshi-net.com/2019/07/26/jlptn1-grammar-nbakarini/",
+      "grammarName": "〜んばかりに"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を皮切りに / 〜を皮切りとして",
+      "link": "https://nihongokyoshi-net.com/2019/07/26/jlptn1-grammar-wokawakirini/",
+      "grammarName": "〜を皮切りに / 〜を皮切りとして"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜のやら",
+      "link": "https://nihongokyoshi-net.com/2019/07/24/jlptn1-grammar-noyara/",
+      "grammarName": "〜のやら"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜まみれ",
+      "link": "https://nihongokyoshi-net.com/2019/07/23/jlptn1-grammar-mamire/",
+      "grammarName": "〜まみれ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ねばならない",
+      "link": "https://nihongokyoshi-net.com/2019/07/22/jlptn1-grammar-nebanaranai/",
+      "grammarName": "〜ねばならない"
+    },
+    {
+      "title": "【JLPT N1】文法・例文：〜にして",
+      "link": "https://nihongokyoshi-net.com/2019/07/21/jlptn1-grammar-nishite/",
+      "grammarName": "〜にして"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜なり〜なり",
+      "link": "https://nihongokyoshi-net.com/2019/07/19/jlptn1-grammar-nari-nari/",
+      "grammarName": "〜なり〜なり"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜なくしては",
+      "link": "https://nihongokyoshi-net.com/2019/07/18/jlptn1-grammar-nakushitewa/",
+      "grammarName": "〜なくしては"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ながら",
+      "link": "https://nihongokyoshi-net.com/2019/07/18/jlptn1-grammar-nagara/",
+      "grammarName": "〜ながら"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ないまでも",
+      "link": "https://nihongokyoshi-net.com/2019/07/17/jlptn1-grammar-naimademo/",
+      "grammarName": "〜ないまでも"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ずにはおかない / 〜ではおかない",
+      "link": "https://nihongokyoshi-net.com/2019/07/17/jlptn1-grammar-zuniwaokanai/",
+      "grammarName": "〜ずにはおかない / 〜ではおかない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜とあれば",
+      "link": "https://nihongokyoshi-net.com/2019/07/16/jlptn1-grammar-toareba/",
+      "grammarName": "〜とあれば"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜かと思いきや",
+      "link": "https://nihongokyoshi-net.com/2019/07/16/jlptn1-grammar-katoomoikiya/",
+      "grammarName": "〜かと思いきや"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に足る",
+      "link": "https://nihongokyoshi-net.com/2019/07/15/jlptn1-grammar-nitaru/",
+      "grammarName": "〜に足る"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に堪える / 〜に堪えない",
+      "link": "https://nihongokyoshi-net.com/2019/07/15/jlptn1-grammar-taeru-taenai/",
+      "grammarName": "〜に堪える / 〜に堪えない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ずにはすまない / 〜ないではすまない",
+      "link": "https://nihongokyoshi-net.com/2019/07/14/jlptn1-grammar-zuniwasumanai/",
+      "grammarName": "〜ずにはすまない / 〜ないではすまない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜が早いか",
+      "link": "https://nihongokyoshi-net.com/2019/07/14/jlptn1-grammar-gahayaika/",
+      "grammarName": "〜が早いか"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にかたくない",
+      "link": "https://nihongokyoshi-net.com/2019/07/12/jlptn1-grammar-nikatakunai/",
+      "grammarName": "〜にかたくない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜よう / 〜ようによっては",
+      "link": "https://nihongokyoshi-net.com/2019/07/10/lptn1-grammar-you/",
+      "grammarName": "〜よう / 〜ようによっては"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ものを",
+      "link": "https://nihongokyoshi-net.com/2019/07/10/jlptn1-grammar-monowo/",
+      "grammarName": "〜ものを"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ずくめ",
+      "link": "https://nihongokyoshi-net.com/2019/07/09/jlptn1-grammar-zukume/",
+      "grammarName": "〜ずくめ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜そばから",
+      "link": "https://nihongokyoshi-net.com/2019/07/09/jlptn1-grammar-sobakara/",
+      "grammarName": "〜そばから"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にあって",
+      "link": "https://nihongokyoshi-net.com/2019/07/08/jlptn1-grammar-niatte/",
+      "grammarName": "〜にあって"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜始末だ",
+      "link": "https://nihongokyoshi-net.com/2019/07/08/jlptn1-grammar-shimatsuda/",
+      "grammarName": "〜始末だ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜には及ばない",
+      "link": "https://nihongokyoshi-net.com/2019/07/07/jlptn1-grammar-niwaoyobanai/",
+      "grammarName": "〜には及ばない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にはあたらない",
+      "link": "https://nihongokyoshi-net.com/2019/07/05/jlptn1-grammar-niwaataranai/",
+      "grammarName": "〜にはあたらない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜の極み",
+      "link": "https://nihongokyoshi-net.com/2019/07/05/jlptn1-grammar-nokiwami/",
+      "grammarName": "〜の極み"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：ただ〜のみ",
+      "link": "https://nihongokyoshi-net.com/2019/07/05/jlptn1-grammar-tada-nomi/",
+      "grammarName": "ただ〜のみ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ときたら",
+      "link": "https://nihongokyoshi-net.com/2019/07/04/jlptn1-grammar-tokitara/",
+      "grammarName": "〜ときたら"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜いかんにかかわらず / いかんによらず / いかんをとわず",
+      "link": "https://nihongokyoshi-net.com/2019/07/03/jlptn1-grammar-ikannikakawarazu/",
+      "grammarName": "〜いかんにかかわらず / いかんによらず / いかんをとわず"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜いかんだ / いかんでは / 〜いかんによっては",
+      "link": "https://nihongokyoshi-net.com/2019/07/03/jlptn1-grammar-ikan/",
+      "grammarName": "〜いかんだ / いかんでは / 〜いかんによっては"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜といえども",
+      "link": "https://nihongokyoshi-net.com/2019/07/02/jlptn1-grammar-toiedomo/",
+      "grammarName": "〜といえども"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜なりに",
+      "link": "https://nihongokyoshi-net.com/2019/07/01/jlptn1-grammar-narini/",
+      "grammarName": "〜なりに"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に即して",
+      "link": "https://nihongokyoshi-net.com/2019/07/01/jlptn1-grammar-nisokushite/",
+      "grammarName": "〜に即して"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜極まる /  〜極まりない",
+      "link": "https://nihongokyoshi-net.com/2019/06/29/jlptn1-grammar-kiwamaru/",
+      "grammarName": "〜極まる /  〜極まりない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜をよそに",
+      "link": "https://nihongokyoshi-net.com/2019/06/28/jlptn1-grammar-woyosoni/",
+      "grammarName": "〜をよそに"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜もさることながら",
+      "link": "https://nihongokyoshi-net.com/2019/06/28/jlptn1-grammar-mosarukotonagara/",
+      "grammarName": "〜もさることながら"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にとどまらず",
+      "link": "https://nihongokyoshi-net.com/2019/06/27/jlptn1-grammar-nitodomarazu/",
+      "grammarName": "〜にとどまらず"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ともなると / 〜ともなれば",
+      "link": "https://nihongokyoshi-net.com/2019/06/27/jlptn1-grammar-tomonaruto-tomonareba/",
+      "grammarName": "〜ともなると / 〜ともなれば"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜と相まって\u001c/ 〜が相まって（あいまって）",
+      "link": "https://nihongokyoshi-net.com/2019/06/26/jlptn1-grammar-amatte/",
+      "grammarName": "〜と相まって\u001c/ 〜が相まって（あいまって）"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜かたがた",
+      "link": "https://nihongokyoshi-net.com/2019/06/26/jlptn1-grammar-katagata/",
+      "grammarName": "〜かたがた"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜からある / 〜からする / 〜からの",
+      "link": "https://nihongokyoshi-net.com/2019/06/25/jlptn1-grammar-karaaru-karasuru-karano/",
+      "grammarName": "〜からある / 〜からする / 〜からの"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜であれ〜であれ",
+      "link": "https://nihongokyoshi-net.com/2019/06/25/jlptn1-grammar-deare-deare/",
+      "grammarName": "〜であれ〜であれ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ばそれまでだ / 〜たらそれまでだ",
+      "link": "https://nihongokyoshi-net.com/2019/06/24/jlptn1-grammar-basoremadeda/",
+      "grammarName": "〜ばそれまでだ / 〜たらそれまでだ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜なしに / 〜なしで",
+      "link": "https://nihongokyoshi-net.com/2019/06/24/jlptn1-grammar-nashini/",
+      "grammarName": "〜なしに / 〜なしで"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜手前（てまえ）",
+      "link": "https://nihongokyoshi-net.com/2019/06/23/jlptn1-grammar-temae/",
+      "grammarName": "〜手前（てまえ）"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜べく",
+      "link": "https://nihongokyoshi-net.com/2019/06/23/jlptn1-grammar-beku/",
+      "grammarName": "〜べく"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ともあろう",
+      "link": "https://nihongokyoshi-net.com/2019/06/21/jlptn1-grammar-tomoarou/",
+      "grammarName": "〜ともあろう"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜はおろか",
+      "link": "https://nihongokyoshi-net.com/2019/06/21/jlptn1-grammar-waoroka/",
+      "grammarName": "〜はおろか"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜をおいて",
+      "link": "https://nihongokyoshi-net.com/2019/06/20/jlptn1-grammar-wooite/",
+      "grammarName": "〜をおいて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ならでは",
+      "link": "https://nihongokyoshi-net.com/2019/06/20/jlptn1-grammar-naradewa/",
+      "grammarName": "〜ならでは"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ごとき / ごとく /  ごとし",
+      "link": "https://nihongokyoshi-net.com/2019/06/19/jlptn1-grammar-gotoki/",
+      "grammarName": "〜ごとき / ごとく /  ごとし"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜てやまない",
+      "link": "https://nihongokyoshi-net.com/2019/06/19/jlptn1-grammar-teyamanai/",
+      "grammarName": "〜てやまない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜たるもの",
+      "link": "https://nihongokyoshi-net.com/2019/06/18/jlptn1-grammar-tarumono/",
+      "grammarName": "〜たるもの"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜の至り（いたり）",
+      "link": "https://nihongokyoshi-net.com/2019/06/18/jlptn1-grammar-itari/",
+      "grammarName": "〜の至り（いたり）"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜をもって（期限・手段・基準）",
+      "link": "https://nihongokyoshi-net.com/2019/06/18/jlptn1-grammar-womotte/",
+      "grammarName": "〜をもって（期限・手段・基準）"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜なくもない",
+      "link": "https://nihongokyoshi-net.com/2019/06/17/jlptn1-grammar-nakumonai/",
+      "grammarName": "〜なくもない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜たりとも〜ない",
+      "link": "https://nihongokyoshi-net.com/2019/06/17/jlptn1-grammar-taritomo-nai/",
+      "grammarName": "〜たりとも〜ない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を限りに",
+      "link": "https://nihongokyoshi-net.com/2019/06/16/jlptn1-grammar-wokagirini/",
+      "grammarName": "〜を限りに"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜まじき",
+      "link": "https://nihongokyoshi-net.com/2019/06/16/jlptn1-grammar-majiki/",
+      "grammarName": "〜まじき"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜べからず",
+      "link": "https://nihongokyoshi-net.com/2019/06/16/jlptn1-grammar-bekarazu/",
+      "grammarName": "〜べからず"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を禁じ得ない",
+      "link": "https://nihongokyoshi-net.com/2019/06/15/jlptn1-grammar-wokinjienai/",
+      "grammarName": "〜を禁じ得ない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を余儀なくされる",
+      "link": "https://nihongokyoshi-net.com/2019/06/15/jlptn1-grammar-woyoginakusareru/",
+      "grammarName": "〜を余儀なくされる"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ではあるまいし / 〜でもあるまいし",
+      "link": "https://nihongokyoshi-net.com/2019/06/14/jlptn1-grammar-dewaarumaishi/",
+      "grammarName": "〜ではあるまいし / 〜でもあるまいし"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ようが / 〜ようと",
+      "link": "https://nihongokyoshi-net.com/2019/06/13/jlptn1-grammar-youga/",
+      "grammarName": "〜ようが / 〜ようと"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜をものともせず",
+      "link": "https://nihongokyoshi-net.com/2019/06/12/jlptn1-grammar-womonotomosezu/",
+      "grammarName": "〜をものともせず"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜を踏まえて",
+      "link": "https://nihongokyoshi-net.com/2019/06/12/jlptn1-grammar-wofumaete/",
+      "grammarName": "〜を踏まえて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜なり",
+      "link": "https://nihongokyoshi-net.com/2019/06/11/jlptn1-grammar-nari/",
+      "grammarName": "〜なり"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜すら",
+      "link": "https://nihongokyoshi-net.com/2019/06/11/jlptn1-grammar-sura/",
+      "grammarName": "〜すら"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に関わる",
+      "link": "https://nihongokyoshi-net.com/2019/06/05/jlptn1-grammar-nikakawaru/",
+      "grammarName": "〜に関わる"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜に至る / 〜に至るまで",
+      "link": "https://nihongokyoshi-net.com/2019/05/31/jlptn1-grammar-niitaru/",
+      "grammarName": "〜に至る / 〜に至るまで"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ところを",
+      "link": "https://nihongokyoshi-net.com/2019/05/22/jlptn1-grammar-tokoro/",
+      "grammarName": "〜ところを"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ようにも〜ない",
+      "link": "https://nihongokyoshi-net.com/2019/05/13/jlptn1-grammar-younimo-nai/",
+      "grammarName": "〜ようにも〜ない"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にもまして",
+      "link": "https://nihongokyoshi-net.com/2019/05/10/jlptn1-grammar-nimomashite/",
+      "grammarName": "〜にもまして"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜あっての",
+      "link": "https://nihongokyoshi-net.com/2019/05/07/jlptn1-grammar-atteno/",
+      "grammarName": "〜あっての"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜にひきかえ",
+      "link": "https://nihongokyoshi-net.com/2019/04/26/jlptn1-grammar-nihikikae/",
+      "grammarName": "〜にひきかえ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜たら最後 / 〜たが最後",
+      "link": "https://nihongokyoshi-net.com/2019/04/24/jlptn1-grammar-tarasaigo/",
+      "grammarName": "〜たら最後 / 〜たが最後"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜めく・〜めいて",
+      "link": "https://nihongokyoshi-net.com/2019/04/23/jlptn1-grammar-meku/",
+      "grammarName": "〜めく・〜めいて"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜や否や（〜やいなや）",
+      "link": "https://nihongokyoshi-net.com/2019/04/22/jlptn1-grammar-yainaya/",
+      "grammarName": "〜や否や（〜やいなや）"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜きらいがある",
+      "link": "https://nihongokyoshi-net.com/2019/02/19/jlptn1-grammar-kiraigaaru/",
+      "grammarName": "〜きらいがある"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜がてら",
+      "link": "https://nihongokyoshi-net.com/2019/02/19/jlptn1-grammar-gateara/",
+      "grammarName": "〜がてら"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜ゆえに",
+      "link": "https://nihongokyoshi-net.com/2019/02/19/jlptn1-grammar-yueni/",
+      "grammarName": "〜ゆえに"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜とはいえ",
+      "link": "https://nihongokyoshi-net.com/2019/02/17/jlptn1-grammar-towaie/",
+      "grammarName": "〜とはいえ"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜かたわら",
+      "link": "https://nihongokyoshi-net.com/2019/02/15/jlptn1-grammar-katawara/",
+      "grammarName": "〜かたわら"
+    },
+    {
+      "title": "【JLPT N１】文法・例文：〜つ〜つ",
+      "link": "https://nihongokyoshi-net.com/2019/02/15/jlptn1-grammar-tsu-tsu/",
+      "grammarName": "〜つ〜つ"
+    },
+    {
+      "title": "【JLPT N1】文法・例文：〜までもない / 〜までもなく",
+      "link": "https://nihongokyoshi-net.com/2018/03/27/jlptn1-grammar-mademonai/",
+      "grammarName": "〜までもない / 〜までもなく"
+    }
+  ],
+  "n2": [
+    {
+      "title": "【JLPT N2】文法・例文：〜を除いて / 〜を除き / 〜を除けば",
+      "link": "https://nihongokyoshi-net.com/2020/03/10/jlptn2-grammar-nozoite/",
+      "grammarName": "〜を除いて / 〜を除き / 〜を除けば"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜てはいられない",
+      "link": "https://nihongokyoshi-net.com/2020/01/16/jlptn2-grammar-tewairarenai/",
+      "grammarName": "〜てはいられない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ないとも限らない",
+      "link": "https://nihongokyoshi-net.com/2019/12/19/jlptn2-grammar-naitomokagiranai/",
+      "grammarName": "〜ないとも限らない"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜てこのかた",
+      "link": "https://nihongokyoshi-net.com/2019/11/14/jlptn2-grammar-tekonokata/",
+      "grammarName": "〜てこのかた"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に相違ない",
+      "link": "https://nihongokyoshi-net.com/2019/11/05/jlptn2-grammar-nisouinai/",
+      "grammarName": "〜に相違ない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ものなら",
+      "link": "https://nihongokyoshi-net.com/2019/10/13/jlptn2-grammar-mononara/",
+      "grammarName": "〜ものなら"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ぬ",
+      "link": "https://nihongokyoshi-net.com/2019/07/30/jlptn2-grammar-nu/",
+      "grammarName": "〜ぬ"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：あまりの〜に / あまりの〜で",
+      "link": "https://nihongokyoshi-net.com/2019/07/28/jlptn2-grammar-amarino-ni/",
+      "grammarName": "あまりの〜に / あまりの〜で"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ようものなら",
+      "link": "https://nihongokyoshi-net.com/2019/07/25/jlptn2-grammar-youmononara/",
+      "grammarName": "〜ようものなら"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ようとしている",
+      "link": "https://nihongokyoshi-net.com/2019/07/25/jlptn2-grammar-youtoshiteiru/",
+      "grammarName": "〜ようとしている"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜たものではない",
+      "link": "https://nihongokyoshi-net.com/2019/07/24/jlptn2-grammar-tamonodewanai/",
+      "grammarName": "〜たものではない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜かのようだ / 〜かのように",
+      "link": "https://nihongokyoshi-net.com/2019/07/12/jlptn2-grammar-kanoyouda/",
+      "grammarName": "〜かのようだ / 〜かのように"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜もしない",
+      "link": "https://nihongokyoshi-net.com/2019/07/04/jlptn2-grammar-moshinai/",
+      "grammarName": "〜もしない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に限って",
+      "link": "https://nihongokyoshi-net.com/2019/07/04/jlptn2-grammar-nikagitte/",
+      "grammarName": "〜に限って"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に加えて",
+      "link": "https://nihongokyoshi-net.com/2019/06/15/jlptn2-grammar-nikuwaete/",
+      "grammarName": "〜に加えて"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜てみせる",
+      "link": "https://nihongokyoshi-net.com/2019/06/15/jlptn2-grammar-temiseru/",
+      "grammarName": "〜てみせる"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ぶる",
+      "link": "https://nihongokyoshi-net.com/2019/06/14/jlptn2-grammar-buru/",
+      "grammarName": "〜ぶる"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ないで済む / 〜ずに済む",
+      "link": "https://nihongokyoshi-net.com/2019/06/10/jlptn2-grammar-naidesumu/",
+      "grammarName": "〜ないで済む / 〜ずに済む"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ないでもない / 〜ないものでもない",
+      "link": "https://nihongokyoshi-net.com/2019/06/10/jlptn2-grammar-naidemonai/",
+      "grammarName": "〜ないでもない / 〜ないものでもない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ずじまい",
+      "link": "https://nihongokyoshi-net.com/2019/06/09/jlptn2-grammar-zujimai/",
+      "grammarName": "〜ずじまい"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜くらいなら",
+      "link": "https://nihongokyoshi-net.com/2019/06/07/jlptn2-grammar-kurainara/",
+      "grammarName": "〜くらいなら"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜を頼りに / 〜を頼り / 〜を頼りにして",
+      "link": "https://nihongokyoshi-net.com/2019/06/06/jlptn2-grammar-tayorini/",
+      "grammarName": "〜を頼りに / 〜を頼り / 〜を頼りにして"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜のことだから",
+      "link": "https://nihongokyoshi-net.com/2019/06/06/jlptn2-grammar-nokotodakara/",
+      "grammarName": "〜のことだから"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜折に",
+      "link": "https://nihongokyoshi-net.com/2019/06/05/jlptn2-grammar-orini/",
+      "grammarName": "〜折に"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ものがある",
+      "link": "https://nihongokyoshi-net.com/2019/06/05/jlptn2-grammar-monogaaru/",
+      "grammarName": "〜ものがある"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に際して",
+      "link": "https://nihongokyoshi-net.com/2019/06/04/jlptn2-grammar-nisaishite/",
+      "grammarName": "〜に際して"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に応えて",
+      "link": "https://nihongokyoshi-net.com/2019/06/04/jlptn2-grammar-nikotaete/",
+      "grammarName": "〜に応えて"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜上は",
+      "link": "https://nihongokyoshi-net.com/2019/06/04/jlptn2-grammar-uewa/",
+      "grammarName": "〜上は"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜だけまし",
+      "link": "https://nihongokyoshi-net.com/2019/06/04/jlptn2-grammar-dakemashi/",
+      "grammarName": "〜だけまし"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜にて",
+      "link": "https://nihongokyoshi-net.com/2019/06/04/jlptn2-grammar-nite/",
+      "grammarName": "〜にて"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜もかまわず",
+      "link": "https://nihongokyoshi-net.com/2019/06/04/jlptn2-grammar-kamawazu/",
+      "grammarName": "〜もかまわず"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ものか / 〜ものですか",
+      "link": "https://nihongokyoshi-net.com/2019/06/03/jlptn2-grammar-monoka/",
+      "grammarName": "〜ものか / 〜ものですか"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜はまだしも / 〜ならまだしも",
+      "link": "https://nihongokyoshi-net.com/2019/06/03/jlptn2-grammar-madashimo/",
+      "grammarName": "〜はまだしも / 〜ならまだしも"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ばかりか",
+      "link": "https://nihongokyoshi-net.com/2019/06/03/jlptn2-grammar-bakarika/",
+      "grammarName": "〜ばかりか"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜てまで / 〜までして",
+      "link": "https://nihongokyoshi-net.com/2019/06/02/jlptn2-grammar-temade/",
+      "grammarName": "〜てまで / 〜までして"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ぬきにして / 〜ぬきで",
+      "link": "https://nihongokyoshi-net.com/2019/06/01/jlptn2-grammar-nukinishite/",
+      "grammarName": "〜ぬきにして / 〜ぬきで"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜一方で",
+      "link": "https://nihongokyoshi-net.com/2019/06/01/jlptn2-grammar-ippode/",
+      "grammarName": "〜一方で"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜まま（に）",
+      "link": "https://nihongokyoshi-net.com/2019/06/01/jlptn2-grammar-mamani/",
+      "grammarName": "〜まま（に）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜といったら",
+      "link": "https://nihongokyoshi-net.com/2019/05/30/jlptn2-grammar-toittara/",
+      "grammarName": "〜といったら"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜の上では / 〜上（じょう）",
+      "link": "https://nihongokyoshi-net.com/2019/05/30/jlptn0-grammar-jouno/",
+      "grammarName": "〜の上では / 〜上（じょう）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜からして",
+      "link": "https://nihongokyoshi-net.com/2019/05/30/jlptn2-grammar-karashite/",
+      "grammarName": "〜からして"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜となると / 〜となれば / 〜となったら",
+      "link": "https://nihongokyoshi-net.com/2019/05/29/jlptn2-grammar-tonaruto/",
+      "grammarName": "〜となると / 〜となれば / 〜となったら"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ことだろう / 〜ことか",
+      "link": "https://nihongokyoshi-net.com/2019/05/28/jlptn2-grammar-kotodarou/",
+      "grammarName": "〜ことだろう / 〜ことか"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜どころか",
+      "link": "https://nihongokyoshi-net.com/2019/05/28/jlptn2-grammar-dokoroka/",
+      "grammarName": "〜どころか"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜からいうと / 〜からいって / 〜からいえば",
+      "link": "https://nihongokyoshi-net.com/2019/05/27/jlptn2-grammar-karaiuto/",
+      "grammarName": "〜からいうと / 〜からいって / 〜からいえば"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜のだから / 〜んだから",
+      "link": "https://nihongokyoshi-net.com/2019/05/27/jlptn2-grammar-nodakara/",
+      "grammarName": "〜のだから / 〜んだから"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜かと思うと / 〜かと思ったら",
+      "link": "https://nihongokyoshi-net.com/2019/05/27/jlptn2-grammar-katoomouto/",
+      "grammarName": "〜かと思うと / 〜かと思ったら"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜上で",
+      "link": "https://nihongokyoshi-net.com/2019/05/26/jlptn2-grammar-uede-3/",
+      "grammarName": "〜上で"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜とは（定義）",
+      "link": "https://nihongokyoshi-net.com/2019/05/24/jlptn2-grammar-towa/",
+      "grammarName": "〜とは（定義）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜として〜ない",
+      "link": "https://nihongokyoshi-net.com/2019/05/24/jlptn2-grammar-toshite-nai/",
+      "grammarName": "〜として〜ない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜だけに",
+      "link": "https://nihongokyoshi-net.com/2019/05/24/jlptn2-grammar-dakeni/",
+      "grammarName": "〜だけに"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に先立って / 〜に先立ち",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn2-grammar-sakidatte/",
+      "grammarName": "〜に先立って / 〜に先立ち"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜得る / 〜得ない",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn2-grammar-uru/",
+      "grammarName": "〜得る / 〜得ない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜か〜ないかのうちに",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn2-grammar-ka-naikanouchini/",
+      "grammarName": "〜か〜ないかのうちに"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜といった",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn2-grammar-toitta/",
+      "grammarName": "〜といった"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ことだ（助言・忠告）",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn2-grammar-kotoda/",
+      "grammarName": "〜ことだ（助言・忠告）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文： 〜にあたって / 〜にあたり",
+      "link": "https://nihongokyoshi-net.com/2019/05/21/jlptn2-grammar-niatari/",
+      "grammarName": " 〜にあたって / 〜にあたり"
+    },
+    {
+      "title": "【JLPT N２】文法・例文： 〜に限らず",
+      "link": "https://nihongokyoshi-net.com/2019/05/21/jlptn2-grammar-nikagirazu/",
+      "grammarName": " 〜に限らず"
+    },
+    {
+      "title": "【JLPT N２】文法・例文： 〜ばかりに",
+      "link": "https://nihongokyoshi-net.com/2019/05/21/jlptn2-grammar-bakarini/",
+      "grammarName": " 〜ばかりに"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜反面",
+      "link": "https://nihongokyoshi-net.com/2019/05/21/jlptn2-grammar-hanmen/",
+      "grammarName": "〜反面"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜あまり",
+      "link": "https://nihongokyoshi-net.com/2019/05/20/jlptn2-grammar-amari/",
+      "grammarName": "〜あまり"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜たて",
+      "link": "https://nihongokyoshi-net.com/2019/05/20/jlptn2-grammar-tate/",
+      "grammarName": "〜たて"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜はもとより",
+      "link": "https://nihongokyoshi-net.com/2019/05/19/jlptn2-grammar-motoyori/",
+      "grammarName": "〜はもとより"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜を契機に / 〜を契機として",
+      "link": "https://nihongokyoshi-net.com/2019/05/18/jlptn2-grammar-keiki/",
+      "grammarName": "〜を契機に / 〜を契機として"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜にもかかわらず",
+      "link": "https://nihongokyoshi-net.com/2019/05/17/jlptn2-grammar-nimokakawarazu/",
+      "grammarName": "〜にもかかわらず"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ないことはない / 〜ないこともない",
+      "link": "https://nihongokyoshi-net.com/2019/05/17/jlptn2-grammar-naikotowanai/",
+      "grammarName": "〜ないことはない / 〜ないこともない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜限り（限界）",
+      "link": "https://nihongokyoshi-net.com/2019/05/16/jlptn2-grammar-kagiri-2/",
+      "grammarName": "〜限り（限界）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜次第だ / 〜次第で",
+      "link": "https://nihongokyoshi-net.com/2019/05/16/jlptn2-grammar-shidaida/",
+      "grammarName": "〜次第だ / 〜次第で"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ぬく",
+      "link": "https://nihongokyoshi-net.com/2019/05/16/jlptn2-grammar-nuku/",
+      "grammarName": "〜ぬく"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜上で（目的）",
+      "link": "https://nihongokyoshi-net.com/2019/05/15/jlptn2-grammar-uede-2/",
+      "grammarName": "〜上で（目的）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜以上は",
+      "link": "https://nihongokyoshi-net.com/2019/05/15/jlptn2-grammar-ijoowa/",
+      "grammarName": "〜以上は"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜をめぐって / 〜をめぐり",
+      "link": "https://nihongokyoshi-net.com/2019/05/15/jlptn2-grammar-megutte/",
+      "grammarName": "〜をめぐって / 〜をめぐり"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜にほかならない",
+      "link": "https://nihongokyoshi-net.com/2019/05/14/jlptn2-grammar-hokanaranai/",
+      "grammarName": "〜にほかならない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に越したことはない",
+      "link": "https://nihongokyoshi-net.com/2019/05/10/jlptn2-grammar-nikoshitakotowanai/",
+      "grammarName": "〜に越したことはない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜のもとで / 〜のもとに",
+      "link": "https://nihongokyoshi-net.com/2019/05/09/jlptn2-grammar-motode/",
+      "grammarName": "〜のもとで / 〜のもとに"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜てでも",
+      "link": "https://nihongokyoshi-net.com/2019/05/09/jlptn2-grammar-tedemo/",
+      "grammarName": "〜てでも"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜末（すえ）に",
+      "link": "https://nihongokyoshi-net.com/2019/05/08/jlptn2-grammar-sueni/",
+      "grammarName": "〜末（すえ）に"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ばかりだ",
+      "link": "https://nihongokyoshi-net.com/2019/05/03/jlptn2-grammar-bakarida/",
+      "grammarName": "〜ばかりだ"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に応じて",
+      "link": "https://nihongokyoshi-net.com/2019/04/29/jlptn2-grammar-oujite/",
+      "grammarName": "〜に応じて"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜だけあって /  〜だけのことはあって",
+      "link": "https://nihongokyoshi-net.com/2019/04/29/jlptn2-grammar-dakeatte/",
+      "grammarName": "〜だけあって /  〜だけのことはあって"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ことに",
+      "link": "https://nihongokyoshi-net.com/2019/04/29/jlptn2-grammar-kotoni/",
+      "grammarName": "〜ことに"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜はさておき",
+      "link": "https://nihongokyoshi-net.com/2019/04/29/jlptn2-grammarasateoki/",
+      "grammarName": "〜はさておき"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜つつ",
+      "link": "https://nihongokyoshi-net.com/2019/04/23/jlptn2-grammar-tsutsu/",
+      "grammarName": "〜つつ"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜かいあって / 〜かいもなく",
+      "link": "https://nihongokyoshi-net.com/2019/04/23/jlptn2-grammar-kaigaatte/",
+      "grammarName": "〜かいあって / 〜かいもなく"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜あげく",
+      "link": "https://nihongokyoshi-net.com/2019/04/19/jlptn2-grammar-ageku/",
+      "grammarName": "〜あげく"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜からすると / 〜からすれば",
+      "link": "https://nihongokyoshi-net.com/2019/04/16/jlptn2-grammar-karasuruto/",
+      "grammarName": "〜からすると / 〜からすれば"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜きり",
+      "link": "https://nihongokyoshi-net.com/2019/03/20/jlptn2-grammar-kiri/",
+      "grammarName": "〜きり"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜からといって",
+      "link": "https://nihongokyoshi-net.com/2019/02/27/jlptn2-grammar-karatoitte/",
+      "grammarName": "〜からといって"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜はともかくとして",
+      "link": "https://nihongokyoshi-net.com/2019/02/22/jlptn2-grammar-tomokakutoshite/",
+      "grammarName": "〜はともかくとして"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ざるを得ない",
+      "link": "https://nihongokyoshi-net.com/2019/02/21/jlptn2-grammar-zaruoenai/",
+      "grammarName": "〜ざるを得ない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜まい",
+      "link": "https://nihongokyoshi-net.com/2019/02/21/jlptn2-grammar-mai/",
+      "grammarName": "〜まい"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜のみならず",
+      "link": "https://nihongokyoshi-net.com/2019/02/20/jlptn2-grammar-nominarazu/",
+      "grammarName": "〜のみならず"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜てならない",
+      "link": "https://nihongokyoshi-net.com/2019/02/20/jlptn2-grammar-tenaranai/",
+      "grammarName": "〜てならない"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜やら〜やら",
+      "link": "https://nihongokyoshi-net.com/2019/02/19/jlptn2-grammar-yara-yara/",
+      "grammarName": "〜やら〜やら"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：ことなく",
+      "link": "https://nihongokyoshi-net.com/2019/02/14/jlptn2-grammar-kotonaku/",
+      "grammarName": "ことなく"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜を問わず",
+      "link": "https://nihongokyoshi-net.com/2019/02/14/jlptn2-grammar-towazu/",
+      "grammarName": "〜を問わず"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜につけて",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-nitsukete/",
+      "grammarName": "〜につけて"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜とともに（相関関係）",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-totomoni/",
+      "grammarName": "〜とともに（相関関係）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜限り（条件の範囲）",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-kagiri/",
+      "grammarName": "〜限り（条件の範囲）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜どころではない / 〜どころじゃない",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-dokorojanai/",
+      "grammarName": "〜どころではない / 〜どころじゃない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：ものだ（感慨）",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-monoda-kangai/",
+      "grammarName": "ものだ（感慨）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：～ないことには〜ない",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-naikotowa-nai/",
+      "grammarName": "～ないことには〜ない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：～ところだった",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-tokorodatta/",
+      "grammarName": "～ところだった"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：～っこない",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn2-grammar-kkonai/",
+      "grammarName": "～っこない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜もの / ～もん / 〜んだもん",
+      "link": "https://nihongokyoshi-net.com/2019/01/22/jlptn2-grammar-mon/",
+      "grammarName": "〜もの / ～もん / 〜んだもん"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ことだし",
+      "link": "https://nihongokyoshi-net.com/2019/01/16/jlptn2-grammar-kotodashi/",
+      "grammarName": "〜ことだし"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：～にしたら / ～にすれば / ～にしてみたら / ～にしてみれば",
+      "link": "https://nihongokyoshi-net.com/2019/01/16/jlptn2-grammar-nishitara/",
+      "grammarName": "～にしたら / ～にすれば / ～にしてみたら / ～にしてみれば"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ことになると / 〜こととなると",
+      "link": "https://nihongokyoshi-net.com/2019/01/15/jlptn2-grammar-kotoninaruto/",
+      "grammarName": "〜ことになると / 〜こととなると"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜とか（で）",
+      "link": "https://nihongokyoshi-net.com/2019/01/15/jlptn2-grammar-tokade/",
+      "grammarName": "〜とか（で）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜そうにない /  〜そうもない",
+      "link": "https://nihongokyoshi-net.com/2019/01/15/jlptn2-grammar-sooninai/",
+      "grammarName": "〜そうにない /  〜そうもない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：～にしては",
+      "link": "https://nihongokyoshi-net.com/2018/11/23/jlptn2-grammar-nishitewa/",
+      "grammarName": "～にしては"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜にかぎり",
+      "link": "https://nihongokyoshi-net.com/2018/11/21/jlptn2-grammar-nikagiri/",
+      "grammarName": "〜にかぎり"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜気味",
+      "link": "https://nihongokyoshi-net.com/2018/10/14/jlptn2-grammar-gimi/",
+      "grammarName": "〜気味"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜どころではない/どころじゃない",
+      "link": "https://nihongokyoshi-net.com/2018/09/14/jlptn2-grammar-dokorodewanai/",
+      "grammarName": "〜どころではない/どころじゃない"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜ものだ（当然 / 忠告・義務）",
+      "link": "https://nihongokyoshi-net.com/2018/09/11/jlptn2-grammar-monoda/",
+      "grammarName": "〜ものだ（当然 / 忠告・義務）"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜に沿って",
+      "link": "https://nihongokyoshi-net.com/2018/08/31/jlptn2-grammar-nisotte/",
+      "grammarName": "〜に沿って"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜かねる",
+      "link": "https://nihongokyoshi-net.com/2018/07/23/jlptn2-grammar-kaneru/",
+      "grammarName": "〜かねる"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜っぱなし",
+      "link": "https://nihongokyoshi-net.com/2018/07/20/jlptn2-grammar-ppanashi/",
+      "grammarName": "〜っぱなし"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜くせに / くせして",
+      "link": "https://nihongokyoshi-net.com/2018/07/17/jlptn2-grammar-kuseni/",
+      "grammarName": "〜くせに / くせして"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：〜をはじめ",
+      "link": "https://nihongokyoshi-net.com/2018/07/09/jlptn2-grammar-hajime/",
+      "grammarName": "〜をはじめ"
+    },
+    {
+      "title": "【JLPT N２】文法・例文：次第（しだい）",
+      "link": "https://nihongokyoshi-net.com/2018/07/08/jlptn2-grammar-shidai/",
+      "grammarName": "次第（しだい）"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜に基づいて",
+      "link": "https://nihongokyoshi-net.com/2018/07/02/jlptn2-grammar-motoduite/",
+      "grammarName": "〜に基づいて"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜がたい",
+      "link": "https://nihongokyoshi-net.com/2018/06/27/jlptn2-grammar-gatai/",
+      "grammarName": "〜がたい"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜なんて",
+      "link": "https://nihongokyoshi-net.com/2018/06/06/jlptn2-grammar-nante/",
+      "grammarName": "〜なんて"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜につき（理由）",
+      "link": "https://nihongokyoshi-net.com/2018/06/04/jlptn2-grammar-nitsuki/",
+      "grammarName": "〜につき（理由）"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜っぽい",
+      "link": "https://nihongokyoshi-net.com/2018/05/29/jlptn2-grammar-ppoi/",
+      "grammarName": "〜っぽい"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜というものではない",
+      "link": "https://nihongokyoshi-net.com/2018/05/08/jlptn2-grammar-toiumonodewanai/",
+      "grammarName": "〜というものではない"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜にともなって",
+      "link": "https://nihongokyoshi-net.com/2018/04/16/jlptn2-grammar-tomonatte/",
+      "grammarName": "〜にともなって"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：Nをもとに / もとにして",
+      "link": "https://nihongokyoshi-net.com/2018/04/14/jlptn2-grammar-motonishite/",
+      "grammarName": "Nをもとに / もとにして"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜ものの",
+      "link": "https://nihongokyoshi-net.com/2018/04/13/jlptn2-grammar-monono/",
+      "grammarName": "〜ものの"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜にすぎない",
+      "link": "https://nihongokyoshi-net.com/2018/04/12/jlptn2-grammar-nisuginai/",
+      "grammarName": "〜にすぎない"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜かねない",
+      "link": "https://nihongokyoshi-net.com/2018/04/05/jlptn2-grammar-kanenai/",
+      "grammarName": "〜かねない"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜ずにはいられない / 〜ないではいられない",
+      "link": "https://nihongokyoshi-net.com/2018/04/01/jlptn2-grammar-zuniwa-irarenai/",
+      "grammarName": "〜ずにはいられない / 〜ないではいられない"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜げ",
+      "link": "https://nihongokyoshi-net.com/2018/03/30/jlptn2-grammar-ge/",
+      "grammarName": "〜げ"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜つつある",
+      "link": "https://nihongokyoshi-net.com/2018/03/28/jlptn2-grammar-tsutsuaru/",
+      "grammarName": "〜つつある"
+    },
+    {
+      "title": "【JLPT N2】文法・例文：〜以来",
+      "link": "https://nihongokyoshi-net.com/2018/03/27/jlptn2-grammar-irai/",
+      "grammarName": "〜以来"
+    }
+  ],
+  "n3": [
+    {
+      "title": "【JLPT N3】文法・例文：まるで〜みたいだ（比喩）",
+      "link": "https://nihongokyoshi-net.com/2020/07/22/jlptn3-grammar-mitaida/",
+      "grammarName": "まるで〜みたいだ（比喩）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：たとえ〜ても",
+      "link": "https://nihongokyoshi-net.com/2020/05/29/jlptn3-grammar-tatoe-temo/",
+      "grammarName": "たとえ〜ても"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜途中に / 〜途中で",
+      "link": "https://nihongokyoshi-net.com/2020/05/26/jlptn3-grammar-tochuu/",
+      "grammarName": "〜途中に / 〜途中で"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜だけでなく〜も",
+      "link": "https://nihongokyoshi-net.com/2020/02/29/jlptn3-grammar-dakedenaku/",
+      "grammarName": "〜だけでなく〜も"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ても始まらない",
+      "link": "https://nihongokyoshi-net.com/2020/02/05/jlptn3-grammar-temohajimaranai/",
+      "grammarName": "〜ても始まらない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜とのことだ",
+      "link": "https://nihongokyoshi-net.com/2020/02/04/jlptn3-grammar-tonokotoda/",
+      "grammarName": "〜とのことだ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜てもしかたがない / 〜てもしょうがない",
+      "link": "https://nihongokyoshi-net.com/2020/02/03/jlptn3-grammar-temoshikataganai/",
+      "grammarName": "〜てもしかたがない / 〜てもしょうがない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：いくら〜ても / どんなに〜ても",
+      "link": "https://nihongokyoshi-net.com/2020/01/27/jlptn3-grammar-ikura-temo/",
+      "grammarName": "いくら〜ても / どんなに〜ても"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜場合",
+      "link": "https://nihongokyoshi-net.com/2020/01/27/jlptn3-grammar-baai/",
+      "grammarName": "〜場合"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜おきに",
+      "link": "https://nihongokyoshi-net.com/2020/01/22/jlptn3-grammar-okini/",
+      "grammarName": "〜おきに"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜ごとに",
+      "link": "https://nihongokyoshi-net.com/2020/01/21/jlptn3-grammar-gotoni/",
+      "grammarName": "〜ごとに"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜て済む",
+      "link": "https://nihongokyoshi-net.com/2020/01/15/jlptn3-grammar-desumu/",
+      "grammarName": "〜て済む"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜ても構わない",
+      "link": "https://nihongokyoshi-net.com/2020/01/14/jlptn3-grammar-temokamawanai/",
+      "grammarName": "〜ても構わない"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：まるで〜ようだ（比喩）",
+      "link": "https://nihongokyoshi-net.com/2020/01/08/jlptn3-grammar-youda/",
+      "grammarName": "まるで〜ようだ（比喩）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜として",
+      "link": "https://nihongokyoshi-net.com/2020/01/06/jlptn3-grammar-toshite/",
+      "grammarName": "〜として"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜通す",
+      "link": "https://nihongokyoshi-net.com/2019/12/02/jlptn3-grammar-toosu/",
+      "grammarName": "〜通す"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ふりをする",
+      "link": "https://nihongokyoshi-net.com/2019/11/25/jlptn3-grammar-furiwosuru/",
+      "grammarName": "〜ふりをする"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜直す",
+      "link": "https://nihongokyoshi-net.com/2019/11/13/jlptn3-grammar-naosu/",
+      "grammarName": "〜直す"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜込む",
+      "link": "https://nihongokyoshi-net.com/2019/11/12/jlptn3-grammar-komu/",
+      "grammarName": "〜込む"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜合う",
+      "link": "https://nihongokyoshi-net.com/2019/11/11/jlptn3-grammar-au/",
+      "grammarName": "〜合う"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜べきだった / 〜べきではなかった",
+      "link": "https://nihongokyoshi-net.com/2019/10/18/jlptn3-grammar-bekidatta/",
+      "grammarName": "〜べきだった / 〜べきではなかった"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜かわりに（代償・交換条件）",
+      "link": "https://nihongokyoshi-net.com/2019/10/11/jlptn3-grammar-kawarini2/",
+      "grammarName": "〜かわりに（代償・交換条件）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜は・・・で有名だ",
+      "link": "https://nihongokyoshi-net.com/2019/09/26/jlptn3-grammar-deyuumeida/",
+      "grammarName": "〜は・・・で有名だ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～を通して / 通じて（手段・媒介）",
+      "link": "https://nihongokyoshi-net.com/2019/08/28/jlptn3-grammar-tooshite-2/",
+      "grammarName": "～を通して / 通じて（手段・媒介）"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜結果",
+      "link": "https://nihongokyoshi-net.com/2019/08/20/jlptn3-grammar-kekka/",
+      "grammarName": "〜結果"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：数量 + は",
+      "link": "https://nihongokyoshi-net.com/2019/08/14/jlptn3-grammar-wa/",
+      "grammarName": "数量 + は"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜たがる",
+      "link": "https://nihongokyoshi-net.com/2019/08/06/jlptn3-grammar-tagaru/",
+      "grammarName": "〜たがる"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ている場合じゃない",
+      "link": "https://nihongokyoshi-net.com/2019/08/04/jlptn3-grammar-teirubaaijanai/",
+      "grammarName": "〜ている場合じゃない"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜のでしょうか / 〜んでしょうか",
+      "link": "https://nihongokyoshi-net.com/2019/08/02/jlptn3-grammar-nodeshooka/",
+      "grammarName": "〜のでしょうか / 〜んでしょうか"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：もしも〜たら",
+      "link": "https://nihongokyoshi-net.com/2019/07/31/jlptn3-grammar-moshimo/",
+      "grammarName": "もしも〜たら"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜は別として",
+      "link": "https://nihongokyoshi-net.com/2019/07/23/jlptn3-grammar-wabetsutoshite/",
+      "grammarName": "〜は別として"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ぶり",
+      "link": "https://nihongokyoshi-net.com/2019/07/22/jlptn3-grammar-buri/",
+      "grammarName": "〜ぶり"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜に代わって",
+      "link": "https://nihongokyoshi-net.com/2019/07/21/jlptn3-grammar-nikawatte/",
+      "grammarName": "〜に代わって"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜など / 〜なんか / 〜なんて",
+      "link": "https://nihongokyoshi-net.com/2019/07/19/jlptn3-grammar-nado/",
+      "grammarName": "〜など / 〜なんか / 〜なんて"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：お〜だ",
+      "link": "https://nihongokyoshi-net.com/2019/07/11/jlptn3-grammar-o-da/",
+      "grammarName": "お〜だ"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜とみえる",
+      "link": "https://nihongokyoshi-net.com/2019/07/02/jlptn3-grammar-tomieru/",
+      "grammarName": "〜とみえる"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜かな / 〜かなあ",
+      "link": "https://nihongokyoshi-net.com/2019/06/08/jlptn3-grammar-kana/",
+      "grammarName": "〜かな / 〜かなあ"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜によると / 〜よれば",
+      "link": "https://nihongokyoshi-net.com/2019/06/07/jlptn3-grammar-niyoruto/",
+      "grammarName": "〜によると / 〜よれば"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜には",
+      "link": "https://nihongokyoshi-net.com/2019/06/07/jlptn3-grammar-niwa/",
+      "grammarName": "〜には"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜ために（原因）",
+      "link": "https://nihongokyoshi-net.com/2019/06/07/jlptn3-grammar-tameni/",
+      "grammarName": "〜ために（原因）"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜を込めて",
+      "link": "https://nihongokyoshi-net.com/2019/06/03/jlptn3-grammar-wokomete/",
+      "grammarName": "〜を込めて"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜としても / 〜としたって",
+      "link": "https://nihongokyoshi-net.com/2019/06/02/jlptn3-grammar-toshitemo/",
+      "grammarName": "〜としても / 〜としたって"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜つもりだ（実際とは異なる）",
+      "link": "https://nihongokyoshi-net.com/2019/05/30/jlptn3-grammar-tsumorida/",
+      "grammarName": "〜つもりだ（実際とは異なる）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜も〜ば〜も",
+      "link": "https://nihongokyoshi-net.com/2019/05/27/jlptn3-grammar-mo-ba-mo/",
+      "grammarName": "〜も〜ば〜も"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜によっては",
+      "link": "https://nihongokyoshi-net.com/2019/05/27/jlptn3-grammar-niyottewa/",
+      "grammarName": "〜によっては"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜とか〜とか",
+      "link": "https://nihongokyoshi-net.com/2019/05/26/jlptn3-grammar-toka-toka/",
+      "grammarName": "〜とか〜とか"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜にしても〜にしても / 〜にせよ〜にせよ / 〜にしろ〜にしろ",
+      "link": "https://nihongokyoshi-net.com/2019/05/25/jlptn3-grammar-nishitemo-nishitemo/",
+      "grammarName": "〜にしても〜にしても / 〜にせよ〜にせよ / 〜にしろ〜にしろ"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜はもちろん",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn3-grammar-mochiron/",
+      "grammarName": "〜はもちろん"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜からには",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn3-grammar-karaniwa/",
+      "grammarName": "〜からには"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：（なんて）〜だろう",
+      "link": "https://nihongokyoshi-net.com/2019/05/23/jlptn3-grammar-daroo/",
+      "grammarName": "（なんて）〜だろう"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜てしかたがない / 〜でしょうがない",
+      "link": "https://nihongokyoshi-net.com/2019/05/22/jlptn3-grammar-teshikataganai/",
+      "grammarName": "〜てしかたがない / 〜でしょうがない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜きる",
+      "link": "https://nihongokyoshi-net.com/2019/05/22/jlptn3-grammar-kiru/",
+      "grammarName": "〜きる"
+    },
+    {
+      "title": "【JLPT N３】文法・例文： 〜てからでないと / 〜てからでなければ",
+      "link": "https://nihongokyoshi-net.com/2019/05/21/jlptn3-grammar-karadenaito/",
+      "grammarName": " 〜てからでないと / 〜てからでなければ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜わけにはいかない",
+      "link": "https://nihongokyoshi-net.com/2019/05/21/jlptn3-grammar-wakeniwaikanai/",
+      "grammarName": "〜わけにはいかない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜に関して",
+      "link": "https://nihongokyoshi-net.com/2019/05/20/jlptn3-grammar-nikanshite/",
+      "grammarName": "〜に関して"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜べきだ",
+      "link": "https://nihongokyoshi-net.com/2019/05/14/jlptn3-grammar-bekida/",
+      "grammarName": "〜べきだ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ようがない / 〜ようもない",
+      "link": "https://nihongokyoshi-net.com/2019/05/14/jlptn3-grammar-yooganai/",
+      "grammarName": "〜ようがない / 〜ようもない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜むきに",
+      "link": "https://nihongokyoshi-net.com/2019/05/14/jlptn3-grammar-muki/",
+      "grammarName": "〜むきに"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜にしたがって",
+      "link": "https://nihongokyoshi-net.com/2019/05/13/jlptn3-grammar-nishitagatte/",
+      "grammarName": "〜にしたがって"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜かける / 〜かけの",
+      "link": "https://nihongokyoshi-net.com/2019/05/10/jlptn3-grammar-kake/",
+      "grammarName": "〜かける / 〜かけの"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜一方だ",
+      "link": "https://nihongokyoshi-net.com/2019/05/06/jlptn3-grammar-ippooda/",
+      "grammarName": "〜一方だ"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜によって（原因・理由）",
+      "link": "https://nihongokyoshi-net.com/2019/05/03/jlptn3-grammar-niyotte-3/",
+      "grammarName": "〜によって（原因・理由）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ほど〜はない",
+      "link": "https://nihongokyoshi-net.com/2019/04/17/jlptn3-grammar-hodo-wanai/",
+      "grammarName": "〜ほど〜はない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ほど（程度）",
+      "link": "https://nihongokyoshi-net.com/2019/04/16/jlptn3-grammar-hodo-2/",
+      "grammarName": "〜ほど（程度）"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜によって（対応）",
+      "link": "https://nihongokyoshi-net.com/2019/04/12/jlptn3-grammar-niyotte-2/",
+      "grammarName": "〜によって（対応）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜上（に）",
+      "link": "https://nihongokyoshi-net.com/2019/02/25/jlptn3-grammar-ueni/",
+      "grammarName": "〜上（に）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ずに",
+      "link": "https://nihongokyoshi-net.com/2019/02/23/jlptn3-grammar-zuni/",
+      "grammarName": "〜ずに"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ばかりでなく",
+      "link": "https://nihongokyoshi-net.com/2019/02/22/jlptn3-grammar-bakaridenaku/",
+      "grammarName": "〜ばかりでなく"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜とは限らない",
+      "link": "https://nihongokyoshi-net.com/2019/02/20/jlptn3-grammar-towakagiranai/",
+      "grammarName": "〜とは限らない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜とともに（いっしょに）",
+      "link": "https://nihongokyoshi-net.com/2019/02/20/jlptn3-grammar-totomoni/",
+      "grammarName": "〜とともに（いっしょに）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜というより（も）",
+      "link": "https://nihongokyoshi-net.com/2019/02/18/jlptn3-grammar-toiuyorimo/",
+      "grammarName": "〜というより（も）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜にかけては",
+      "link": "https://nihongokyoshi-net.com/2019/02/13/jlptn3-grammar-nikaketewa/",
+      "grammarName": "〜にかけては"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜わけだ / 〜というわけだ",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn3-grammar-wakeda/",
+      "grammarName": "〜わけだ / 〜というわけだ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜くらい（軽視）",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn3-grammar-kurai/",
+      "grammarName": "〜くらい（軽視）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：Vたところ",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn3-grammar-tatokoro-2/",
+      "grammarName": "Vたところ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～こと",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn3-grammar-koto/",
+      "grammarName": "～こと"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～てたまらない",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn3-grammar-tamaranai/",
+      "grammarName": "～てたまらない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～っけ",
+      "link": "https://nihongokyoshi-net.com/2019/01/23/jlptn3-grammar-kke/",
+      "grammarName": "～っけ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：じゃない",
+      "link": "https://nihongokyoshi-net.com/2019/01/22/jlptn3-grammar-janai/",
+      "grammarName": "じゃない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～ば～のに（反実仮想）",
+      "link": "https://nihongokyoshi-net.com/2019/01/22/jlptn3-grammar-ba-noni/",
+      "grammarName": "～ば～のに（反実仮想）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～さえ",
+      "link": "https://nihongokyoshi-net.com/2019/01/17/jlptn3-grammar-sae/",
+      "grammarName": "～さえ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～を通して / 通じて（期間）",
+      "link": "https://nihongokyoshi-net.com/2019/01/17/jlptn3-grammar-tooshite/",
+      "grammarName": "～を通して / 通じて（期間）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ようとする",
+      "link": "https://nihongokyoshi-net.com/2019/01/16/jlptn3-grammar-youtosuru/",
+      "grammarName": "〜ようとする"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜はずがない",
+      "link": "https://nihongokyoshi-net.com/2019/01/16/jlptn3-grammar-hazuganai/",
+      "grammarName": "〜はずがない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜に限る",
+      "link": "https://nihongokyoshi-net.com/2019/01/16/jlptn3-grammar-kagiru/",
+      "grammarName": "〜に限る"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜だけ",
+      "link": "https://nihongokyoshi-net.com/2019/01/16/jlptn3-grammar-dake/",
+      "grammarName": "〜だけ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ことはない",
+      "link": "https://nihongokyoshi-net.com/2019/01/15/jlptn3-grammar-kotowanai/",
+      "grammarName": "〜ことはない"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜に決まっている",
+      "link": "https://nihongokyoshi-net.com/2019/01/15/jlptn3-grammar-nikimatteiru/",
+      "grammarName": "〜に決まっている"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜とおりに",
+      "link": "https://nihongokyoshi-net.com/2019/01/15/jlptn3-grammar-toorini/",
+      "grammarName": "〜とおりに"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：つい〜てしまう",
+      "link": "https://nihongokyoshi-net.com/2018/12/13/jlptn3-grammar-tsui/",
+      "grammarName": "つい〜てしまう"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：連用中止",
+      "link": "https://nihongokyoshi-net.com/2018/12/06/jlptn3-grammar-renyoochuushi/",
+      "grammarName": "連用中止"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ことになっている",
+      "link": "https://nihongokyoshi-net.com/2018/11/28/jlptn3-grammar-kotoninatteiru/",
+      "grammarName": "〜ことになっている"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜といっても",
+      "link": "https://nihongokyoshi-net.com/2018/11/28/jlptn3-grammar-toittemo/",
+      "grammarName": "〜といっても"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～てはいけないから / ～といけないから",
+      "link": "https://nihongokyoshi-net.com/2018/11/27/jlptn3-grammar-tehaikenaikara/",
+      "grammarName": "～てはいけないから / ～といけないから"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜なあ",
+      "link": "https://nihongokyoshi-net.com/2018/11/21/jlptn3-grammar-naa/",
+      "grammarName": "〜なあ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜むけに",
+      "link": "https://nihongokyoshi-net.com/2018/11/21/jlptn3-grammar-mukeni/",
+      "grammarName": "〜むけに"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：～わりに",
+      "link": "https://nihongokyoshi-net.com/2018/11/20/jlptn3-grammar-warini/",
+      "grammarName": "～わりに"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：移動Vている",
+      "link": "https://nihongokyoshi-net.com/2018/11/20/jlptn3-grammar-teiru/",
+      "grammarName": "移動Vている"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜うちに",
+      "link": "https://nihongokyoshi-net.com/2018/10/31/jpltn3-grammar-uchini/",
+      "grammarName": "〜うちに"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜に反して / 〜に反する",
+      "link": "https://nihongokyoshi-net.com/2018/09/22/jlptn3-grammar-hanshite/",
+      "grammarName": "〜に反して / 〜に反する"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜たところ",
+      "link": "https://nihongokyoshi-net.com/2018/09/14/jlptn3-grammar-tatokoro/",
+      "grammarName": "〜たところ"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜につき（比率）",
+      "link": "https://nihongokyoshi-net.com/2018/09/12/jlptn3-grammar-nitsuki/",
+      "grammarName": "〜につき（比率）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜につれて",
+      "link": "https://nihongokyoshi-net.com/2018/09/08/jlptn3-grammar-nitsurete/",
+      "grammarName": "〜につれて"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：ということだ &lt;伝聞・結論&gt;",
+      "link": "https://nihongokyoshi-net.com/2018/08/31/jlptn3-grammar-toiukotoda/",
+      "grammarName": "ということだ &lt;伝聞・結論&gt;"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜おかげで",
+      "link": "https://nihongokyoshi-net.com/2018/08/30/jlptn3-grammar-okagede/",
+      "grammarName": "〜おかげで"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜おそれがある",
+      "link": "https://nihongokyoshi-net.com/2018/08/30/jlptn3-grammar-osoregaaru/",
+      "grammarName": "〜おそれがある"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜せいで",
+      "link": "https://nihongokyoshi-net.com/2018/08/24/jlptn3-grammar-seide/",
+      "grammarName": "〜せいで"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜に対して（対象・対比）",
+      "link": "https://nihongokyoshi-net.com/2018/08/07/jlptn3-grammar-nitaishite/",
+      "grammarName": "〜に対して（対象・対比）"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜がち",
+      "link": "https://nihongokyoshi-net.com/2018/08/03/jlptn3-grammar-gachi/",
+      "grammarName": "〜がち"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜に比べて",
+      "link": "https://nihongokyoshi-net.com/2018/08/02/jlptn3-grammar-kurabete/",
+      "grammarName": "〜に比べて"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜てはじめて",
+      "link": "https://nihongokyoshi-net.com/2018/07/26/jlptn3-grammar-tehajimete/",
+      "grammarName": "〜てはじめて"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：〜ことから",
+      "link": "https://nihongokyoshi-net.com/2018/07/19/jlptn3-grammar-kotokara/",
+      "grammarName": "〜ことから"
+    },
+    {
+      "title": "【JLPT N３】文法・例文：わけではない / わけじゃない",
+      "link": "https://nihongokyoshi-net.com/2018/07/18/jlptn3-grammar-wakedewanai/",
+      "grammarName": "わけではない / わけじゃない"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜がきっかけで / 〜をきっかけに",
+      "link": "https://nihongokyoshi-net.com/2018/07/06/jlptn3-grammar-kikkake/",
+      "grammarName": "〜がきっかけで / 〜をきっかけに"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜ついでに",
+      "link": "https://nihongokyoshi-net.com/2018/07/05/jlptn3-grammar-tsuideni/",
+      "grammarName": "〜ついでに"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜しかない / 〜ほかない",
+      "link": "https://nihongokyoshi-net.com/2018/07/04/jlptn3-grammar-shikanai-hokanai/",
+      "grammarName": "〜しかない / 〜ほかない"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜にわたって",
+      "link": "https://nihongokyoshi-net.com/2018/07/02/jlptn3-grammar-niwatatte/",
+      "grammarName": "〜にわたって"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜に違いない",
+      "link": "https://nihongokyoshi-net.com/2018/06/28/jlptn3-grammar-nichigainai/",
+      "grammarName": "〜に違いない"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜ば〜ほど（相関関係）",
+      "link": "https://nihongokyoshi-net.com/2018/06/07/jlptn3-grammar-hodo/",
+      "grammarName": "〜ば〜ほど（相関関係）"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：こそ",
+      "link": "https://nihongokyoshi-net.com/2018/06/02/jlptn3-grammar-koso/",
+      "grammarName": "こそ"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜において / 〜における",
+      "link": "https://nihongokyoshi-net.com/2018/05/29/jlptn3-grammar-nioite/",
+      "grammarName": "〜において / 〜における"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜際に / 〜際の",
+      "link": "https://nihongokyoshi-net.com/2018/05/03/jlptn3-grammar-sai/",
+      "grammarName": "〜際に / 〜際の"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜について",
+      "link": "https://nihongokyoshi-net.com/2018/05/03/jlptn3-grammar-nitsuite/",
+      "grammarName": "〜について"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜たものだ",
+      "link": "https://nihongokyoshi-net.com/2018/04/27/jlptn3-grammar-monoda/",
+      "grammarName": "〜たものだ"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜といえば",
+      "link": "https://nihongokyoshi-net.com/2018/04/27/jlptn3-grammar-toieba/",
+      "grammarName": "〜といえば"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜だろう",
+      "link": "https://nihongokyoshi-net.com/2018/04/26/jlptn3-grammar-darou/",
+      "grammarName": "〜だろう"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜かわりに（代理・代用）",
+      "link": "https://nihongokyoshi-net.com/2018/04/24/jlptn3-grammar-kawarini/",
+      "grammarName": "〜かわりに（代理・代用）"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：Nによって（手段・方法）",
+      "link": "https://nihongokyoshi-net.com/2018/04/23/jlptn3-grammar-niyotte/",
+      "grammarName": "Nによって（手段・方法）"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜から〜にかけて",
+      "link": "https://nihongokyoshi-net.com/2018/04/22/jlptn3-grammar-kara-nikakete/",
+      "grammarName": "〜から〜にかけて"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜わけがない",
+      "link": "https://nihongokyoshi-net.com/2018/04/16/jlptn2-grammar-wakeganai/",
+      "grammarName": "〜わけがない"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜さえ〜ば",
+      "link": "https://nihongokyoshi-net.com/2018/04/06/jlptn3-grammar-sae-ba/",
+      "grammarName": "〜さえ〜ば"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜たびに",
+      "link": "https://nihongokyoshi-net.com/2018/04/04/jlptn3-grammar-tabini/",
+      "grammarName": "〜たびに"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜だらけ",
+      "link": "https://nihongokyoshi-net.com/2018/04/03/jlptn3-grammar-darake/",
+      "grammarName": "〜だらけ"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜としたら",
+      "link": "https://nihongokyoshi-net.com/2018/04/02/jlptn3-grammar-toshitara/",
+      "grammarName": "〜としたら"
+    },
+    {
+      "title": "【JLPT N3】文法・例文： 〜を中心に / 〜を中心として",
+      "link": "https://nihongokyoshi-net.com/2018/03/31/jlptn3-grammar-chuushinni/",
+      "grammarName": " 〜を中心に / 〜を中心として"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：Nにとって",
+      "link": "https://nihongokyoshi-net.com/2018/03/29/jlptn3-grammar-totte/",
+      "grammarName": "Nにとって"
+    },
+    {
+      "title": "【JLPT N3】文法・例文：〜たとたん",
+      "link": "https://nihongokyoshi-net.com/2018/03/28/jlptn3-grammar-totan/",
+      "grammarName": "〜たとたん"
+    }
+  ],
+  "n4": [
+    {
+      "title": "【JLPT N4】文法・例文：〜みたいな / 〜みたいに （例示）",
+      "link": "https://nihongokyoshi-net.com/2020/07/22/jlptn4-grammar-mitaina/",
+      "grammarName": "〜みたいな / 〜みたいに （例示）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜みたいだ（推量）",
+      "link": "https://nihongokyoshi-net.com/2020/07/22/jlptn4-grammar-mitaida/",
+      "grammarName": "〜みたいだ（推量）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ような / 〜ように （例示）",
+      "link": "https://nihongokyoshi-net.com/2020/07/21/jlptn4-grammar-youna/",
+      "grammarName": "〜ような / 〜ように （例示）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ば",
+      "link": "https://nihongokyoshi-net.com/2020/07/06/jlptn4-grammar-ba/",
+      "grammarName": "〜ば"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜必要がある",
+      "link": "https://nihongokyoshi-net.com/2020/02/24/jlptn4-grammar-hitsuyougaaru/",
+      "grammarName": "〜必要がある"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜でしょう（推量）",
+      "link": "https://nihongokyoshi-net.com/2020/01/30/jlptn4-grammar-deshou/",
+      "grammarName": "〜でしょう（推量）"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜つもりだ",
+      "link": "https://nihongokyoshi-net.com/2020/01/29/jlptn4-grammar-tsumorida/",
+      "grammarName": "〜つもりだ"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜かどうか",
+      "link": "https://nihongokyoshi-net.com/2020/01/28/jlptn4-grammar-kadouka/",
+      "grammarName": "〜かどうか"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：（疑問詞）〜か",
+      "link": "https://nihongokyoshi-net.com/2020/01/28/jlptn4-grammar-ka/",
+      "grammarName": "（疑問詞）〜か"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：（形容詞）する",
+      "link": "https://nihongokyoshi-net.com/2020/01/23/jlptn4-grammar-adjective-suru/",
+      "grammarName": "（形容詞）する"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ようにする",
+      "link": "https://nihongokyoshi-net.com/2020/01/09/jlptn4-grammar-younisuru/",
+      "grammarName": "〜ようにする"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ても",
+      "link": "https://nihongokyoshi-net.com/2020/01/08/jlptn4-grammar-temo/",
+      "grammarName": "〜ても"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ていく",
+      "link": "https://nihongokyoshi-net.com/2020/01/06/jlptn4-grammar-teiku/",
+      "grammarName": "〜ていく"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜なら",
+      "link": "https://nihongokyoshi-net.com/2020/01/04/jlptn4-grammar-nara/",
+      "grammarName": "〜なら"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜らしい（推量）",
+      "link": "https://nihongokyoshi-net.com/2020/01/04/jlptn4-grammar-rashii2/",
+      "grammarName": "〜らしい（推量）"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ところだ",
+      "link": "https://nihongokyoshi-net.com/2020/01/03/jlptn4-grammar-tokoroda/",
+      "grammarName": "〜ところだ"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜という",
+      "link": "https://nihongokyoshi-net.com/2020/01/02/jlptn4-grammar-toiu/",
+      "grammarName": "〜という"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜なさい",
+      "link": "https://nihongokyoshi-net.com/2020/01/02/jlptn4-grammar-nasai/",
+      "grammarName": "〜なさい"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜てしまう",
+      "link": "https://nihongokyoshi-net.com/2020/01/02/jlptn4-grammar-teshimau/",
+      "grammarName": "〜てしまう"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ていただけませんか",
+      "link": "https://nihongokyoshi-net.com/2020/01/02/jlptn4-grammar-teitadakemasenka/",
+      "grammarName": "〜ていただけませんか"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜てある",
+      "link": "https://nihongokyoshi-net.com/2020/01/02/jlptn4-grammar-tearu/",
+      "grammarName": "〜てある"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜のに",
+      "link": "https://nihongokyoshi-net.com/2020/01/01/jlptn4-grammar-noni/",
+      "grammarName": "〜のに"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ので",
+      "link": "https://nihongokyoshi-net.com/2020/01/01/jlptn4-grammar-node/",
+      "grammarName": "〜ので"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ようと思う",
+      "link": "https://nihongokyoshi-net.com/2019/12/31/jlptn4-grammar-youtoomou/",
+      "grammarName": "〜ようと思う"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ようと思っている",
+      "link": "https://nihongokyoshi-net.com/2019/12/31/jlptn4-grammar-youtoomotteiru/",
+      "grammarName": "〜ようと思っている"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜予定だ",
+      "link": "https://nihongokyoshi-net.com/2019/12/30/jlptn4-grammar-yoteida/",
+      "grammarName": "〜予定だ"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ばかり",
+      "link": "https://nihongokyoshi-net.com/2019/11/27/jlptn4-grammar-bakari/",
+      "grammarName": "〜ばかり"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜は〜が、〜は（対比）",
+      "link": "https://nihongokyoshi-net.com/2019/09/06/jlptn4-grammar-wa-ga-wa/",
+      "grammarName": "〜は〜が、〜は（対比）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜と",
+      "link": "https://nihongokyoshi-net.com/2019/09/03/jlptn4-grammar-to/",
+      "grammarName": "〜と"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：まだ〜ていない",
+      "link": "https://nihongokyoshi-net.com/2019/08/27/jlptn2-grammar-mada-teinai/",
+      "grammarName": "まだ〜ていない"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ようにしている",
+      "link": "https://nihongokyoshi-net.com/2019/08/26/jlptn4-graammar-younishiteiru/",
+      "grammarName": "〜ようにしている"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜までに",
+      "link": "https://nihongokyoshi-net.com/2019/08/24/jlptn4-grammar-madeni/",
+      "grammarName": "〜までに"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜て（理由・原因）",
+      "link": "https://nihongokyoshi-net.com/2019/08/22/jlptn4-grammar-de/",
+      "grammarName": "〜て（理由・原因）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜かもしれない",
+      "link": "https://nihongokyoshi-net.com/2019/08/18/jlptn4-grammar-kamoshirenai/",
+      "grammarName": "〜かもしれない"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜しか〜ない",
+      "link": "https://nihongokyoshi-net.com/2019/08/15/jlptn4-grammar-shika/",
+      "grammarName": "〜しか〜ない"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ようだ（推量）",
+      "link": "https://nihongokyoshi-net.com/2019/08/13/jlptn4-grammar-youda/",
+      "grammarName": "〜ようだ（推量）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜そうです（直前）",
+      "link": "https://nihongokyoshi-net.com/2019/08/13/jlptn4-grammar-soudesu-3/",
+      "grammarName": "〜そうです（直前）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜し、〜し",
+      "link": "https://nihongokyoshi-net.com/2019/08/09/jlptn4-grammar-shi-shi/",
+      "grammarName": "〜し、〜し"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜そうです（様態）",
+      "link": "https://nihongokyoshi-net.com/2019/08/08/jlptn4-grammar-soudesu-2/",
+      "grammarName": "〜そうです（様態）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：数量 + も",
+      "link": "https://nihongokyoshi-net.com/2019/08/06/jlptn4-grammar-mo/",
+      "grammarName": "数量 + も"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：なかなか〜ない",
+      "link": "https://nihongokyoshi-net.com/2019/07/28/jlptn4-grammar-nakanaka-nai/",
+      "grammarName": "なかなか〜ない"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜にする",
+      "link": "https://nihongokyoshi-net.com/2019/05/29/jlptn4-grammar-nisuru/",
+      "grammarName": "〜にする"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜まま",
+      "link": "https://nihongokyoshi-net.com/2019/05/24/jlptn4-grammar-mama/",
+      "grammarName": "〜まま"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ことがある / 〜こともある",
+      "link": "https://nihongokyoshi-net.com/2019/05/09/jlptn4-grammar-kotogaaru/",
+      "grammarName": "〜ことがある / 〜こともある"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜すぎる",
+      "link": "https://nihongokyoshi-net.com/2019/05/06/jlptn4-grammar-sugiru/",
+      "grammarName": "〜すぎる"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜間",
+      "link": "https://nihongokyoshi-net.com/2019/05/02/jlptn4-grammar-aida/",
+      "grammarName": "〜間"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜やすい",
+      "link": "https://nihongokyoshi-net.com/2019/05/02/jlptn4-grammar-yasui/",
+      "grammarName": "〜やすい"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ことになる",
+      "link": "https://nihongokyoshi-net.com/2019/05/02/jlptn4-grammar-kotoninaru/",
+      "grammarName": "〜ことになる"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜出す",
+      "link": "https://nihongokyoshi-net.com/2019/05/01/jlptn4-grammar-dasu/",
+      "grammarName": "〜出す"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜にくい",
+      "link": "https://nihongokyoshi-net.com/2019/05/01/jlptn4-grammar-nikui/",
+      "grammarName": "〜にくい"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ことにする",
+      "link": "https://nihongokyoshi-net.com/2019/04/29/jlptn4-grammar-kotonisuru/",
+      "grammarName": "〜ことにする"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜間に",
+      "link": "https://nihongokyoshi-net.com/2019/04/18/jlptn4-grammar-aidani/",
+      "grammarName": "〜間に"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ほど〜ない（比較）",
+      "link": "https://nihongokyoshi-net.com/2019/04/18/jlptn4-grammar-hodo-nai/",
+      "grammarName": "〜ほど〜ない（比較）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜終わる",
+      "link": "https://nihongokyoshi-net.com/2019/04/02/jlptn4-grammar-owaru/",
+      "grammarName": "〜終わる"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜はじめる",
+      "link": "https://nihongokyoshi-net.com/2019/03/25/jlptn4-grammar-hajimeru/",
+      "grammarName": "〜はじめる"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜てみる",
+      "link": "https://nihongokyoshi-net.com/2019/03/22/jlptn4-grammar-temiru/",
+      "grammarName": "〜てみる"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ために",
+      "link": "https://nihongokyoshi-net.com/2019/03/05/jlptn4-grammar-tameni/",
+      "grammarName": "〜ために"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜そうです（伝聞）",
+      "link": "https://nihongokyoshi-net.com/2019/02/24/jlptn4-grammar-soudesu/",
+      "grammarName": "〜そうです（伝聞）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜はずだ",
+      "link": "https://nihongokyoshi-net.com/2018/10/01/jlptn4-grammar-hazuda/",
+      "grammarName": "〜はずだ"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：Vてくる（変化・移動）",
+      "link": "https://nihongokyoshi-net.com/2018/09/26/jlptn4-grammar-tekuru-change/",
+      "grammarName": "Vてくる（変化・移動）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ように（目標・期待）",
+      "link": "https://nihongokyoshi-net.com/2018/09/25/jlptn4-grammar-yooni/",
+      "grammarName": "〜ように（目標・期待）"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜ておく",
+      "link": "https://nihongokyoshi-net.com/2018/09/19/jlptn4-grammar-teoku/",
+      "grammarName": "〜ておく"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜てくる（行って戻る）",
+      "link": "https://nihongokyoshi-net.com/2018/09/18/jlptn4-grammar-tekuru/",
+      "grammarName": "〜てくる（行って戻る）"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜させてください",
+      "link": "https://nihongokyoshi-net.com/2018/07/25/jlptn4-grammar-sasetekudasai/",
+      "grammarName": "〜させてください"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜って",
+      "link": "https://nihongokyoshi-net.com/2018/07/12/jlptn4-grammar-tte/",
+      "grammarName": "〜って"
+    },
+    {
+      "title": "【JLPT N４】文法・例文：〜つづける",
+      "link": "https://nihongokyoshi-net.com/2018/07/10/jlptn4-grammar-tsudukeru/",
+      "grammarName": "〜つづける"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：Vたらいいですか",
+      "link": "https://nihongokyoshi-net.com/2018/06/26/jlptn4-grammar-taraiidesuka/",
+      "grammarName": "Vたらいいですか"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜たらどうですか",
+      "link": "https://nihongokyoshi-net.com/2018/06/24/jlptn4-grammar-taradoodesuka/",
+      "grammarName": "〜たらどうですか"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜ようになる / 〜なくなる",
+      "link": "https://nihongokyoshi-net.com/2018/06/23/jlptn4-grammar-youninaru-nakunaru/",
+      "grammarName": "〜ようになる / 〜なくなる"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：Nらしい（典型）",
+      "link": "https://nihongokyoshi-net.com/2018/06/22/jlptn4-grammar-rashii/",
+      "grammarName": "Nらしい（典型）"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜たばかり",
+      "link": "https://nihongokyoshi-net.com/2018/04/12/jlptn4-grammar-tabakari/",
+      "grammarName": "〜たばかり"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜がする",
+      "link": "https://nihongokyoshi-net.com/2018/04/12/jlptn4-grammar-gasuru/",
+      "grammarName": "〜がする"
+    },
+    {
+      "title": "【JLPT N4】文法・例文：〜のは〜だ",
+      "link": "https://nihongokyoshi-net.com/2018/04/10/jlptn4-grammar-nowa-desu/",
+      "grammarName": "〜のは〜だ"
+    }
+  ],
+  "n5": [
+    {
+      "title": "【JLPT N5】文法・例文：〜てから",
+      "link": "https://nihongokyoshi-net.com/2020/08/16/jlptn5-grammar-tekara/",
+      "grammarName": "〜てから"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜から",
+      "link": "https://nihongokyoshi-net.com/2020/06/10/jlptn5-grammar-kara/",
+      "grammarName": "〜から"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：どうやって",
+      "link": "https://nihongokyoshi-net.com/2020/02/28/jlptn5-grammar-douyatte/",
+      "grammarName": "どうやって"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜をください",
+      "link": "https://nihongokyoshi-net.com/2020/02/27/jlptn5-grammar-wokudasai/",
+      "grammarName": "〜をください"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜がいちばん",
+      "link": "https://nihongokyoshi-net.com/2020/02/26/jlptn5-grammar-gaichiban/",
+      "grammarName": "〜がいちばん"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：もう〜した",
+      "link": "https://nihongokyoshi-net.com/2020/02/21/jlptn5-grammar-mou-mashita/",
+      "grammarName": "もう〜した"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：どんな",
+      "link": "https://nihongokyoshi-net.com/2020/02/20/jlptn5-grammar-donna/",
+      "grammarName": "どんな"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜だけ",
+      "link": "https://nihongokyoshi-net.com/2020/02/19/jlptn5-grammar-dake/",
+      "grammarName": "〜だけ"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：とても",
+      "link": "https://nihongokyoshi-net.com/2020/02/13/jlptn5-grammar-toteomo/",
+      "grammarName": "とても"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜が欲しい",
+      "link": "https://nihongokyoshi-net.com/2020/02/12/jlptn5-grammar-gahoshii/",
+      "grammarName": "〜が欲しい"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜たい",
+      "link": "https://nihongokyoshi-net.com/2020/02/12/jlptn5-grammar-tai/",
+      "grammarName": "〜たい"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜なければならない",
+      "link": "https://nihongokyoshi-net.com/2020/02/06/jlptn5-grammar-nakerebanaranai/",
+      "grammarName": "〜なければならない"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜と思う",
+      "link": "https://nihongokyoshi-net.com/2020/02/02/jlptn5-grammar-toomou/",
+      "grammarName": "〜と思う"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜でしょう（確認・同意）",
+      "link": "https://nihongokyoshi-net.com/2020/01/29/jlptn5-grammar-deshou/",
+      "grammarName": "〜でしょう（確認・同意）"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜あとで",
+      "link": "https://nihongokyoshi-net.com/2019/12/18/jlptn5-grammar-atode/",
+      "grammarName": "〜あとで"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜ませんか",
+      "link": "https://nihongokyoshi-net.com/2019/12/14/jlptn5-grammar-masenka/",
+      "grammarName": "〜ませんか"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜はどうですか",
+      "link": "https://nihongokyoshi-net.com/2019/12/13/jlptn5-grammar-wadoudesuka/",
+      "grammarName": "〜はどうですか"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：あまり〜ない",
+      "link": "https://nihongokyoshi-net.com/2019/12/12/jlptn5-grammar-amari-nai/",
+      "grammarName": "あまり〜ない"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：（目的）に行く / 来る / 帰る",
+      "link": "https://nihongokyoshi-net.com/2019/12/10/jlptn5-grammar-niikimasu/",
+      "grammarName": "（目的）に行く / 来る / 帰る"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：ぜひ",
+      "link": "https://nihongokyoshi-net.com/2019/09/23/jlptn5-grammar-zehi/",
+      "grammarName": "ぜひ"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜なくてもいい",
+      "link": "https://nihongokyoshi-net.com/2019/09/04/jlptn5-grammar-nakutemoii/",
+      "grammarName": "〜なくてもいい"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜は〜より・・・です",
+      "link": "https://nihongokyoshi-net.com/2019/08/14/jlptn5-grammar-yori/",
+      "grammarName": "〜は〜より・・・です"
+    },
+    {
+      "title": "【JLPT N５】文法・例文：〜で（手段・方法）",
+      "link": "https://nihongokyoshi-net.com/2019/08/13/jlptn5-grammar-de/",
+      "grammarName": "〜で（手段・方法）"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜ましょうか",
+      "link": "https://nihongokyoshi-net.com/2019/08/07/jlptn5-grammar-mashouka/",
+      "grammarName": "〜ましょうか"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜たり〜たり",
+      "link": "https://nihongokyoshi-net.com/2019/06/18/jlptn5-grammar-taritari/",
+      "grammarName": "〜たり〜たり"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜てはいけない",
+      "link": "https://nihongokyoshi-net.com/2019/05/07/jlptn5-grammar-tewaikemasen/",
+      "grammarName": "〜てはいけない"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜前に",
+      "link": "https://nihongokyoshi-net.com/2019/04/15/jlptn5-grammar-maeni/",
+      "grammarName": "〜前に"
+    },
+    {
+      "title": "【JLPT N５】文法・例文：〜なる",
+      "link": "https://nihongokyoshi-net.com/2019/03/13/jlptn5-grammar-naru/",
+      "grammarName": "〜なる"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜てもいいですか",
+      "link": "https://nihongokyoshi-net.com/2019/02/23/jlptn5-grammar-temoiidesuka/",
+      "grammarName": "〜てもいいですか"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜ないでください",
+      "link": "https://nihongokyoshi-net.com/2019/02/23/jlptn5-grammar-naidekudasai/",
+      "grammarName": "〜ないでください"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜とき",
+      "link": "https://nihongokyoshi-net.com/2018/06/09/jlptn5-grammar-toki/",
+      "grammarName": "〜とき"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜ないで",
+      "link": "https://nihongokyoshi-net.com/2018/04/20/jlptn5-grammar-naide/",
+      "grammarName": "〜ないで"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜方（かた）",
+      "link": "https://nihongokyoshi-net.com/2018/04/12/jlptn5-grammar-kata/",
+      "grammarName": "〜方（かた）"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：AながらB",
+      "link": "https://nihongokyoshi-net.com/2018/04/11/jlptn5-grammar-nagara/",
+      "grammarName": "AながらB"
+    },
+    {
+      "title": "【JLPT N5】文法・例文：〜ましょう",
+      "link": "https://nihongokyoshi-net.com/2017/12/05/jlptn5-grammar-masho/",
+      "grammarName": "〜ましょう"
+    }
+  ]
+}
