@@ -73,8 +73,8 @@
             <button id="random-btn" class="button button--primary" type="button">
               Random
             </button>
-            <button id="shuffle-btn" class="button button--secondary" type="button">
-              Shuffle
+            <button id="new-session-btn" class="button button--secondary" type="button">
+              New batch
             </button>
           </div>
         </aside>
@@ -105,8 +105,14 @@
             <button id="prev-btn" class="icon-button" type="button" title="Previous">
               <span aria-hidden="true">‹</span>
             </button>
+            <button id="unlearned-btn" class="button button--secondary" type="button">
+              Down: not yet
+            </button>
             <button id="flip-btn" class="button button--primary" type="button">
               Flip
+            </button>
+            <button id="learned-btn" class="button button--success" type="button">
+              Up: learned
             </button>
             <button id="next-btn" class="icon-button" type="button" title="Next">
               <span aria-hidden="true">›</span>
@@ -119,9 +125,11 @@
             <p class="mini-panel__label">Current Filter</p>
             <strong id="results-summary">-</strong>
           </section>
-          <section class="mini-panel mini-panel--accent">
-            <p class="mini-panel__label">Mode</p>
-            <strong>Recall first, reveal second</strong>
+          <section class="mini-panel mini-panel--examples">
+            <p class="mini-panel__label">Examples</p>
+            <div id="examples-list" class="examples-list">
+              <p>Loading examples...</p>
+            </div>
           </section>
         </aside>
 

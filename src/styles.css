@@ -282,6 +282,12 @@ input[type="search"]:focus {
   color: var(--moss);
 }
 
+.button--success {
+  border-color: var(--moss);
+  background: var(--moss);
+  color: #ffffff;
+}
+
 .level-chip,
 .segmented-control button {
   height: 38px;
@@ -413,12 +419,58 @@ input[type="search"]:focus {
   background: rgba(232, 184, 181, 0.16);
 }
 
+.mini-panel--examples {
+  min-height: 292px;
+}
+
+.examples-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.examples-list > p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.example-item {
+  padding: 10px 11px;
+  border: 1px solid rgba(23, 20, 18, 0.08);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.example-item p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.example-item strong {
+  color: var(--vermillion);
+}
+
+.example-item small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .table-wrap {
   overflow: auto;
   max-height: 520px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: #ffffff;
+}
+
+.study-layout.is-list-mode .word-bank {
+  min-height: 680px;
+}
+
+.study-layout.is-list-mode .table-wrap {
+  max-height: 640px;
 }
 
 .word-table {
@@ -483,6 +535,12 @@ input[type="search"]:focus {
 
   .side-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .study-layout.is-list-mode {
+    grid-template-areas:
+      "tools bank"
+      "tools bank";
   }
 }
 

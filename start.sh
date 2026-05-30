@@ -8,6 +8,7 @@ LOG_FILE="$ROOT_DIR/.server.log"
 PORT="${PORT:-8000}"
 HOST="${HOST:-127.0.0.1}"
 EXPRESS_PACKAGE="$ROOT_DIR/node_modules/express/package.json"
+MYSQL_PACKAGE="$ROOT_DIR/node_modules/mysql2/package.json"
 
 cleanup_stale_pid() {
   if [[ -f "$PID_FILE" ]]; then
@@ -35,7 +36,7 @@ ensure_port_is_free() {
 }
 
 ensure_dependencies() {
-  if [[ -f "$EXPRESS_PACKAGE" ]]; then
+  if [[ -f "$EXPRESS_PACKAGE" && -f "$MYSQL_PACKAGE" ]]; then
     return
   fi
 

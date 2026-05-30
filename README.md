@@ -49,6 +49,42 @@ API local:
 
 - `GET /api/health`
 - `GET /api/words`
+- `GET /api/examples/:expression`
+- `POST /api/examples`
+- `PUT /api/examples/:expression`
+- `DELETE /api/examples/:expression`
+
+## MySQL examples
+
+Server sẽ tự tạo 2 bảng khi có cấu hình MySQL:
+
+- `vocabulary`: lưu từ vựng với primary key là `expression`
+- `vocabulary_examples`: lưu tối đa 3 example cho mỗi `expression`
+
+Tạo database trước:
+
+```sql
+CREATE DATABASE learn_jp_wordlist
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+```
+
+Sau đó set env theo `.env.example` trước khi chạy `./start.sh`.
+
+Ví dụ thêm example:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/examples \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expression": "語彙",
+    "examples": [
+      {"sentence": "語彙を毎日少しずつ増やします。"},
+      {"sentence": "この語彙はニュースでよく見ます。"},
+      {"sentence": "語彙の使い方を例文で確認します。"}
+    ]
+  }'
+```
 
 ## Menu quản lý port
 
