@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 const app = express();
 const PORT = Number(process.env.PORT || 8000);
+const HOST = process.env.HOST || "127.0.0.1";
 const ROOT_DIR = resolve(".");
 const DIST_DIR = resolve(ROOT_DIR, "dist");
 const DATA_FILE = resolve(DIST_DIR, "data", "words.json");
@@ -45,6 +46,6 @@ app.get("*", (_request, response) => {
   response.sendFile(resolve(DIST_DIR, "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`Learn JP Wordlist server running at http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Learn JP Wordlist server running at http://${HOST}:${PORT}`);
 });

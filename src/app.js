@@ -20,8 +20,9 @@ const elements = {
   prevBtn: document.querySelector("#prev-btn"),
   nextBtn: document.querySelector("#next-btn"),
   flipBtn: document.querySelector("#flip-btn"),
-  flashcardPanel: document.querySelector("#flashcard-panel"),
-  listPanel: document.querySelector("#list-panel"),
+  studyLayout: document.querySelector(".study-layout"),
+  focusArea: document.querySelector("#focus-card"),
+  wordBank: document.querySelector("#word-bank"),
   flashcard: document.querySelector("#flashcard"),
   cardExpression: document.querySelector("#card-expression"),
   cardReading: document.querySelector("#card-reading"),
@@ -269,8 +270,9 @@ function syncSelectedTableRow() {
 }
 
 function updateModeVisibility() {
-  elements.flashcardPanel.hidden = state.mode !== "flashcard";
-  elements.listPanel.hidden = state.mode !== "list";
+  elements.studyLayout.classList.toggle("is-list-mode", state.mode === "list");
+  elements.focusArea.hidden = state.mode !== "flashcard";
+  elements.wordBank.hidden = state.mode !== "list";
 }
 
 function stepCard(direction) {
