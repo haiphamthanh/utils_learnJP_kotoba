@@ -117,3 +117,164 @@ Menu hỗ trợ:
 2. Chạy lại `yarn build`
 3. Nếu đang chạy local server, restart bằng `./stop.sh` rồi `./start.sh`
 4. Deploy thư mục `dist/` hoặc tích hợp tiếp qua Express API
+
+## Deploy lên real host
+
+Ứng dụng này không nên deploy như static-only site vì các chức năng examples,
+stats, action logs, archive/reset cần Node.js + Express. Chọn VPS hoặc hosting
+có Node.js, MySQL và cho phép chạy process nền.
+
+### Chuẩn bị host
+
+Yêu cầu tối thiểu:
+
+- Ubuntu VPS hoặc server Linux tương đương
+- Node.js 20+ hoặc 22+
+- Yarn 1.x
+- MySQL 8 hoặc MariaDB tương thích
+- Nginx làm reverse proxy
+- Domain trỏ DNS `A record` về IP server
+
+### Cấu hình production
+
+Tạo `.env` trên server từ `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Ví dụ `.env` production:
+
+```env
+NODE_ENV=production
+HOST=127.0.0.1
+PORT=8000
+TRUST_PROXY=true
+
+BASIC_AUTH_USER=your_admin_user
+BASIC_AUTH_PASSWORD=your_long_random_password
+
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_USER=learn_jp_user
+MYSQL_PASSWORD=your_mysql_password
+MYSQL_DATABASE=learn_jp_wordlist
+```
+
+`BASIC_AUTH_USER` và `BASIC_AUTH_PASSWORD` rất quan trọng khi public, vì app có
+API ghi dữ liệu và archive/reset lịch sử học. Khi 2 giá trị này được set, toàn
+bộ app/API sẽ yêu cầu đăng nhập, ngoại trừ `/api/health`.
+
+### Tạo database
+
+```sql
+CREATE DATABASE learn_jp_wordlist
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'learn_jp_user'@'localhost' IDENTIFIED BY 'your_mysql_password';
+GRANT ALL PRIVILEGES ON learn_jp_wordlist.* TO 'learn_jp_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+Server sẽ tự tạo bảng và view khi khởi động.
+
+### Deploy code
+
+Trên server:
+
+```bash
+cd /var/www
+git clone <your-repo-url> learn-jp-wordlist
+cd learn-jp-wordlist
+yarn install --production
+yarn build
+```
+
+Nếu bạn chưa dùng Git, có thể upload toàn bộ project lên `/var/www/learn-jp-wordlist`.
+Không upload `.env` lên Git public.
+
+### Chạy bằng PM2
+
+```bash
+yarn global add pm2
+pm2 start ecosystem.config.cjs
+pm2 save
+pm2 startup
+```
+
+PM2 sẽ chạy `server.js` ở `127.0.0.1:8000`. Nginx sẽ public ra domain.
+
+### Hoặc chạy bằng systemd
+
+Copy file mẫu:
+
+```bash
+sudo cp deploy/learn-jp-wordlist.service /etc/systemd/system/learn-jp-wordlist.service
+sudo nano /etc/systemd/system/learn-jp-wordlist.service
+```
+
+Sửa `WorkingDirectory` và `EnvironmentFile` đúng path thật. Sau đó:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable learn-jp-wordlist
+sudo systemctl start learn-jp-wordlist
+sudo systemctl status learn-jp-wordlist
+```
+
+### Cấu hình Nginx
+
+Copy file mẫu:
+
+```bash
+sudo cp deploy/nginx.learn-jp-wordlist.conf /etc/nginx/sites-available/learn-jp-wordlist
+sudo nano /etc/nginx/sites-available/learn-jp-wordlist
+```
+
+Thay `example.com` bằng domain thật. Sau đó:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/learn-jp-wordlist /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### HTTPS
+
+Cài Certbot và cấp SSL:
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d example.com -d www.example.com
+```
+
+Sau đó truy cập `https://example.com`.
+
+### Checklist trước khi public
+
+- DNS domain đã trỏ về IP server
+- `.env` có `NODE_ENV=production`
+- `.env` có `BASIC_AUTH_USER` và `BASIC_AUTH_PASSWORD`
+- MySQL user không dùng `root`
+- `yarn build` đã chạy thành công
+- Nginx có `client_max_body_size 25m` để archive không lỗi payload lớn
+- `archives/*.zip`, `.env`, `.server.log`, `node_modules/`, `dist/` không commit lên Git
+- Test `GET /api/health`
+- Test đăng nhập Basic Auth trên domain thật
+
+### Cập nhật production sau này
+
+```bash
+cd /var/www/learn-jp-wordlist
+git pull
+yarn install --production
+yarn build
+pm2 restart learn-jp-wordlist
+```
+
+Nếu dùng systemd:
+
+```bash
+sudo systemctl restart learn-jp-wordlist
+```

@@ -5,10 +5,19 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PID_FILE="$ROOT_DIR/.server.pid"
 PORT_FILE="$ROOT_DIR/.server.port"
 LOG_FILE="$ROOT_DIR/.server.log"
-PORT="${PORT:-8000}"
-HOST="${HOST:-127.0.0.1}"
 EXPRESS_PACKAGE="$ROOT_DIR/node_modules/express/package.json"
 MYSQL_PACKAGE="$ROOT_DIR/node_modules/mysql2/package.json"
+
+load_env_file() {
+  if [[ ! -f "$ROOT_DIR/.env" ]]; then
+    return
+  fi
+
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT_DIR/.env"
+  set +a
+}
 
 cleanup_stale_pid() {
   if [[ -f "$PID_FILE" ]]; then
@@ -66,6 +75,9 @@ server_is_ready() {
 }
 
 cd "$ROOT_DIR"
+load_env_file
+PORT="${PORT:-8000}"
+HOST="${HOST:-127.0.0.1}"
 cleanup_stale_pid
 ensure_port_is_free
 ensure_dependencies

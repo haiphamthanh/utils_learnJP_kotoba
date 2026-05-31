@@ -1,4 +1,5 @@
 import express from "express";
+import { timingSafeEqual } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import mysql from "mysql2/promise";
@@ -12,6 +13,9 @@ const ROOT_DIR = resolve(".");
 const DIST_DIR = resolve(ROOT_DIR, "dist");
 const DATA_FILE = resolve(DIST_DIR, "data", "words.json");
 const ARCHIVE_DIR = resolve(ROOT_DIR, "archives");
+const BASIC_AUTH_USER = process.env.BASIC_AUTH_USER || "";
+const BASIC_AUTH_PASSWORD = process.env.BASIC_AUTH_PASSWORD || "";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const MYSQL_CONFIG = {
   host: process.env.MYSQL_HOST,
   port: Number(process.env.MYSQL_PORT || 3306),
@@ -24,6 +28,9 @@ let dbPool = null;
 const CRC32_TABLE = createCrc32Table();
 
 app.disable("x-powered-by");
+app.set("trust proxy", parseBoolean(process.env.TRUST_PROXY));
+app.use(applySecurityHeaders);
+app.use(requireBasicAuth);
 app.use(express.json({ limit: "25mb" }));
 app.use((error, _request, response, next) => {
   if (error?.type === "entity.too.large") {
@@ -596,6 +603,77 @@ function normalizeExamplePayload(body) {
     expression,
     examples: normalizedExamples.slice(0, 3),
   };
+}
+
+function applySecurityHeaders(_request, response, next) {
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("X-Frame-Options", "DENY");
+  response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.setHeader(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()",
+  );
+
+  if (IS_PRODUCTION) {
+    response.setHeader(
+      "Content-Security-Policy",
+      "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'",
+    );
+  }
+
+  next();
+}
+
+function requireBasicAuth(request, response, next) {
+  if (!BASIC_AUTH_USER || !BASIC_AUTH_PASSWORD) {
+    next();
+    return;
+  }
+
+  if (request.path === "/api/health") {
+    next();
+    return;
+  }
+
+  const authorization = request.headers.authorization || "";
+  const [scheme, encoded] = authorization.split(" ");
+  if (scheme !== "Basic" || !encoded) {
+    rejectBasicAuth(response);
+    return;
+  }
+
+  const credentials = Buffer.from(encoded, "base64").toString("utf8");
+  const separatorIndex = credentials.indexOf(":");
+  const user = credentials.slice(0, separatorIndex);
+  const password = credentials.slice(separatorIndex + 1);
+
+  if (
+    safeEqual(user, BASIC_AUTH_USER) &&
+    safeEqual(password, BASIC_AUTH_PASSWORD)
+  ) {
+    next();
+    return;
+  }
+
+  rejectBasicAuth(response);
+}
+
+function rejectBasicAuth(response) {
+  response.setHeader("WWW-Authenticate", 'Basic realm="Learn JP Wordlist"');
+  response.status(401).json({ ok: false, message: "Authentication required." });
+}
+
+function safeEqual(left, right) {
+  const leftBuffer = Buffer.from(String(left));
+  const rightBuffer = Buffer.from(String(right));
+  return (
+    leftBuffer.length === rightBuffer.length &&
+    timingSafeEqual(leftBuffer, rightBuffer)
+  );
+}
+
+function parseBoolean(value) {
+  return ["1", "true", "yes", "on"].includes(String(value || "").toLowerCase());
 }
 
 async function saveExamples(request, response, statusCode) {
