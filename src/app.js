@@ -36,6 +36,8 @@ const elements = {
   learnedBtn: document.querySelector("#learned-btn"),
   unlearnedBtn: document.querySelector("#unlearned-btn"),
   favoriteBtn: document.querySelector("#favorite-btn"),
+  settingsBtn: document.querySelector("#settings-btn"),
+  cardSettingsPanel: document.querySelector("#card-settings-panel"),
   sessionActions: document.querySelector(".session-actions"),
   studyLayout: document.querySelector(".study-layout"),
   focusArea: document.querySelector("#focus-card"),
@@ -103,6 +105,7 @@ function bindEvents() {
     state.filterMode = button.dataset.filter;
     state.currentIndex = 0;
     updateFilterButtons();
+    closeSettingsPanel();
     applyFilters({ preserveSession: false });
   });
 
@@ -148,7 +151,19 @@ function bindEvents() {
   elements.learnedBtn.addEventListener("click", markCurrentLearned);
   elements.unlearnedBtn.addEventListener("click", markCurrentUnlearned);
   elements.favoriteBtn.addEventListener("click", toggleFavorite);
-  elements.flashcard.addEventListener("click", toggleFlip);
+  elements.settingsBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleSettingsPanel();
+  });
+  elements.cardSettingsPanel.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+  elements.flashcard.addEventListener("click", (event) => {
+    if (event.target.closest("button, .card-settings-panel")) {
+      return;
+    }
+    toggleFlip();
+  });
   elements.flashcard.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -177,6 +192,16 @@ function bindEvents() {
     } else if (event.key.toLowerCase() === "f") {
       toggleFlip();
     }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (
+      elements.cardSettingsPanel.hidden ||
+      event.target.closest("#settings-btn, #card-settings-panel")
+    ) {
+      return;
+    }
+    closeSettingsPanel();
   });
 
   elements.wordModal.addEventListener("click", (event) => {
@@ -438,6 +463,7 @@ function stepCard(direction) {
     return;
   }
 
+  playCardMotion(direction < 0 ? "left" : "right");
   state.currentIndex =
     (state.currentIndex + direction + state.sessionWords.length) %
     state.sessionWords.length;
@@ -454,6 +480,7 @@ function markCurrentLearned() {
   state.learnedExpressions.add(currentWord.expression);
   state.seenExpressions.add(currentWord.expression);
   logAction("learned", currentWord);
+  playCardMotion("up");
   state.sessionWords = state.sessionWords.filter(
     (word) => word.expression !== currentWord.expression,
   );
@@ -474,6 +501,7 @@ function markCurrentUnlearned() {
   state.learnedExpressions.delete(currentWord.expression);
   state.seenExpressions.add(currentWord.expression);
   logAction("unlearned", currentWord);
+  playCardMotion("down");
   state.sessionWords.splice(state.currentIndex, 1);
   state.sessionWords.push(currentWord);
 
@@ -488,7 +516,35 @@ function toggleFlip() {
   if (!state.sessionWords.length) {
     return;
   }
+  playCardMotion("flip");
   elements.flashcard.classList.toggle("is-flipped");
+}
+
+function toggleSettingsPanel() {
+  const willOpen = elements.cardSettingsPanel.hidden;
+  elements.cardSettingsPanel.hidden = !willOpen;
+  elements.settingsBtn.setAttribute("aria-expanded", String(willOpen));
+}
+
+function closeSettingsPanel() {
+  elements.cardSettingsPanel.hidden = true;
+  elements.settingsBtn.setAttribute("aria-expanded", "false");
+}
+
+function playCardMotion(type) {
+  const className = `is-motion-${type}`;
+  elements.flashcard.classList.remove(
+    "is-motion-flip",
+    "is-motion-left",
+    "is-motion-right",
+    "is-motion-up",
+    "is-motion-down",
+  );
+  void elements.flashcard.offsetWidth;
+  elements.flashcard.classList.add(className);
+  window.setTimeout(() => {
+    elements.flashcard.classList.remove(className);
+  }, 420);
 }
 
 function toggleFavorite() {

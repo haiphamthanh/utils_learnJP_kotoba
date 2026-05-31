@@ -69,17 +69,6 @@
             </div>
           </section>
 
-          <section class="field">
-            <span>Filter</span>
-            <div class="filter-grid" id="card-filter">
-              <button class="is-active" data-filter="all" type="button">All</button>
-              <button data-filter="starred" type="button">Starred</button>
-              <button data-filter="unstarred" type="button">No star</button>
-              <button data-filter="learned" type="button">Learned</button>
-              <button data-filter="unlearned" type="button">Not yet</button>
-            </div>
-          </section>
-
           <div class="actions session-actions">
             <button id="random-btn" class="button button--primary" type="button">
               Random
@@ -97,9 +86,6 @@
               <h2>今日の言葉</h2>
             </div>
             <div class="heading-tools">
-              <button id="favorite-btn" class="favorite-button" type="button" title="Toggle favorite (S)" aria-label="Toggle favorite">
-                ☆
-              </button>
               <div class="segmented-control view-switch" id="study-mode">
                 <button
                   class="is-active"
@@ -124,6 +110,37 @@
           </div>
 
           <article class="flashcard" id="flashcard" tabindex="0" role="button">
+            <div class="card-corner-tools" aria-label="Card tools">
+              <button
+                id="settings-btn"
+                class="card-tool-button"
+                type="button"
+                title="Study filters"
+                aria-label="Study filters"
+                aria-expanded="false"
+              >
+                ⚙
+              </button>
+              <button
+                id="favorite-btn"
+                class="card-tool-button favorite-button"
+                type="button"
+                title="Toggle favorite (S)"
+                aria-label="Toggle favorite"
+              >
+                ☆
+              </button>
+              <div id="card-settings-panel" class="card-settings-panel" hidden>
+                <p>Filter</p>
+                <div class="filter-grid" id="card-filter">
+                  <button class="is-active" data-filter="all" type="button">All</button>
+                  <button data-filter="starred" type="button">Starred</button>
+                  <button data-filter="unstarred" type="button">No star</button>
+                  <button data-filter="learned" type="button">Learned</button>
+                  <button data-filter="unlearned" type="button">Not yet</button>
+                </div>
+              </div>
+            </div>
             <div class="flashcard__front flashcard__face">
               <span class="flashcard__label">表</span>
               <h3 id="card-expression">Đang tải...</h3>
