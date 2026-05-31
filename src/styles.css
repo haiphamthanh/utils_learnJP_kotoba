@@ -50,6 +50,25 @@ button {
   padding: 20px 0 44px;
 }
 
+.app-shell.is-archive-reset {
+  animation: archiveResetFlash 520ms ease;
+}
+
+@keyframes archiveResetFlash {
+  0% {
+    opacity: 0.65;
+    transform: scale(0.992);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.004);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -542,6 +561,43 @@ input[type="search"]:focus {
   line-height: 1.35;
 }
 
+.settings-section--danger {
+  background: rgba(180, 68, 52, 0.04);
+}
+
+.archive-reset-button {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(180, 68, 52, 0.28);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--vermillion);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.archive-reset-button:hover:not(:disabled) {
+  border-color: rgba(180, 68, 52, 0.5);
+  background: rgba(180, 68, 52, 0.08);
+  transform: translateY(-1px);
+}
+
+.archive-reset-button:disabled {
+  cursor: wait;
+  opacity: 0.76;
+}
+
+.archive-reset-button small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .flashcard.is-motion-left {
   --card-slide-distance: -5.75rem;
   --card-slide-rotation: 18deg;
@@ -791,7 +847,7 @@ input[type="search"]:focus {
   color: #ffffff;
 }
 
-.study-stats div {
+.study-stats dl > div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -806,6 +862,66 @@ input[type="search"]:focus {
 .study-stats dd {
   margin: 0;
   font-weight: 700;
+}
+
+.stats-source {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(38, 58, 99, 0.08);
+  color: var(--indigo);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stats-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stats-summary-grid div {
+  display: grid;
+  gap: 2px;
+  justify-content: stretch;
+}
+
+.stats-summary-grid dt {
+  font-size: 0.72rem;
+}
+
+.stats-summary-grid dd {
+  font-size: 1.05rem;
+}
+
+.stats-current {
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid rgba(86, 112, 90, 0.16);
+  border-radius: var(--radius);
+  background: rgba(86, 112, 90, 0.08);
+}
+
+.stats-current p {
+  margin: 0;
+  color: var(--moss);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stats-current dl {
+  margin-top: 6px;
+}
+
+.stats-note {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.stats-note {
+  margin: 10px 0 0;
 }
 
 .mini-panel--accent {

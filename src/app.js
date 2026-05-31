@@ -20,8 +20,10 @@ const state = {
   learnedExpressions: new Set(),
   starredExpressions: new Set(),
   seenExpressions: new Set(),
+  localActionLogs: [],
   exampleRequestId: 0,
   lastLoggedViewExpression: "",
+  suppressNextViewLog: false,
 };
 
 const elements = {
@@ -36,7 +38,9 @@ const elements = {
   unlearnedBtn: document.querySelector("#unlearned-btn"),
   favoriteBtn: document.querySelector("#favorite-btn"),
   settingsBtn: document.querySelector("#settings-btn"),
+  archiveResetBtn: document.querySelector("#archive-reset-btn"),
   cardSettingsPanel: document.querySelector("#card-settings-panel"),
+  appShell: document.querySelector(".app-shell"),
   studyLayout: document.querySelector(".study-layout"),
   focusArea: document.querySelector("#focus-card"),
   wordBank: document.querySelector("#word-bank"),
@@ -116,6 +120,8 @@ function bindEvents() {
 
     restartSession(button.dataset.restartSession);
   });
+
+  elements.archiveResetBtn.addEventListener("click", archiveAndResetStudy);
 
   elements.statsRange.addEventListener("click", (event) => {
     const button = event.target.closest("[data-range]");
@@ -340,6 +346,104 @@ function restartSession(order) {
   render();
 }
 
+async function archiveAndResetStudy() {
+  const originalLabel = elements.archiveResetBtn.innerHTML;
+  elements.archiveResetBtn.disabled = true;
+  elements.archiveResetBtn.innerHTML =
+    "<strong>Đang archive...</strong><small>Đang lưu lịch sử học hiện tại.</small>";
+
+  try {
+    const response = await fetch("/api/archive", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(createArchiveSnapshot()),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Archive failed: ${response.status}`);
+    }
+
+    resetStudyJourney();
+    closeSettingsPanel();
+    playArchiveResetEffect();
+  } catch (error) {
+    elements.archiveResetBtn.innerHTML =
+      "<strong>Archive thất bại</strong><small>Kiểm tra server log rồi thử lại.</small>";
+    window.setTimeout(() => {
+      elements.archiveResetBtn.innerHTML = originalLabel;
+      elements.archiveResetBtn.disabled = false;
+    }, 1800);
+    console.error(error);
+    return;
+  }
+
+  window.setTimeout(() => {
+    elements.archiveResetBtn.innerHTML = originalLabel;
+    elements.archiveResetBtn.disabled = false;
+  }, 500);
+}
+
+function createArchiveSnapshot() {
+  const startedAt =
+    state.localActionLogs
+      .map((log) => log.createdAt)
+      .filter(Boolean)
+      .sort()[0] || null;
+
+  return {
+    startedAt,
+    endedAt: new Date().toISOString(),
+    activeLevel: state.activeLevel,
+    query: state.query,
+    mode: state.mode,
+    filterMode: state.filterMode,
+    statsRange: state.statsRange,
+    sessionOrder: state.sessionOrder,
+    currentIndex: state.currentIndex,
+    sessionExpressions: state.sessionWords.map((word) => word.expression),
+    learnedExpressions: [...state.learnedExpressions],
+    starredExpressions: [...state.starredExpressions],
+    seenExpressions: [...state.seenExpressions],
+    currentWord: getCurrentWord() || null,
+    localActionLogs: state.localActionLogs,
+  };
+}
+
+function resetStudyJourney() {
+  state.activeLevel = "all";
+  state.query = "";
+  state.mode = "flashcard";
+  state.filterMode = "all";
+  state.statsRange = "day";
+  state.sessionOrder = "random";
+  state.currentIndex = 0;
+  state.selectedListExpression = "";
+  state.learnedExpressions = new Set();
+  state.starredExpressions = new Set();
+  state.seenExpressions = new Set();
+  state.localActionLogs = [];
+  state.lastLoggedViewExpression = "";
+  state.suppressNextViewLog = true;
+
+  elements.searchInput.value = "";
+  for (const item of elements.levelFilters.querySelectorAll("[data-level]")) {
+    item.classList.toggle("is-active", item.dataset.level === "all");
+  }
+  updateStatsRangeButtons();
+  updateFilterButtons();
+  updateModeButtons();
+  applyFilters({ preserveSession: false });
+}
+
+function playArchiveResetEffect() {
+  elements.appShell.classList.remove("is-archive-reset");
+  void elements.appShell.offsetWidth;
+  elements.appShell.classList.add("is-archive-reset");
+  window.setTimeout(() => {
+    elements.appShell.classList.remove("is-archive-reset");
+  }, 520);
+}
+
 function render() {
   updateStats();
   updateFilterButtons();
@@ -382,8 +486,12 @@ function renderFlashcard() {
     return;
   }
 
-  state.seenExpressions.add(currentWord.expression);
-  logView(currentWord);
+  if (state.suppressNextViewLog) {
+    state.suppressNextViewLog = false;
+  } else {
+    state.seenExpressions.add(currentWord.expression);
+    logView(currentWord);
+  }
   elements.cardExpression.textContent = currentWord.expression;
   elements.cardReading.textContent = currentWord.reading;
   elements.cardMeaning.textContent = currentWord.meaning;
@@ -660,6 +768,9 @@ function restoreState() {
     state.learnedExpressions = new Set(stored.learnedExpressions || []);
     state.starredExpressions = new Set(stored.starredExpressions || []);
     state.seenExpressions = new Set(stored.seenExpressions || []);
+    state.localActionLogs = Array.isArray(stored.localActionLogs)
+      ? stored.localActionLogs
+      : [];
   } catch (_error) {
     localStorage.removeItem(STORAGE_KEY);
   }
@@ -704,6 +815,7 @@ function persistState() {
     learnedExpressions: [...state.learnedExpressions],
     starredExpressions: [...state.starredExpressions],
     seenExpressions: [...state.seenExpressions],
+    localActionLogs: state.localActionLogs,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -806,6 +918,37 @@ function logView(word) {
 }
 
 function logAction(action, word) {
+  state.localActionLogs.push({
+    id:
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`,
+    expression: word.expression,
+    action,
+    word: {
+      expression: word.expression,
+      reading: word.reading,
+      meaning: word.meaning,
+      level: word.level,
+      levelLabel: word.levelLabel,
+      tags: word.tags,
+    },
+    metadata: {
+      level: word.level,
+      mode: state.mode,
+      filterMode: state.filterMode,
+      activeLevel: state.activeLevel,
+      statsRange: state.statsRange,
+      sessionOrder: state.sessionOrder,
+      currentIndex: state.currentIndex,
+      sessionSize: state.sessionWords.length,
+      isLearned: state.learnedExpressions.has(word.expression),
+      isStarred: state.starredExpressions.has(word.expression),
+    },
+    createdAt: new Date().toISOString(),
+  });
+  persistState();
+
   fetch("/api/actions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -818,7 +961,9 @@ function logAction(action, word) {
         filterMode: state.filterMode,
       },
     }),
-  }).catch(() => {});
+  })
+    .then(() => renderStats())
+    .catch(() => renderLocalStats());
 }
 
 async function renderStats() {
@@ -829,34 +974,168 @@ async function renderStats() {
     }
 
     const payload = await response.json();
-    const row = payload.rows?.[0];
-    if (!row) {
+    const rows = payload.rows || [];
+    if (!rows.length) {
       renderLocalStats();
       return;
     }
 
-    elements.studyStats.innerHTML = `
-      <dl>
-        <div><dt>Views</dt><dd>${formatNumber(Number(row.view_count || 0))}</dd></div>
-        <div><dt>Learned</dt><dd>${formatNumber(Number(row.learned_count || 0))}</dd></div>
-        <div><dt>Not yet</dt><dd>${formatNumber(Number(row.unlearned_count || 0))}</dd></div>
-        <div><dt>Stars</dt><dd>${formatNumber(Number(row.favorite_count || 0))}</dd></div>
-        <div><dt>Unstars</dt><dd>${formatNumber(Number(row.unfavorite_count || 0))}</dd></div>
-      </dl>
-    `;
+    renderStatsPayload(rows, payload.totals || summarizeActionRows(rows));
   } catch (_error) {
     renderLocalStats();
   }
 }
 
 function renderLocalStats() {
+  const rows = summarizeLocalActionRows();
+  const totals = summarizeActionRows(rows);
+  if (!rows.length) {
+    elements.studyStats.innerHTML = `
+      <dl>
+        <div><dt>Learned now</dt><dd>${formatNumber(state.learnedExpressions.size)}</dd></div>
+        <div><dt>Starred now</dt><dd>${formatNumber(state.starredExpressions.size)}</dd></div>
+        <div><dt>Batch</dt><dd>${formatNumber(state.sessionWords.length)}</dd></div>
+      </dl>
+      <p class="stats-note">Chưa có action log trong trình duyệt hiện tại.</p>
+    `;
+    return;
+  }
+
+  renderStatsPayload(rows, totals, "Local logs");
+}
+
+function renderStatsPayload(rows, totals, sourceLabel = "MySQL logs") {
   elements.studyStats.innerHTML = `
-    <dl>
-      <div><dt>Learned</dt><dd>${formatNumber(state.learnedExpressions.size)}</dd></div>
-      <div><dt>Starred</dt><dd>${formatNumber(state.starredExpressions.size)}</dd></div>
-      <div><dt>Batch</dt><dd>${formatNumber(state.sessionWords.length)}</dd></div>
+    <div class="stats-source">${sourceLabel}</div>
+    <section class="stats-current">
+      <p>Thông tin hiện trạng</p>
+      <dl>
+        <div><dt>Learned hiện tại</dt><dd>${formatNumber(state.learnedExpressions.size)}</dd></div>
+        <div><dt>Đang đánh sao</dt><dd>${formatNumber(state.starredExpressions.size)}</dd></div>
+      </dl>
+    </section>
+    <dl class="stats-summary-grid">
+      <div><dt>Total actions</dt><dd>${formatNumber(Number(totals.total_actions || 0))}</dd></div>
+      <div><dt>Views</dt><dd>${formatNumber(Number(totals.view_count || 0))}</dd></div>
+      <div><dt>Learned</dt><dd>${formatNumber(Number(totals.learned_count || 0))}</dd></div>
+      <div><dt>Not yet</dt><dd>${formatNumber(Number(totals.unlearned_count || 0))}</dd></div>
+      <div><dt>Stars</dt><dd>${formatNumber(Number(totals.favorite_count || 0))}</dd></div>
+      <div><dt>Unstars</dt><dd>${formatNumber(Number(totals.unfavorite_count || 0))}</dd></div>
     </dl>
   `;
+}
+
+function summarizeActionRows(rows) {
+  return rows.reduce(
+    (summary, row) => ({
+      total_actions: summary.total_actions + Number(row.total_actions || 0),
+      view_count: summary.view_count + Number(row.view_count || 0),
+      learned_count: summary.learned_count + Number(row.learned_count || 0),
+      unlearned_count: summary.unlearned_count + Number(row.unlearned_count || 0),
+      favorite_count: summary.favorite_count + Number(row.favorite_count || 0),
+      unfavorite_count:
+        summary.unfavorite_count + Number(row.unfavorite_count || 0),
+    }),
+    {
+      total_actions: 0,
+      view_count: 0,
+      learned_count: 0,
+      unlearned_count: 0,
+      favorite_count: 0,
+      unfavorite_count: 0,
+    },
+  );
+}
+
+function summarizeLocalActionRows() {
+  const rowsByBucket = new Map();
+  for (const log of state.localActionLogs) {
+    const bucket = getLocalStatsBucket(log.createdAt);
+    if (!bucket) {
+      continue;
+    }
+
+    if (!rowsByBucket.has(bucket.key)) {
+      rowsByBucket.set(bucket.key, {
+        bucket: bucket.label,
+        bucket_start: bucket.start,
+        total_actions: 0,
+        view_count: 0,
+        learned_count: 0,
+        unlearned_count: 0,
+        favorite_count: 0,
+        unfavorite_count: 0,
+      });
+    }
+
+    const row = rowsByBucket.get(bucket.key);
+    row.total_actions += 1;
+    if (log.action === "view") row.view_count += 1;
+    if (log.action === "learned") row.learned_count += 1;
+    if (log.action === "unlearned") row.unlearned_count += 1;
+    if (log.action === "favorite") row.favorite_count += 1;
+    if (log.action === "unfavorite") row.unfavorite_count += 1;
+  }
+
+  return [...rowsByBucket.values()]
+    .sort((a, b) => String(b.bucket_start).localeCompare(String(a.bucket_start)))
+    .slice(0, 12);
+}
+
+function getLocalStatsBucket(createdAt) {
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  if (state.statsRange === "month") {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return {
+      key: `${year}-${month}`,
+      label: `${year}-${month}`,
+      start: `${year}-${month}-01`,
+    };
+  }
+
+  if (state.statsRange === "week") {
+    const weekStart = getWeekStart(date);
+    const year = weekStart.getFullYear();
+    const week = getIsoWeek(weekStart);
+    const label = `${year}-W${String(week).padStart(2, "0")}`;
+    return {
+      key: label,
+      label,
+      start: formatDateKey(weekStart),
+    };
+  }
+
+  const day = formatDateKey(date);
+  return { key: day, label: day, start: day };
+}
+
+function getWeekStart(date) {
+  const value = new Date(date);
+  const day = value.getDay() || 7;
+  value.setHours(0, 0, 0, 0);
+  value.setDate(value.getDate() - day + 1);
+  return value;
+}
+
+function getIsoWeek(date) {
+  const value = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = value.getUTCDay() || 7;
+  value.setUTCDate(value.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(value.getUTCFullYear(), 0, 1));
+  return Math.ceil(((value - yearStart) / 86400000 + 1) / 7);
+}
+
+function formatDateKey(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
 }
 
 function renderError(error) {

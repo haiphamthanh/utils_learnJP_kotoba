@@ -55,14 +55,23 @@ API local:
 - `DELETE /api/examples/:expression`
 - `POST /api/actions`
 - `GET /api/stats?range=day|week|month`
+- `POST /api/archive`
 
 ## MySQL examples
 
-Server sẽ tự tạo 2 bảng khi có cấu hình MySQL:
+Server sẽ tự tạo các bảng và view thống kê khi có cấu hình MySQL:
 
 - `vocabulary`: lưu từ vựng với primary key là `expression`
 - `vocabulary_examples`: lưu tối đa 3 example cho mỗi `expression`
 - `vocabulary_action_logs`: lưu các action `view`, `learned`, `unlearned`, `favorite`, `unfavorite` kèm thời gian và metadata
+- `vocabulary_action_stats_daily`: tổng hợp log theo ngày
+- `vocabulary_action_stats_weekly`: tổng hợp log theo tuần
+- `vocabulary_action_stats_monthly`: tổng hợp log theo tháng
+
+Archive lịch sử học được lưu tại `archives/yyyymmdd.zip`. File zip chứa
+`archive.json` với khoảng thời gian học, snapshot đầy đủ từ browser, toàn bộ
+local action logs, word snapshot, action summary và toàn bộ MySQL logs kèm thông
+tin từ vựng nếu có.
 
 Tạo database trước:
 

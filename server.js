@@ -1,5 +1,5 @@
 import express from "express";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import mysql from "mysql2/promise";
 
@@ -11,6 +11,7 @@ const HOST = process.env.HOST || "127.0.0.1";
 const ROOT_DIR = resolve(".");
 const DIST_DIR = resolve(ROOT_DIR, "dist");
 const DATA_FILE = resolve(DIST_DIR, "data", "words.json");
+const ARCHIVE_DIR = resolve(ROOT_DIR, "archives");
 const MYSQL_CONFIG = {
   host: process.env.MYSQL_HOST,
   port: Number(process.env.MYSQL_PORT || 3306),
@@ -20,9 +21,22 @@ const MYSQL_CONFIG = {
 };
 
 let dbPool = null;
+const CRC32_TABLE = createCrc32Table();
 
 app.disable("x-powered-by");
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "25mb" }));
+app.use((error, _request, response, next) => {
+  if (error?.type === "entity.too.large") {
+    response.status(413).json({
+      ok: false,
+      message: "Request payload is too large.",
+      error: formatError(error),
+    });
+    return;
+  }
+
+  next(error);
+});
 
 await initDatabase();
 
@@ -167,6 +181,7 @@ app.post("/api/actions", async (request, response) => {
 app.get("/api/stats", async (request, response) => {
   const range = String(request.query.range || "day");
   const safeRange = ["day", "week", "month"].includes(range) ? range : "day";
+  const viewName = getStatsViewName(safeRange);
 
   if (!dbPool) {
     response.json({ range: safeRange, rows: [], source: "default" });
@@ -174,28 +189,82 @@ app.get("/api/stats", async (request, response) => {
   }
 
   try {
-    const bucketExpression = getBucketExpression(safeRange);
-    const [rows] = await dbPool.execute(
-      `SELECT
-        ${bucketExpression} AS bucket,
-        COUNT(*) AS total_actions,
-        SUM(action = 'view') AS view_count,
-        SUM(action = 'learned') AS learned_count,
-        SUM(action = 'unlearned') AS unlearned_count,
-        SUM(action = 'favorite') AS favorite_count,
-        SUM(action = 'unfavorite') AS unfavorite_count
-       FROM vocabulary_action_logs
-       WHERE created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)
-       GROUP BY bucket
-       ORDER BY bucket DESC
-       LIMIT 12`,
+    const rows = await loadStatsRows(safeRange, viewName);
+    const totals = rows.reduce(
+      (summary, row) => ({
+        total_actions: summary.total_actions + Number(row.total_actions || 0),
+        view_count: summary.view_count + Number(row.view_count || 0),
+        learned_count: summary.learned_count + Number(row.learned_count || 0),
+        unlearned_count:
+          summary.unlearned_count + Number(row.unlearned_count || 0),
+        favorite_count: summary.favorite_count + Number(row.favorite_count || 0),
+        unfavorite_count:
+          summary.unfavorite_count + Number(row.unfavorite_count || 0),
+      }),
+      {
+        total_actions: 0,
+        view_count: 0,
+        learned_count: 0,
+        unlearned_count: 0,
+        favorite_count: 0,
+        unfavorite_count: 0,
+      },
     );
 
-    response.json({ range: safeRange, rows, source: "mysql" });
+    response.json({ range: safeRange, rows, totals, source: "mysql" });
   } catch (error) {
     response.status(500).json({
       ok: false,
       message: "Failed to load study stats.",
+      error: formatError(error),
+    });
+  }
+});
+
+app.post("/api/archive", async (request, response) => {
+  const archivedAt = new Date();
+
+  try {
+    const mysqlArchive = dbPool ? await collectMysqlArchiveData() : null;
+    const clientSnapshot = normalizeArchiveSnapshot(request.body);
+    const startedAt =
+      mysqlArchive?.startedAt ||
+      clientSnapshot.startedAt ||
+      archivedAt.toISOString();
+    const endedAt = archivedAt.toISOString();
+    const archivePayload = {
+      archiveVersion: 1,
+      startedAt,
+      endedAt,
+      archivedAt: endedAt,
+      clientSnapshot,
+      mysqlArchive,
+    };
+    const filename = `${formatArchiveDate(archivedAt)}.zip`;
+    const archivePath = resolve(ARCHIVE_DIR, filename);
+
+    mkdirSync(ARCHIVE_DIR, { recursive: true });
+    writeFileSync(
+      archivePath,
+      createZipBuffer("archive.json", JSON.stringify(archivePayload, null, 2)),
+    );
+
+    if (dbPool) {
+      await resetMysqlStudyHistory();
+    }
+
+    response.status(201).json({
+      ok: true,
+      filename,
+      path: archivePath,
+      startedAt,
+      endedAt,
+      mysqlStored: Boolean(dbPool),
+    });
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      message: "Failed to archive and reset study history.",
       error: formatError(error),
     });
   }
@@ -271,12 +340,200 @@ async function initDatabase() {
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
+    await createStatsViews().catch((error) => {
+      console.warn(`MySQL stats views disabled: ${formatError(error)}`);
+    });
     await syncVocabulary();
     console.log("MySQL vocabulary tables are ready.");
   } catch (error) {
     dbPool = null;
     console.warn(`MySQL disabled: ${formatError(error)}`);
   }
+}
+
+async function createStatsViews() {
+  await dbPool.execute(`
+    CREATE OR REPLACE VIEW vocabulary_action_stats_daily AS
+    SELECT
+      DATE(created_at) AS bucket_start,
+      DATE_FORMAT(created_at, '%Y-%m-%d') AS bucket,
+      COUNT(*) AS total_actions,
+      SUM(action = 'view') AS view_count,
+      SUM(action = 'learned') AS learned_count,
+      SUM(action = 'unlearned') AS unlearned_count,
+      SUM(action = 'favorite') AS favorite_count,
+      SUM(action = 'unfavorite') AS unfavorite_count
+    FROM vocabulary_action_logs
+    GROUP BY DATE(created_at), DATE_FORMAT(created_at, '%Y-%m-%d')
+  `);
+
+  await dbPool.execute(`
+    CREATE OR REPLACE VIEW vocabulary_action_stats_weekly AS
+    SELECT
+      STR_TO_DATE(CONCAT(YEARWEEK(created_at, 3), ' Monday'), '%X%V %W') AS bucket_start,
+      DATE_FORMAT(created_at, '%x-W%v') AS bucket,
+      COUNT(*) AS total_actions,
+      SUM(action = 'view') AS view_count,
+      SUM(action = 'learned') AS learned_count,
+      SUM(action = 'unlearned') AS unlearned_count,
+      SUM(action = 'favorite') AS favorite_count,
+      SUM(action = 'unfavorite') AS unfavorite_count
+    FROM vocabulary_action_logs
+    GROUP BY YEARWEEK(created_at, 3), DATE_FORMAT(created_at, '%x-W%v')
+  `);
+
+  await dbPool.execute(`
+    CREATE OR REPLACE VIEW vocabulary_action_stats_monthly AS
+    SELECT
+      DATE_FORMAT(created_at, '%Y-%m-01') AS bucket_start,
+      DATE_FORMAT(created_at, '%Y-%m') AS bucket,
+      COUNT(*) AS total_actions,
+      SUM(action = 'view') AS view_count,
+      SUM(action = 'learned') AS learned_count,
+      SUM(action = 'unlearned') AS unlearned_count,
+      SUM(action = 'favorite') AS favorite_count,
+      SUM(action = 'unfavorite') AS unfavorite_count
+    FROM vocabulary_action_logs
+    GROUP BY DATE_FORMAT(created_at, '%Y-%m-01'), DATE_FORMAT(created_at, '%Y-%m')
+  `);
+}
+
+async function loadStatsRows(range, viewName) {
+  try {
+    const [rows] = await dbPool.execute(
+      `SELECT
+        bucket,
+        bucket_start,
+        total_actions,
+        view_count,
+        learned_count,
+        unlearned_count,
+        favorite_count,
+        unfavorite_count
+       FROM ${viewName}
+       WHERE bucket_start >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+       ORDER BY bucket_start DESC
+       LIMIT 12`,
+    );
+    return rows;
+  } catch (_error) {
+    const bucketExpression = getBucketExpression(range);
+    const bucketStartExpression = getBucketStartExpression(range);
+    const [rows] = await dbPool.execute(
+      `SELECT
+        ${bucketExpression} AS bucket,
+        ${bucketStartExpression} AS bucket_start,
+        COUNT(*) AS total_actions,
+        SUM(action = 'view') AS view_count,
+        SUM(action = 'learned') AS learned_count,
+        SUM(action = 'unlearned') AS unlearned_count,
+        SUM(action = 'favorite') AS favorite_count,
+        SUM(action = 'unfavorite') AS unfavorite_count
+       FROM vocabulary_action_logs
+       WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+       GROUP BY bucket, bucket_start
+       ORDER BY bucket_start DESC
+       LIMIT 12`,
+    );
+    return rows;
+  }
+}
+
+async function collectMysqlArchiveData() {
+  const [[period]] = await dbPool.execute(
+    `SELECT
+      MIN(created_at) AS startedAt,
+      MAX(created_at) AS endedAt,
+      COUNT(*) AS totalActions
+     FROM vocabulary_action_logs`,
+  );
+  const [actionLogs] = await dbPool.execute(
+    `SELECT
+      logs.id,
+      logs.expression,
+      logs.action,
+      logs.metadata,
+      logs.created_at,
+      vocabulary.reading,
+      vocabulary.meaning,
+      vocabulary.level,
+      vocabulary.tags
+     FROM vocabulary_action_logs AS logs
+     LEFT JOIN vocabulary ON vocabulary.expression = logs.expression
+     ORDER BY logs.created_at ASC, logs.id ASC`,
+  );
+  const statsDaily = await loadArchiveStatsRows(
+    "day",
+    "vocabulary_action_stats_daily",
+  );
+  const statsWeekly = await loadArchiveStatsRows(
+    "week",
+    "vocabulary_action_stats_weekly",
+  );
+  const statsMonthly = await loadArchiveStatsRows(
+    "month",
+    "vocabulary_action_stats_monthly",
+  );
+  const [actionSummary] = await dbPool.execute(
+    `SELECT action, COUNT(*) AS count
+     FROM vocabulary_action_logs
+     GROUP BY action
+     ORDER BY action ASC`,
+  );
+
+  return {
+    startedAt: period?.startedAt ? new Date(period.startedAt).toISOString() : null,
+    endedAt: period?.endedAt ? new Date(period.endedAt).toISOString() : null,
+    totalActions: Number(period?.totalActions || 0),
+    actionLogs,
+    actionSummary,
+    stats: {
+      daily: statsDaily,
+      weekly: statsWeekly,
+      monthly: statsMonthly,
+    },
+  };
+}
+
+async function loadArchiveStatsRows(range, viewName) {
+  try {
+    const [rows] = await dbPool.execute(
+      `SELECT
+        bucket,
+        bucket_start,
+        total_actions,
+        view_count,
+        learned_count,
+        unlearned_count,
+        favorite_count,
+        unfavorite_count
+       FROM ${viewName}
+       ORDER BY bucket_start ASC`,
+    );
+    return rows;
+  } catch (_error) {
+    const bucketExpression = getBucketExpression(range);
+    const bucketStartExpression = getBucketStartExpression(range);
+    const [rows] = await dbPool.execute(
+      `SELECT
+        ${bucketExpression} AS bucket,
+        ${bucketStartExpression} AS bucket_start,
+        COUNT(*) AS total_actions,
+        SUM(action = 'view') AS view_count,
+        SUM(action = 'learned') AS learned_count,
+        SUM(action = 'unlearned') AS unlearned_count,
+        SUM(action = 'favorite') AS favorite_count,
+        SUM(action = 'unfavorite') AS unfavorite_count
+       FROM vocabulary_action_logs
+       GROUP BY bucket, bucket_start
+       ORDER BY bucket_start ASC`,
+    );
+    return rows;
+  }
+}
+
+async function resetMysqlStudyHistory() {
+  await dbPool.execute("DELETE FROM vocabulary_action_logs");
 }
 
 async function syncVocabulary() {
@@ -387,6 +644,208 @@ async function saveExamples(request, response, statusCode) {
   }
 }
 
+function normalizeArchiveSnapshot(body) {
+  const snapshot = body && typeof body === "object" ? body : {};
+  const localActionLogs = Array.isArray(snapshot.localActionLogs)
+    ? snapshot.localActionLogs
+    : [];
+  const wordSnapshot = getArchiveWordSnapshot(snapshot, localActionLogs);
+  const startedAt =
+    snapshot.startedAt ||
+    localActionLogs
+      .map((log) => log?.createdAt)
+      .filter(Boolean)
+      .sort()[0] ||
+    null;
+
+  return {
+    startedAt,
+    endedAt: snapshot.endedAt || new Date().toISOString(),
+    activeLevel: String(snapshot.activeLevel || "all"),
+    query: String(snapshot.query || ""),
+    mode: String(snapshot.mode || "flashcard"),
+    filterMode: String(snapshot.filterMode || "all"),
+    statsRange: String(snapshot.statsRange || "day"),
+    sessionOrder: String(snapshot.sessionOrder || "random"),
+    currentIndex: Number(snapshot.currentIndex || 0),
+    currentWord: snapshot.currentWord || null,
+    learnedExpressions: normalizeStringArray(snapshot.learnedExpressions),
+    starredExpressions: normalizeStringArray(snapshot.starredExpressions),
+    seenExpressions: normalizeStringArray(snapshot.seenExpressions),
+    sessionExpressions: normalizeStringArray(snapshot.sessionExpressions),
+    words: wordSnapshot.words,
+    wordlist: wordSnapshot.summary,
+    actionSummary: summarizeArchiveActions(localActionLogs),
+    localActionLogs,
+  };
+}
+
+function getArchiveWordSnapshot(snapshot, localActionLogs) {
+  const expressions = new Set([
+    ...normalizeStringArray(snapshot.learnedExpressions),
+    ...normalizeStringArray(snapshot.starredExpressions),
+    ...normalizeStringArray(snapshot.seenExpressions),
+    ...normalizeStringArray(snapshot.sessionExpressions),
+    ...localActionLogs
+      .map((log) => log?.expression)
+      .filter(Boolean)
+      .map(String),
+  ]);
+
+  if (snapshot.currentWord?.expression) {
+    expressions.add(String(snapshot.currentWord.expression));
+  }
+
+  const wordsFromData = loadWordlistWords();
+  const wordsByExpression = new Map(
+    wordsFromData.map((word) => [word.expression, word]),
+  );
+  const words = [...expressions]
+    .map((expression) => wordsByExpression.get(expression))
+    .filter(Boolean);
+
+  return {
+    words,
+    summary: {
+      source: existsSync(DATA_FILE) ? "dist/data/words.json" : "unavailable",
+      totalWords: wordsFromData.length,
+      archivedWords: words.length,
+    },
+  };
+}
+
+function loadWordlistWords() {
+  if (!existsSync(DATA_FILE)) {
+    return [];
+  }
+
+  try {
+    const payload = JSON.parse(readFileSync(DATA_FILE, "utf8"));
+    return Array.isArray(payload.words) ? payload.words : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function summarizeArchiveActions(actionLogs) {
+  return actionLogs.reduce((summary, log) => {
+    const action = String(log?.action || "unknown");
+    summary[action] = (summary[action] || 0) + 1;
+    summary.total = (summary.total || 0) + 1;
+    return summary;
+  }, {});
+}
+
+function normalizeStringArray(value) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item)).filter(Boolean)
+    : [];
+}
+
+function createZipBuffer(filename, content) {
+  const filenameBuffer = Buffer.from(filename, "utf8");
+  const contentBuffer = Buffer.from(content, "utf8");
+  const crc = crc32(contentBuffer);
+  const { dosDate, dosTime } = getDosDateTime(new Date());
+  const localHeader = Buffer.alloc(30);
+
+  localHeader.writeUInt32LE(0x04034b50, 0);
+  localHeader.writeUInt16LE(20, 4);
+  localHeader.writeUInt16LE(0x0800, 6);
+  localHeader.writeUInt16LE(0, 8);
+  localHeader.writeUInt16LE(dosTime, 10);
+  localHeader.writeUInt16LE(dosDate, 12);
+  localHeader.writeUInt32LE(crc, 14);
+  localHeader.writeUInt32LE(contentBuffer.length, 18);
+  localHeader.writeUInt32LE(contentBuffer.length, 22);
+  localHeader.writeUInt16LE(filenameBuffer.length, 26);
+  localHeader.writeUInt16LE(0, 28);
+
+  const centralHeader = Buffer.alloc(46);
+  const centralDirectoryOffset =
+    localHeader.length + filenameBuffer.length + contentBuffer.length;
+
+  centralHeader.writeUInt32LE(0x02014b50, 0);
+  centralHeader.writeUInt16LE(20, 4);
+  centralHeader.writeUInt16LE(20, 6);
+  centralHeader.writeUInt16LE(0x0800, 8);
+  centralHeader.writeUInt16LE(0, 10);
+  centralHeader.writeUInt16LE(dosTime, 12);
+  centralHeader.writeUInt16LE(dosDate, 14);
+  centralHeader.writeUInt32LE(crc, 16);
+  centralHeader.writeUInt32LE(contentBuffer.length, 20);
+  centralHeader.writeUInt32LE(contentBuffer.length, 24);
+  centralHeader.writeUInt16LE(filenameBuffer.length, 28);
+  centralHeader.writeUInt16LE(0, 30);
+  centralHeader.writeUInt16LE(0, 32);
+  centralHeader.writeUInt16LE(0, 34);
+  centralHeader.writeUInt16LE(0, 36);
+  centralHeader.writeUInt32LE(0, 38);
+  centralHeader.writeUInt32LE(0, 42);
+
+  const centralDirectorySize = centralHeader.length + filenameBuffer.length;
+  const endRecord = Buffer.alloc(22);
+  endRecord.writeUInt32LE(0x06054b50, 0);
+  endRecord.writeUInt16LE(0, 4);
+  endRecord.writeUInt16LE(0, 6);
+  endRecord.writeUInt16LE(1, 8);
+  endRecord.writeUInt16LE(1, 10);
+  endRecord.writeUInt32LE(centralDirectorySize, 12);
+  endRecord.writeUInt32LE(centralDirectoryOffset, 16);
+  endRecord.writeUInt16LE(0, 20);
+
+  return Buffer.concat([
+    localHeader,
+    filenameBuffer,
+    contentBuffer,
+    centralHeader,
+    filenameBuffer,
+    endRecord,
+  ]);
+}
+
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ byte) & 0xff];
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function createCrc32Table() {
+  const table = [];
+  for (let index = 0; index < 256; index += 1) {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    }
+    table[index] = value >>> 0;
+  }
+  return table;
+}
+
+function getDosDateTime(date) {
+  const year = Math.max(date.getFullYear(), 1980);
+  return {
+    dosTime:
+      (date.getHours() << 11) |
+      (date.getMinutes() << 5) |
+      Math.floor(date.getSeconds() / 2),
+    dosDate:
+      ((year - 1980) << 9) |
+      ((date.getMonth() + 1) << 5) |
+      date.getDate(),
+  };
+}
+
+function formatArchiveDate(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("");
+}
+
 function formatError(error) {
   return error instanceof Error ? error.message : String(error);
 }
@@ -406,7 +865,31 @@ function getBucketExpression(range) {
     return "DATE_FORMAT(created_at, '%Y-%m')";
   }
 
+  return "DATE_FORMAT(created_at, '%Y-%m-%d')";
+}
+
+function getBucketStartExpression(range) {
+  if (range === "week") {
+    return "STR_TO_DATE(CONCAT(YEARWEEK(created_at, 3), ' Monday'), '%X%V %W')";
+  }
+
+  if (range === "month") {
+    return "DATE_FORMAT(created_at, '%Y-%m-01')";
+  }
+
   return "DATE(created_at)";
+}
+
+function getStatsViewName(range) {
+  if (range === "week") {
+    return "vocabulary_action_stats_weekly";
+  }
+
+  if (range === "month") {
+    return "vocabulary_action_stats_monthly";
+  }
+
+  return "vocabulary_action_stats_daily";
 }
 
 function loadEnvFile() {
