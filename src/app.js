@@ -12,6 +12,7 @@ const state = {
   mode: "flashcard",
   filterMode: "all",
   statsRange: "day",
+  sessionOrder: "random",
   filteredWords: [],
   sessionWords: [],
   currentIndex: 0,
@@ -29,8 +30,6 @@ const elements = {
   cardFilter: document.querySelector("#card-filter"),
   statsRange: document.querySelector("#stats-range"),
   studyMode: document.querySelector("#study-mode"),
-  randomBtn: document.querySelector("#random-btn"),
-  newSessionBtn: document.querySelector("#new-session-btn"),
   prevBtn: document.querySelector("#prev-btn"),
   nextBtn: document.querySelector("#next-btn"),
   learnedBtn: document.querySelector("#learned-btn"),
@@ -38,7 +37,6 @@ const elements = {
   favoriteBtn: document.querySelector("#favorite-btn"),
   settingsBtn: document.querySelector("#settings-btn"),
   cardSettingsPanel: document.querySelector("#card-settings-panel"),
-  sessionActions: document.querySelector(".session-actions"),
   studyLayout: document.querySelector(".study-layout"),
   focusArea: document.querySelector("#focus-card"),
   wordBank: document.querySelector("#word-bank"),
@@ -59,6 +57,7 @@ const elements = {
   modalReading: document.querySelector("#modal-reading"),
   modalMeaning: document.querySelector("#modal-meaning"),
   modalLevel: document.querySelector("#modal-level"),
+  modalExamplesList: document.querySelector("#modal-examples-list"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
   statTotalLevels: document.querySelector('[data-stat="totalLevels"]'),
   statVisibleWords: document.querySelector('[data-stat="visibleWords"]'),
@@ -109,6 +108,15 @@ function bindEvents() {
     applyFilters({ preserveSession: false });
   });
 
+  elements.cardSettingsPanel.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-restart-session]");
+    if (!button) {
+      return;
+    }
+
+    restartSession(button.dataset.restartSession);
+  });
+
   elements.statsRange.addEventListener("click", (event) => {
     const button = event.target.closest("[data-range]");
     if (!button) {
@@ -129,20 +137,6 @@ function bindEvents() {
 
     state.mode = button.dataset.mode;
     updateModeButtons();
-    render();
-  });
-
-  elements.randomBtn.addEventListener("click", () => {
-    if (!state.sessionWords.length) {
-      return;
-    }
-    state.currentIndex = Math.floor(Math.random() * state.sessionWords.length);
-    render();
-  });
-
-  elements.newSessionBtn.addEventListener("click", () => {
-    createSession();
-    state.currentIndex = 0;
     render();
   });
 
@@ -302,13 +296,18 @@ function applyFilters({ preserveSession }) {
   render();
 }
 
-function createSession() {
+function createSession(order = state.sessionOrder) {
   const availableWords =
     state.filterMode === "all"
       ? state.filteredWords.filter(
           (word) => !state.learnedExpressions.has(word.expression),
         )
       : state.filteredWords;
+
+  if (order === "ordered") {
+    state.sessionWords = availableWords.slice(0, SESSION_SIZE);
+    return;
+  }
 
   const newWords = shuffle(
     availableWords.filter((word) => !state.seenExpressions.has(word.expression)),
@@ -330,6 +329,15 @@ function createSession() {
     0,
     SESSION_SIZE,
   );
+}
+
+function restartSession(order) {
+  state.sessionOrder = order === "ordered" ? "ordered" : "random";
+  createSession(state.sessionOrder);
+  state.currentIndex = 0;
+  closeSettingsPanel();
+  playCardMotion(state.sessionOrder === "ordered" ? "left" : "right");
+  render();
 }
 
 function render() {
@@ -449,7 +457,6 @@ function updateModeVisibility() {
   elements.studyLayout.classList.toggle("is-list-mode", state.mode === "list");
   elements.focusArea.hidden = state.mode !== "flashcard";
   elements.wordBank.hidden = state.mode !== "list";
-  elements.sessionActions.hidden = state.mode !== "flashcard";
 }
 
 function updateModeButtons() {
@@ -544,7 +551,7 @@ function playCardMotion(type) {
   elements.flashcard.classList.add(className);
   window.setTimeout(() => {
     elements.flashcard.classList.remove(className);
-  }, 420);
+  }, 540);
 }
 
 function toggleFavorite() {
@@ -594,36 +601,35 @@ async function renderExamples(word) {
       ? payload.examples
       : getDefaultExamples(word);
 
-    elements.examplesList.innerHTML = examples
-      .slice(0, 3)
-      .map(
-        (example) => `
-          <article class="example-item">
-            <p>${highlightExpression(example.sentence, word.expression)}</p>
-            ${
-              example.translation
-                ? `<small>${escapeHtml(example.translation)}</small>`
-                : ""
-            }
-          </article>
-        `,
-      )
-      .join("");
+    elements.examplesList.innerHTML = renderExampleItems(examples, word);
   } catch (_error) {
     if (requestId !== state.exampleRequestId) {
       return;
     }
 
-    elements.examplesList.innerHTML = getDefaultExamples(word)
-      .map(
-        (example) => `
-          <article class="example-item">
-            <p>${highlightExpression(example.sentence, word.expression)}</p>
-          </article>
-        `,
-      )
-      .join("");
+    elements.examplesList.innerHTML = renderExampleItems(
+      getDefaultExamples(word),
+      word,
+    );
   }
+}
+
+function renderExampleItems(examples, word) {
+  return examples
+    .slice(0, 3)
+    .map(
+      (example) => `
+        <article class="example-item">
+          <p>${highlightExpression(example.sentence, word.expression)}</p>
+          ${
+            example.translation
+              ? `<small>${escapeHtml(example.translation)}</small>`
+              : ""
+          }
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function getDefaultExamples(word) {
@@ -648,6 +654,7 @@ function restoreState() {
     state.mode = stored.mode || state.mode;
     state.filterMode = stored.filterMode || state.filterMode;
     state.statsRange = stored.statsRange || state.statsRange;
+    state.sessionOrder = stored.sessionOrder || state.sessionOrder;
     state.currentIndex = Number(stored.currentIndex || 0);
     state.selectedListExpression = stored.selectedListExpression || "";
     state.learnedExpressions = new Set(stored.learnedExpressions || []);
@@ -692,6 +699,7 @@ function persistState() {
     selectedListExpression: state.selectedListExpression,
     filterMode: state.filterMode,
     statsRange: state.statsRange,
+    sessionOrder: state.sessionOrder,
     sessionExpressions: state.sessionWords.map((word) => word.expression),
     learnedExpressions: [...state.learnedExpressions],
     starredExpressions: [...state.starredExpressions],
@@ -756,7 +764,32 @@ function openWordModal(word) {
   elements.modalReading.textContent = word.reading || "-";
   elements.modalMeaning.textContent = word.meaning || "-";
   elements.modalLevel.textContent = word.levelLabel || "-";
+  renderModalExamples(word);
   elements.wordModal.hidden = false;
+}
+
+async function renderModalExamples(word) {
+  elements.modalExamplesList.innerHTML = "<p>Loading examples...</p>";
+
+  try {
+    const response = await fetch(
+      `/api/examples/${encodeURIComponent(word.expression)}`,
+    );
+    if (!response.ok) {
+      throw new Error("examples unavailable");
+    }
+
+    const payload = await response.json();
+    const examples = payload.examples?.length
+      ? payload.examples
+      : getDefaultExamples(word);
+    elements.modalExamplesList.innerHTML = renderExampleItems(examples, word);
+  } catch (_error) {
+    elements.modalExamplesList.innerHTML = renderExampleItems(
+      getDefaultExamples(word),
+      word,
+    );
+  }
 }
 
 function closeWordModal() {

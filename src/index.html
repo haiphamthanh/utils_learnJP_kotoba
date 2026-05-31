@@ -69,14 +69,6 @@
             </div>
           </section>
 
-          <div class="actions session-actions">
-            <button id="random-btn" class="button button--primary" type="button">
-              Random
-            </button>
-            <button id="new-session-btn" class="button button--secondary" type="button">
-              New batch
-            </button>
-          </div>
         </aside>
 
         <section class="focus-area" id="focus-card">
@@ -131,14 +123,33 @@
                 ☆
               </button>
               <div id="card-settings-panel" class="card-settings-panel" hidden>
-                <p>Filter</p>
-                <div class="filter-grid" id="card-filter">
-                  <button class="is-active" data-filter="all" type="button">All</button>
-                  <button data-filter="starred" type="button">Starred</button>
-                  <button data-filter="unstarred" type="button">No star</button>
-                  <button data-filter="learned" type="button">Learned</button>
-                  <button data-filter="unlearned" type="button">Not yet</button>
+                <div class="settings-panel__head">
+                  <p>Settings</p>
+                  <strong>Thẻ ghi nhớ</strong>
                 </div>
+                <section class="settings-section">
+                  <span>Filter</span>
+                  <div class="filter-grid" id="card-filter">
+                    <button class="is-active" data-filter="all" type="button">All</button>
+                    <button data-filter="starred" type="button">Starred</button>
+                    <button data-filter="unstarred" type="button">No star</button>
+                    <button data-filter="learned" type="button">Learned</button>
+                    <button data-filter="unlearned" type="button">Not yet</button>
+                  </div>
+                </section>
+                <section class="settings-section">
+                  <span>Khởi động lại Thẻ ghi nhớ</span>
+                  <div class="restart-options">
+                    <button data-restart-session="random" type="button">
+                      <strong>Ngẫu nhiên</strong>
+                      <small>Trộn lại tối đa 50 từ trong bộ lọc hiện tại.</small>
+                    </button>
+                    <button data-restart-session="ordered" type="button">
+                      <strong>Theo thứ tự</strong>
+                      <small>Học theo thứ tự file CSV sau khi lọc.</small>
+                    </button>
+                  </div>
+                </section>
               </div>
             </div>
             <div class="flashcard__front flashcard__face">
@@ -263,6 +274,12 @@
               <dd id="modal-level">-</dd>
             </div>
           </dl>
+          <section class="modal__examples">
+            <p class="modal__eyebrow">Examples</p>
+            <div id="modal-examples-list" class="examples-list">
+              <p>Loading examples...</p>
+            </div>
+          </section>
         </article>
       </div>
     </div>
