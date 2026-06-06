@@ -1,17 +1,18 @@
 :root {
-  --ink: #171412;
-  --muted: #685f58;
+  --ink: #1f2823;
+  --muted: #647066;
   --paper: #fffdf8;
-  --paper-2: #f7f1e8;
-  --line: #ded2c2;
-  --indigo: #263a63;
-  --indigo-2: #18253f;
-  --vermillion: #b44434;
-  --moss: #56705a;
-  --sakura: #e8b8b5;
-  --gold: #b99552;
-  --shadow: 0 18px 48px rgba(26, 22, 18, 0.08);
-  --radius: 8px;
+  --paper-2: #f4efe4;
+  --line: #d8d2c8;
+  --indigo: #1c4c4a;
+  --indigo-2: #133432;
+  --vermillion: #c46442;
+  --moss: #5f7a55;
+  --sakura: #f0d1bc;
+  --gold: #c8a45e;
+  --sky: #d9e9e5;
+  --shadow: 0 22px 60px rgba(25, 32, 28, 0.08);
+  --radius: 18px;
   --page-width: 1320px;
 }
 
@@ -27,12 +28,11 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ink);
-  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  font-family: "Avenir Next", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
   background:
-    linear-gradient(90deg, rgba(38, 58, 99, 0.05) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(180, 68, 52, 0.05) 1px, transparent 1px),
-    #f3eee6;
-  background-size: 28px 28px;
+    radial-gradient(circle at top left, rgba(217, 233, 229, 0.9), transparent 28%),
+    radial-gradient(circle at top right, rgba(240, 209, 188, 0.7), transparent 24%),
+    linear-gradient(180deg, #f7f4ee, #efe8dc);
 }
 
 button,
@@ -48,7 +48,7 @@ button {
 .app-shell {
   width: min(calc(100% - 32px), var(--page-width));
   margin: 0 auto;
-  padding: 20px 0 44px;
+  padding: 28px 0 56px;
 }
 
 .app-shell.is-archive-reset {
@@ -72,13 +72,25 @@ button {
 
 .topbar {
   display: grid;
-  grid-template-columns: auto minmax(280px, 1fr) auto;
-  align-items: center;
-  gap: 18px;
-  min-height: 86px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+  gap: 22px;
   margin-bottom: 18px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid rgba(23, 20, 18, 0.12);
+  padding: 24px;
+  border: 1px solid rgba(31, 40, 35, 0.08);
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(217, 233, 229, 0.88), rgba(255, 253, 248, 0.96) 42%, rgba(240, 209, 188, 0.5));
+  box-shadow: var(--shadow);
+}
+
+.topbar__primary,
+.topbar__secondary {
+  display: grid;
+  gap: 18px;
+}
+
+.topbar__secondary {
+  align-content: space-between;
 }
 
 .brand {
@@ -91,37 +103,59 @@ button {
 
 .brand__mark {
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   place-items: center;
-  border-radius: 50%;
-  background: var(--vermillion);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--vermillion), #d88962);
   color: #fffaf4;
   font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-size: 1.45rem;
+  font-size: 1.7rem;
   line-height: 1;
+  box-shadow: 0 16px 32px rgba(196, 100, 66, 0.22);
 }
 
 .brand strong {
   display: block;
-  font-size: 1.05rem;
+  font-size: 1.35rem;
 }
 
 .brand small {
   display: block;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: 0.84rem;
 }
 
-.top-search {
+.topbar__copy {
   display: grid;
-  gap: 6px;
-  max-width: 560px;
-  width: 100%;
-  margin: 0 auto;
+  gap: 10px;
+  max-width: 640px;
 }
 
-.top-search__label,
+.topbar__eyebrow {
+  margin: 0;
+  color: var(--vermillion);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.topbar__copy h1 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.08;
+}
+
+.topbar__copy p:last-child {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
 .user-switcher span {
   color: var(--muted);
   font-size: 0.76rem;
@@ -152,25 +186,28 @@ select:focus {
 
 .topbar-actions {
   display: grid;
-  gap: 10px;
-  justify-items: end;
+  gap: 14px;
 }
 
 .toolbar-row {
   display: flex;
   align-items: end;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .icon-button {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 14px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 253, 248, 0.92);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
   cursor: pointer;
+  color: var(--indigo);
+  font-weight: 700;
   transition:
     border-color 140ms ease,
     background 140ms ease,
@@ -178,7 +215,7 @@ select:focus {
 }
 
 .icon-button:hover {
-  border-color: rgba(38, 58, 99, 0.32);
+  border-color: rgba(28, 76, 74, 0.28);
   background: #ffffff;
   transform: translateY(-1px);
 }
@@ -243,21 +280,21 @@ select:focus {
 .user-switcher {
   display: grid;
   gap: 6px;
-  min-width: 200px;
+  min-width: 210px;
 }
 
 .top-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(92px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .stat-tile {
-  min-height: 56px;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: rgba(255, 253, 248, 0.76);
+  min-height: 76px;
+  padding: 12px 14px;
+  border: 1px solid rgba(31, 40, 35, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .stat-tile--button {
@@ -278,30 +315,30 @@ select:focus {
 .stat-tile span {
   display: block;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   line-height: 1.2;
 }
 
 .stat-tile strong {
   display: block;
-  margin-top: 2px;
-  font-size: 1.15rem;
-  line-height: 1.1;
+  margin-top: 8px;
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 .study-layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   grid-template-areas:
     "tools focus";
-  gap: 16px;
+  gap: 20px;
   align-items: start;
 }
 
 .tool-panel,
 .focus-area {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border: 1px solid rgba(31, 40, 35, 0.08);
+  border-radius: 24px;
   background: rgba(255, 253, 248, 0.92);
   box-shadow: var(--shadow);
 }
@@ -309,14 +346,14 @@ select:focus {
 .tool-panel {
   grid-area: tools;
   position: sticky;
-  top: 16px;
-  padding: 18px;
+  top: 18px;
+  padding: 22px;
 }
 
 .focus-area {
   grid-area: focus;
-  padding: 20px;
-  min-height: 470px;
+  padding: 24px;
+  min-height: 560px;
 }
 
 .panel-heading {
@@ -344,18 +381,18 @@ select:focus {
 .panel-heading h1,
 .section-heading h2 {
   margin: 4px 0 0;
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-family: "Iowan Old Style", "Yu Mincho", "Hiragino Mincho ProN", serif;
   font-size: 1.65rem;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .roadmap-summary {
-  margin-bottom: 16px;
-  padding: 14px;
-  border: 1px solid rgba(86, 112, 90, 0.16);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(86, 112, 90, 0.1), rgba(255, 255, 255, 0.8));
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid rgba(95, 122, 85, 0.16);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(217, 233, 229, 0.8), rgba(255, 255, 255, 0.84));
 }
 
 .roadmap-summary strong {
@@ -371,15 +408,15 @@ select:focus {
 
 .roadmap-list {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .roadmap-item {
   position: relative;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid rgba(23, 20, 18, 0.08);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .roadmap-item.is-current {
@@ -513,38 +550,88 @@ select:focus {
   justify-content: space-between;
   gap: 16px;
   align-items: end;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
+}
+
+.focus-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.focus-title-row h2 {
+  margin: 0;
+}
+
+.title-info-button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(28, 76, 74, 0.28);
+  border-radius: 999px;
+  background: rgba(217, 233, 229, 0.78);
+  color: var(--indigo);
+  cursor: pointer;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(26, 22, 18, 0.08);
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.title-info-button:hover {
+  border-color: var(--indigo);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.section-heading__hint {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 500;
 }
 
 .heading-tools {
-  display: grid;
-  justify-items: end;
-  gap: 6px;
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-.view-switch {
-  flex-wrap: nowrap;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.74);
+.focus-search {
+  display: grid;
+  width: min(360px, 38vw);
+  gap: 7px;
 }
 
-.view-switch button {
-  display: grid;
-  width: 34px;
-  height: 30px;
-  place-items: center;
-  padding: 0;
+.focus-search span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.card-position-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
   border-radius: 999px;
-  font-size: 1rem;
-  line-height: 1;
+  background: var(--paper-2);
+  color: var(--indigo);
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .flashcard {
   position: relative;
-  min-height: 312px;
+  min-height: 380px;
   cursor: pointer;
   overflow: visible;
   perspective: 62.5rem;
@@ -558,9 +645,9 @@ select:focus {
   position: absolute;
   top: 18px;
   right: 18px;
-  width: 72px;
-  height: 72px;
-  border: 12px solid rgba(180, 68, 52, 0.12);
+  width: 96px;
+  height: 96px;
+  border: 14px solid rgba(200, 164, 94, 0.13);
   border-radius: 50%;
   pointer-events: none;
   z-index: 3;
@@ -792,14 +879,12 @@ select:focus {
   align-content: center;
   width: 100%;
   min-height: 100%;
-  padding: 30px 78px 30px 30px;
-  border: 1px solid rgba(38, 58, 99, 0.18);
-  border-radius: var(--radius);
+  padding: 38px 84px 38px 38px;
+  border: 1px solid rgba(28, 76, 74, 0.12);
+  border-radius: 26px;
   background:
-    linear-gradient(90deg, rgba(185, 149, 82, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(185, 149, 82, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(244, 239, 228, 0.9)),
     #fffaf1;
-  background-size: 18px 18px;
   backface-visibility: hidden;
   box-shadow: 0 4px 16px rgba(40, 46, 62, 0.1);
   transform-style: preserve-3d;
@@ -825,8 +910,8 @@ select:focus {
 
 .flashcard h3 {
   margin: 12px 0 10px;
-  font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-size: 3.4rem;
+  font-family: "Iowan Old Style", "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-size: clamp(2.8rem, 5vw, 4.5rem);
   font-weight: 700;
   line-height: 1.12;
   overflow-wrap: anywhere;
@@ -835,14 +920,14 @@ select:focus {
 .flashcard__reading {
   margin: 0;
   color: var(--muted);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
 }
 
 .flashcard__meaning {
-  margin: 12px 0 18px;
+  margin: 14px 0 22px;
   color: var(--ink);
-  font-size: 1.25rem;
-  line-height: 1.6;
+  font-size: 1.3rem;
+  line-height: 1.7;
 }
 
 .tag {
@@ -856,21 +941,21 @@ select:focus {
 
 .gamepad-actions {
   display: grid;
-  grid-template-columns: 90px 118px 90px;
+  grid-template-columns: 120px 160px 120px;
   grid-template-areas:
     ". up ."
     "left . right"
     ". down .";
   justify-content: center;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 12px;
+  margin-top: 18px;
 }
 
 .gamepad-button {
-  min-height: 42px;
-  padding: 0 12px;
+  min-height: 48px;
+  padding: 0 16px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: 16px;
   background: #ffffff;
   color: var(--ink);
   cursor: pointer;
@@ -884,6 +969,10 @@ select:focus {
 
 .gamepad-button:hover {
   transform: translateY(-1px);
+}
+
+.gamepad-button:disabled {
+  cursor: default;
 }
 
 .gamepad-button--up {
@@ -1043,11 +1132,11 @@ select:focus {
 }
 
 .examples-panel {
-  margin-top: 16px;
-  padding: 14px;
-  border: 1px solid rgba(23, 20, 18, 0.1);
-  border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.72);
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid rgba(23, 20, 18, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .examples-heading {
@@ -1073,9 +1162,9 @@ select:focus {
 }
 
 .example-item {
-  padding: 10px 11px;
+  padding: 12px 14px;
   border: 1px solid rgba(23, 20, 18, 0.08);
-  border-radius: var(--radius);
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.76);
 }
 
@@ -1196,6 +1285,10 @@ select:focus {
   z-index: 50;
 }
 
+#action-modal {
+  z-index: 52;
+}
+
 #level-modal {
   z-index: 55;
 }
@@ -1297,6 +1390,74 @@ select:focus {
   margin: 4px 0 0;
 }
 
+.action-help-list {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.action-help-list div {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid rgba(23, 20, 18, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.action-help-list dt {
+  color: var(--indigo);
+  font-weight: 800;
+}
+
+.action-help-list dd {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.gamepad-actions--showcase {
+  margin-top: 18px;
+  margin-bottom: 6px;
+}
+
+.gamepad-actions--showcase .gamepad-button {
+  box-shadow: none;
+  opacity: 0.96;
+}
+
+.gamepad-actions--showcase .gamepad-button:hover {
+  transform: none;
+}
+
+.action-warning {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(200, 164, 94, 0.5);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(200, 164, 94, 0.18), rgba(240, 209, 188, 0.28));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.action-warning strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #7b5415;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.action-warning p {
+  margin: 0;
+  color: #5f4520;
+  line-height: 1.55;
+}
+
 .modal__examples {
   margin-top: 18px;
   padding-top: 14px;
@@ -1337,15 +1498,6 @@ select:focus {
 @media (max-width: 1160px) {
   .topbar {
     grid-template-columns: 1fr;
-    justify-items: stretch;
-  }
-
-  .top-search {
-    max-width: none;
-  }
-
-  .topbar-actions {
-    justify-items: stretch;
   }
 
   .study-layout {
@@ -1357,15 +1509,24 @@ select:focus {
 @media (max-width: 760px) {
   .app-shell {
     width: min(calc(100% - 20px), var(--page-width));
-    padding-top: 10px;
+    padding-top: 14px;
   }
 
   .study-layout {
     display: block;
   }
 
+  .topbar {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .topbar__copy h1 {
+    font-size: 2rem;
+  }
+
   .top-stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .tool-panel,
@@ -1382,11 +1543,11 @@ select:focus {
   }
 
   .flashcard {
-    min-height: 260px;
+    min-height: 320px;
   }
 
   .flashcard__face {
-    padding: 20px 64px 20px 20px;
+    padding: 24px 64px 24px 24px;
   }
 
   .flashcard h3 {
@@ -1399,11 +1560,17 @@ select:focus {
   }
 
   .heading-tools {
-    justify-items: start;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .focus-search {
+    width: 100%;
   }
 
   .gamepad-actions {
-    grid-template-columns: 78px 112px 78px;
+    grid-template-columns: 94px 130px 94px;
   }
 
   .overview-row {

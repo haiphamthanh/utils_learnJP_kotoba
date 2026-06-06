@@ -13,69 +13,74 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="/">
-          <span class="brand__mark">言</span>
-          <span>
-            <strong>Kotoba Engawa</strong>
-            <small>JLPT word study</small>
-          </span>
-        </a>
+        <div class="topbar__primary">
+          <a class="brand" href="/">
+            <span class="brand__mark">言</span>
+            <span>
+              <strong>Kotoba Engawa</strong>
+              <small>JLPT word study</small>
+            </span>
+          </a>
 
-        <label class="top-search" aria-label="Search vocabulary">
-          <span class="top-search__label">Search</span>
-          <input
-            id="search-input"
-            type="search"
-            placeholder="語彙, ごい, vocabulary..."
-            autocomplete="off"
-          />
-        </label>
-
-        <div class="topbar-actions">
-          <div class="toolbar-row">
-            <button
-              type="button"
-              class="icon-button"
-              id="stats-toggle-btn"
-              aria-label="Open study stats"
-            >
-              <span class="icon-chart" aria-hidden="true">
-                <i></i><i></i><i></i>
-                <b></b>
-              </span>
-            </button>
-            <button
-              type="button"
-              class="icon-button"
-              id="bank-toggle-btn"
-              aria-label="Open word bank"
-            >
-              <span class="icon-stack" aria-hidden="true">
-                <i></i><i></i><i></i>
-              </span>
-            </button>
-            <label class="user-switcher">
-              <span>User</span>
-              <select id="user-select"></select>
-            </label>
+          <div class="topbar__copy">
+            <!-- <p class="topbar__eyebrow">Study Workspace</p> -->
+            <h1>Study the roadmap, one word at a time.</h1>
+            <p>
+              Each session stays small and clear, so you always know where you
+              are on the path from N5 to N1.
+            </p>
           </div>
+        </div>
 
-          <div class="top-stats" aria-label="Wordlist summary">
-            <button
-              type="button"
-              class="stat-tile stat-tile--button"
-              id="total-words-button"
-            >
-              <span>Total</span>
-              <strong data-stat="totalWords">-</strong>
-            </button>
-            <div class="stat-tile">
-              <span>Current</span>
-              <strong data-stat="currentLevel">-</strong>
+        <div class="topbar__secondary">
+          <div class="topbar-actions">
+            <div class="toolbar-row">
+              <button
+                type="button"
+                class="icon-button"
+                id="stats-toggle-btn"
+                aria-label="Open study stats"
+              >
+                <span class="icon-chart" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                  <b></b>
+                </span>
+                <span>Stats</span>
+              </button>
+              <button
+                type="button"
+                class="icon-button"
+                id="bank-toggle-btn"
+                aria-label="Open word bank"
+              >
+                <span class="icon-stack" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                </span>
+                <span>Words</span>
+              </button>
+              <label class="user-switcher">
+                <span>User</span>
+                <select id="user-select"></select>
+              </label>
             </div>
-            <div class="stat-tile">
-              <span>Visible</span>
-              <strong data-stat="visibleWords">-</strong>
+
+            <div class="top-stats" aria-label="Wordlist summary">
+              <button
+                type="button"
+                class="stat-tile stat-tile--button"
+                id="total-words-button"
+              >
+                <span>Total words</span>
+                <strong data-stat="totalWords">-</strong>
+              </button>
+              <div class="stat-tile">
+                <span>Current level</span>
+                <strong data-stat="currentLevel">-</strong>
+              </div>
+              <div class="stat-tile">
+                <span>Active pool</span>
+                <strong data-stat="visibleWords">-</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -100,29 +105,30 @@
           <div class="section-heading">
             <div>
               <p>Focus Card</p>
-              <h2>今日の言葉</h2>
-            </div>
-            <div class="heading-tools">
-              <div class="segmented-control view-switch" id="study-mode">
+              <div class="focus-title-row">
+                <h2>今日の言葉</h2>
                 <button
-                  class="is-active"
-                  data-mode="flashcard"
+                  id="action-info-btn"
+                  class="title-info-button"
                   type="button"
-                  title="Card view"
-                  aria-label="Card view"
+                  aria-label="Show study guide"
+                  title="Study guide"
                 >
-                  ◧
-                </button>
-                <button
-                  data-mode="list"
-                  type="button"
-                  title="List view"
-                  aria-label="List view"
-                >
-                  ☷
+                  i
                 </button>
               </div>
-              <span id="card-position">-</span>
+            </div>
+            <div class="heading-tools">
+              <label class="focus-search" aria-label="Search current study">
+                <span>Search current study</span>
+                <input
+                  id="search-input"
+                  type="search"
+                  placeholder="語彙, ごい, vocabulary..."
+                  autocomplete="off"
+                />
+              </label>
+              <span id="card-position" class="card-position-badge">-</span>
             </div>
           </div>
 
@@ -213,43 +219,10 @@
             </div>
           </article>
 
-          <div class="gamepad-actions" aria-label="Card controls">
-            <button
-              id="learned-btn"
-              class="gamepad-button gamepad-button--up"
-              type="button"
-            >
-              Up: Learned
-            </button>
-            <button
-              id="prev-btn"
-              class="gamepad-button gamepad-button--left"
-              type="button"
-              title="Previous"
-            >
-              <span aria-hidden="true">‹</span>
-            </button>
-            <button
-              id="next-btn"
-              class="gamepad-button gamepad-button--right"
-              type="button"
-              title="Next"
-            >
-              <span aria-hidden="true">›</span>
-            </button>
-            <button
-              id="unlearned-btn"
-              class="gamepad-button gamepad-button--down"
-              type="button"
-            >
-              Down: not yet
-            </button>
-          </div>
-
           <div class="examples-panel">
             <div class="examples-heading">
               <p>Examples</p>
-              <span>3 sample sentences</span>
+              <span>Ngữ cảnh để nhớ từ nhanh hơn</span>
             </div>
             <div id="examples-list" class="examples-list">
               <p>Loading examples...</p>
@@ -257,6 +230,89 @@
           </div>
         </section>
       </main>
+
+      <div id="action-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-action-close></div>
+        <article
+          class="modal__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="action-modal-title"
+        >
+          <button
+            class="modal__close"
+            data-action-close
+            type="button"
+            aria-label="Close"
+          >
+            x
+          </button>
+          <p class="modal__eyebrow">Study Guide</p>
+          <h2 id="action-modal-title">How this session works</h2>
+          <dl class="action-help-list">
+            <div>
+              <dt>Up</dt>
+              <dd>
+                Marks the word as learned and removes it from the current batch.
+              </dd>
+            </div>
+            <div>
+              <dt>Left / Right</dt>
+              <dd>Moves backward or forward inside the current batch.</dd>
+            </div>
+            <div>
+              <dt>Down</dt>
+              <dd>Keeps the word in the batch so it appears again later.</dd>
+            </div>
+            <div>
+              <dt>S</dt>
+              <dd>Stars the word for extra review.</dd>
+            </div>
+          </dl>
+          <div
+            class="gamepad-actions gamepad-actions--showcase"
+            aria-label="Card controls preview"
+          >
+            <button
+              class="gamepad-button gamepad-button--up"
+              type="button"
+              disabled
+            >
+              Up: Learned
+            </button>
+            <button
+              class="gamepad-button gamepad-button--left"
+              type="button"
+              title="Previous"
+              disabled
+            >
+              <span aria-hidden="true">‹</span>
+            </button>
+            <button
+              class="gamepad-button gamepad-button--right"
+              type="button"
+              title="Next"
+              disabled
+            >
+              <span aria-hidden="true">›</span>
+            </button>
+            <button
+              class="gamepad-button gamepad-button--down"
+              type="button"
+              disabled
+            >
+              Down: Review again
+            </button>
+          </div>
+          <div class="action-warning" role="note" aria-label="Learned rule">
+            <strong>Learned rule</strong>
+            <p>
+              A word can feel familiar after about 5 views, but in this app it
+              is counted as learned only when you confirm it with Up.
+            </p>
+          </div>
+        </article>
+      </div>
 
       <div id="word-modal" class="modal" hidden>
         <div class="modal__backdrop" data-modal-close></div>

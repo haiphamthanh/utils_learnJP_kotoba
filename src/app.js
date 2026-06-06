@@ -29,6 +29,7 @@ const elements = {
   userSelect: document.querySelector("#user-select"),
   statsToggleBtn: document.querySelector("#stats-toggle-btn"),
   bankToggleBtn: document.querySelector("#bank-toggle-btn"),
+  actionInfoBtn: document.querySelector("#action-info-btn"),
   roadmapSummary: document.querySelector("#roadmap-summary"),
   roadmapList: document.querySelector("#roadmap-list"),
   cardFilter: document.querySelector("#card-filter"),
@@ -59,6 +60,7 @@ const elements = {
   examplesList: document.querySelector("#examples-list"),
   studyStats: document.querySelector("#study-stats"),
   wordModal: document.querySelector("#word-modal"),
+  actionModal: document.querySelector("#action-modal"),
   modalTitle: document.querySelector("#modal-title"),
   modalReading: document.querySelector("#modal-reading"),
   modalMeaning: document.querySelector("#modal-meaning"),
@@ -218,11 +220,12 @@ function bindEvents() {
     render();
   });
 
-  elements.prevBtn.addEventListener("click", () => stepCard(-1));
-  elements.nextBtn.addEventListener("click", () => stepCard(1));
-  elements.learnedBtn.addEventListener("click", markCurrentLearned);
-  elements.unlearnedBtn.addEventListener("click", markCurrentUnlearned);
+  elements.prevBtn?.addEventListener("click", () => stepCard(-1));
+  elements.nextBtn?.addEventListener("click", () => stepCard(1));
+  elements.learnedBtn?.addEventListener("click", markCurrentLearned);
+  elements.unlearnedBtn?.addEventListener("click", markCurrentUnlearned);
   elements.favoriteBtn.addEventListener("click", toggleFavorite);
+  elements.actionInfoBtn.addEventListener("click", openActionModal);
   elements.settingsBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     toggleSettingsPanel();
@@ -272,6 +275,7 @@ function bindEvents() {
       closeLevelModal();
       closeStatsModal();
       closeBankModal();
+      closeActionModal();
       closeSettingsPanel();
     }
   });
@@ -314,6 +318,12 @@ function bindEvents() {
   elements.bankModal.addEventListener("click", (event) => {
     if (event.target.closest("[data-bank-close]")) {
       closeBankModal();
+    }
+  });
+
+  elements.actionModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-action-close]")) {
+      closeActionModal();
     }
   });
 
@@ -1229,6 +1239,14 @@ function openOverviewModal() {
 
 function closeOverviewModal() {
   elements.overviewModal.hidden = true;
+}
+
+function openActionModal() {
+  elements.actionModal.hidden = false;
+}
+
+function closeActionModal() {
+  elements.actionModal.hidden = true;
 }
 
 function openLevelModal(levelKey) {
