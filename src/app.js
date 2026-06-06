@@ -75,6 +75,7 @@ const elements = {
   statsModal: document.querySelector("#stats-modal"),
   bankModal: document.querySelector("#bank-modal"),
   totalWordsButton: document.querySelector("#total-words-button"),
+  currentLevelButton: document.querySelector("#current-level-button"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
   statCurrentLevel: document.querySelector('[data-stat="currentLevel"]'),
   statVisibleWords: document.querySelector('[data-stat="visibleWords"]'),
@@ -337,8 +338,18 @@ function bindEvents() {
   });
 
   elements.totalWordsButton.addEventListener("click", openOverviewModal);
+  elements.currentLevelButton.addEventListener("click", openCurrentLevelBank);
   elements.statsToggleBtn.addEventListener("click", openStatsModal);
   elements.bankToggleBtn.addEventListener("click", openBankModal);
+
+  elements.overviewContent.addEventListener("dblclick", (event) => {
+    const item = event.target.closest("[data-overview-level]");
+    if (!item) {
+      return;
+    }
+
+    openLevelModal(item.dataset.overviewLevel);
+  });
 }
 
 function applyFilters({ preserveSession }) {
@@ -1281,6 +1292,20 @@ function openBankModal() {
   elements.bankModal.hidden = false;
 }
 
+function openCurrentLevelBank() {
+  const studyState = getStudyState();
+  const currentLevel = getCurrentRoadmapLevel();
+
+  if (!currentLevel?.key) {
+    openBankModal();
+    return;
+  }
+
+  studyState.bankLevelFilter = currentLevel.key;
+  openBankModal();
+  persistAppState();
+}
+
 function closeBankModal() {
   elements.bankModal.hidden = true;
   if (state.mode === "list") {
@@ -1304,7 +1329,7 @@ function renderOverviewContent() {
       const percent = total ? Math.round((learned / total) * 100) : 0;
 
       return `
-        <div class="overview-row">
+        <div class="overview-row" data-overview-level="${escapeHtml(level.key)}">
           <div>
             <strong>${escapeHtml(level.label)}</strong>
             <p>${formatNumber(learned)} / ${formatNumber(total)} từ</p>
