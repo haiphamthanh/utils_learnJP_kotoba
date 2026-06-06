@@ -58,6 +58,10 @@ const elements = {
   modalExamplesList: document.querySelector("#modal-examples-list"),
   overviewModal: document.querySelector("#overview-modal"),
   overviewContent: document.querySelector("#overview-content"),
+  levelModal: document.querySelector("#level-modal"),
+  levelModalTitle: document.querySelector("#level-modal-title"),
+  levelModalSummary: document.querySelector("#level-modal-summary"),
+  levelModalBody: document.querySelector("#level-modal-body"),
   totalWordsButton: document.querySelector("#total-words-button"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
   statCurrentLevel: document.querySelector('[data-stat="currentLevel"]'),
@@ -231,6 +235,7 @@ function bindEvents() {
     } else if (event.key === "Escape") {
       closeWordModal();
       closeOverviewModal();
+      closeLevelModal();
       closeSettingsPanel();
     }
   });
@@ -256,6 +261,21 @@ function bindEvents() {
     if (event.target.closest("[data-overview-close]")) {
       closeOverviewModal();
     }
+  });
+
+  elements.levelModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-level-close]")) {
+      closeLevelModal();
+    }
+  });
+
+  elements.roadmapList.addEventListener("dblclick", (event) => {
+    const item = event.target.closest(".roadmap-item");
+    if (!item || item.dataset.status !== "current") {
+      return;
+    }
+
+    openLevelModal(item.dataset.level);
   });
 
   elements.totalWordsButton.addEventListener("click", openOverviewModal);
@@ -426,7 +446,7 @@ function createArchiveSnapshot() {
 function resetStudyJourney() {
   state.userStatesById[state.activeUserId] = createDefaultStudyState();
   syncControlsFromUserState();
-  applyFilters({ preserveSession: false });
+  applyFilters({ preserveSession: true });
 }
 
 function playArchiveResetEffect() {
@@ -477,7 +497,7 @@ function renderRoadmap() {
   elements.roadmapList.innerHTML = items
     .map(
       (item, index) => `
-        <article class="roadmap-item is-${item.status}">
+        <article class="roadmap-item is-${item.status}" data-level="${item.key}" data-status="${item.status}">
           <div class="roadmap-item__head">
             <span class="roadmap-item__badge">${escapeHtml(item.label)}</span>
             <strong>${item.percent}%</strong>
@@ -634,7 +654,7 @@ function markCurrentLearned() {
     studyState.currentIndex = Math.max(0, state.sessionWords.length - 1);
   }
 
-  applyFilters({ preserveSession: false });
+  applyFilters({ preserveSession: true });
 }
 
 function markCurrentUnlearned() {
@@ -656,7 +676,7 @@ function markCurrentUnlearned() {
     studyState.currentIndex = 0;
   }
 
-  applyFilters({ preserveSession: false });
+  applyFilters({ preserveSession: true });
 }
 
 function toggleFlip() {
@@ -1054,6 +1074,51 @@ function closeOverviewModal() {
   elements.overviewModal.hidden = true;
 }
 
+function openLevelModal(levelKey) {
+  const level = state.levels.find((item) => item.key === levelKey);
+  const words = getLearnedWordsForLevel(levelKey);
+
+  elements.levelModalTitle.textContent = `${level?.label || levelKey.toUpperCase()} learned words`;
+  elements.levelModalSummary.textContent = `Double click một từ để mở Vocabulary Detail. Hiển thị các từ đã thuộc và số lần đã xem trong cấp độ đang học.`;
+  elements.levelModalBody.innerHTML = words.length
+    ? words
+        .map(
+          (word) => `
+            <tr data-expression="${escapeHtml(word.expression)}">
+              <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
+              <td>${escapeHtml(word.reading)}</td>
+              <td>${escapeHtml(word.meaning)}</td>
+              <td>${formatNumber(word.viewCount)}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `
+        <tr>
+          <td colspan="4">Chưa có từ nào đã thuộc trong cấp độ này.</td>
+        </tr>
+      `;
+
+  for (const row of elements.levelModalBody.querySelectorAll("tr[data-expression]")) {
+    row.addEventListener("dblclick", () => {
+      const word = state.words.find(
+        (item) => item.expression === row.dataset.expression,
+      );
+      if (!word) {
+        return;
+      }
+
+      openWordModal(word);
+    });
+  }
+
+  elements.levelModal.hidden = false;
+}
+
+function closeLevelModal() {
+  elements.levelModal.hidden = true;
+}
+
 function renderOverviewContent() {
   const studyState = getStudyState();
   const counts = getLevelCounts();
@@ -1276,6 +1341,38 @@ function summarizeLocalActionRows() {
     .slice(0, 12);
 }
 
+function getLearnedWordsForLevel(levelKey) {
+  const studyState = getStudyState();
+  const learnedSet = new Set(studyState.learnedExpressions);
+  const viewCounts = new Map();
+
+  for (const log of studyState.localActionLogs) {
+    if (log.action !== "view") {
+      continue;
+    }
+
+    viewCounts.set(
+      log.expression,
+      (viewCounts.get(log.expression) || 0) + 1,
+    );
+  }
+
+  return state.words
+    .filter(
+      (word) => word.level === levelKey && learnedSet.has(word.expression),
+    )
+    .map((word) => ({
+      ...word,
+      viewCount: viewCounts.get(word.expression) || 0,
+    }))
+    .sort((left, right) => {
+      if (right.viewCount !== left.viewCount) {
+        return right.viewCount - left.viewCount;
+      }
+      return left.expression.localeCompare(right.expression);
+    });
+}
+
 function getLocalStatsBucket(createdAt) {
   const studyState = getStudyState();
   const date = new Date(createdAt);
@@ -1339,8 +1436,6 @@ function ensureUserState(userId) {
 
   if (!state.userStatesById[userId]) {
     state.userStatesById[userId] = createDefaultStudyState();
-  } else {
-    state.userStatesById[userId] = normalizeStudyState(state.userStatesById[userId]);
   }
 }
 

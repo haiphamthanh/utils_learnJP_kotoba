@@ -324,6 +324,7 @@ select:focus {
 .roadmap-item.is-current {
   border-color: rgba(38, 58, 99, 0.24);
   background: linear-gradient(180deg, rgba(38, 58, 99, 0.08), rgba(255, 255, 255, 0.92));
+  cursor: pointer;
 }
 
 .roadmap-item.is-complete {
@@ -1138,6 +1139,18 @@ select:focus {
   padding: 20px;
 }
 
+#overview-modal {
+  z-index: 50;
+}
+
+#level-modal {
+  z-index: 55;
+}
+
+#word-modal {
+  z-index: 60;
+}
+
 .modal__backdrop {
   position: absolute;
   inset: 0;
@@ -1152,6 +1165,10 @@ select:focus {
   border-radius: var(--radius);
   background: var(--paper);
   box-shadow: var(--shadow);
+}
+
+.modal__panel--wide {
+  width: min(860px, 100%);
 }
 
 .modal__close {
@@ -1236,6 +1253,10 @@ select:focus {
 .overview-row p {
   margin: 4px 0 0;
   color: var(--muted);
+}
+
+.table-wrap--modal {
+  max-height: 420px;
 }
 
 @media (max-width: 1160px) {
