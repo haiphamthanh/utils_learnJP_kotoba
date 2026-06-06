@@ -131,6 +131,7 @@ button {
 }
 
 input[type="search"],
+input[type="number"],
 select {
   width: 100%;
   height: 44px;
@@ -143,6 +144,7 @@ select {
 }
 
 input[type="search"]:focus,
+input[type="number"]:focus,
 select:focus {
   border-color: var(--indigo);
   box-shadow: 0 0 0 3px rgba(38, 58, 99, 0.12);
@@ -152,6 +154,90 @@ select:focus {
   display: grid;
   gap: 10px;
   justify-items: end;
+}
+
+.toolbar-row {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+
+.icon-button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.92);
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.icon-button:hover {
+  border-color: rgba(38, 58, 99, 0.32);
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.icon-chart,
+.icon-stack {
+  position: relative;
+  display: inline-grid;
+}
+
+.icon-chart i,
+.icon-stack i {
+  display: block;
+  border-radius: 999px;
+  background: var(--indigo);
+}
+
+.icon-chart {
+  grid-template-columns: repeat(3, 1fr);
+  align-items: end;
+  gap: 3px;
+  width: 18px;
+  height: 18px;
+}
+
+.icon-chart i {
+  width: 4px;
+}
+
+.icon-chart i:nth-child(1) {
+  height: 7px;
+}
+
+.icon-chart i:nth-child(2) {
+  height: 12px;
+}
+
+.icon-chart i:nth-child(3) {
+  height: 16px;
+}
+
+.icon-chart b {
+  position: absolute;
+  right: -1px;
+  bottom: 1px;
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid rgba(38, 58, 99, 0.28);
+  border-top: 2px solid rgba(38, 58, 99, 0.28);
+  transform: skew(-28deg) rotate(12deg);
+}
+
+.icon-stack {
+  gap: 3px;
+}
+
+.icon-stack i {
+  width: 16px;
+  height: 3px;
 }
 
 .user-switcher {
@@ -205,18 +291,15 @@ select:focus {
 
 .study-layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 270px;
+  grid-template-columns: 280px minmax(0, 1fr);
   grid-template-areas:
-    "tools focus side"
-    "tools bank bank";
+    "tools focus";
   gap: 16px;
   align-items: start;
 }
 
 .tool-panel,
-.focus-area,
-.side-panel,
-.word-bank {
+.focus-area {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(255, 253, 248, 0.92);
@@ -234,28 +317,6 @@ select:focus {
   grid-area: focus;
   padding: 20px;
   min-height: 470px;
-}
-
-.side-panel {
-  grid-area: side;
-  display: grid;
-  gap: 12px;
-  padding: 14px;
-  background:
-    linear-gradient(180deg, rgba(38, 58, 99, 0.08), transparent 52%),
-    rgba(255, 253, 248, 0.92);
-}
-
-.word-bank {
-  grid-area: bank;
-  padding: 18px;
-}
-
-.study-layout.is-list-mode {
-  grid-template-columns: 280px minmax(0, 1fr) 270px;
-  grid-template-areas:
-    "tools bank side"
-    "tools bank side";
 }
 
 .panel-heading {
@@ -1042,14 +1103,6 @@ select:focus {
   background: #ffffff;
 }
 
-.study-layout.is-list-mode .word-bank {
-  min-height: 680px;
-}
-
-.study-layout.is-list-mode .table-wrap {
-  max-height: 640px;
-}
-
 .word-table {
   width: 100%;
   border-collapse: collapse;
@@ -1171,6 +1224,28 @@ select:focus {
   width: min(860px, 100%);
 }
 
+.bank-modal__controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.field--wide {
+  grid-column: span 4;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field > span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .modal__close {
   position: absolute;
   top: 12px;
@@ -1275,21 +1350,7 @@ select:focus {
 
   .study-layout {
     grid-template-columns: 280px minmax(0, 1fr);
-    grid-template-areas:
-      "tools focus"
-      "tools side"
-      "bank bank";
-  }
-
-  .side-panel {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .study-layout.is-list-mode {
-    grid-template-columns: 280px minmax(0, 1fr);
-    grid-template-areas:
-      "tools bank"
-      "tools side";
+    grid-template-areas: "tools focus";
   }
 }
 
@@ -1308,9 +1369,7 @@ select:focus {
   }
 
   .tool-panel,
-  .focus-area,
-  .side-panel,
-  .word-bank {
+  .focus-area {
     margin-bottom: 12px;
   }
 
@@ -1318,8 +1377,7 @@ select:focus {
     position: static;
   }
 
-  .focus-area,
-  .word-bank {
+  .focus-area {
     padding: 16px;
   }
 
@@ -1350,5 +1408,18 @@ select:focus {
 
   .overview-row {
     grid-template-columns: 1fr;
+  }
+
+  .toolbar-row {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .bank-modal__controls {
+    grid-template-columns: 1fr;
+  }
+
+  .field--wide {
+    grid-column: auto;
   }
 }

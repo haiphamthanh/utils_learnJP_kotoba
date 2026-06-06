@@ -18,14 +18,23 @@ const state = {
   saveTimers: new Map(),
   hydratingUsers: new Set(),
   userStatesById: {},
+  levelModalLevelKey: "",
+  levelModalQuery: "",
 };
 
 const elements = {
   searchInput: document.querySelector("#search-input"),
+  bankSearchInput: document.querySelector("#bank-search-input"),
+  levelSearchInput: document.querySelector("#level-search-input"),
   userSelect: document.querySelector("#user-select"),
+  statsToggleBtn: document.querySelector("#stats-toggle-btn"),
+  bankToggleBtn: document.querySelector("#bank-toggle-btn"),
   roadmapSummary: document.querySelector("#roadmap-summary"),
   roadmapList: document.querySelector("#roadmap-list"),
   cardFilter: document.querySelector("#card-filter"),
+  bankLevelFilter: document.querySelector("#bank-level-filter"),
+  bankStatusFilter: document.querySelector("#bank-status-filter"),
+  bankMinViews: document.querySelector("#bank-min-views"),
   statsRange: document.querySelector("#stats-range"),
   prevBtn: document.querySelector("#prev-btn"),
   nextBtn: document.querySelector("#next-btn"),
@@ -38,7 +47,6 @@ const elements = {
   appShell: document.querySelector(".app-shell"),
   studyLayout: document.querySelector(".study-layout"),
   focusArea: document.querySelector("#focus-card"),
-  wordBank: document.querySelector("#word-bank"),
   flashcard: document.querySelector("#flashcard"),
   cardExpression: document.querySelector("#card-expression"),
   cardReading: document.querySelector("#card-reading"),
@@ -62,6 +70,8 @@ const elements = {
   levelModalTitle: document.querySelector("#level-modal-title"),
   levelModalSummary: document.querySelector("#level-modal-summary"),
   levelModalBody: document.querySelector("#level-modal-body"),
+  statsModal: document.querySelector("#stats-modal"),
+  bankModal: document.querySelector("#bank-modal"),
   totalWordsButton: document.querySelector("#total-words-button"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
   statCurrentLevel: document.querySelector('[data-stat="currentLevel"]'),
@@ -104,6 +114,7 @@ async function init() {
     }
 
     renderUserSelect();
+    renderBankLevelOptions();
     bindEvents();
     await hydrateUserState(state.activeUserId);
     syncControlsFromUserState();
@@ -118,10 +129,16 @@ async function init() {
 
 function bindEvents() {
   elements.searchInput.addEventListener("input", (event) => {
-    const studyState = getStudyState();
-    studyState.query = event.target.value.trim().toLowerCase();
-    studyState.currentIndex = 0;
-    applyFilters({ preserveSession: false });
+    updateSearchQuery(event.target.value);
+  });
+
+  elements.bankSearchInput.addEventListener("input", (event) => {
+    updateBankQuery(event.target.value);
+  });
+
+  elements.levelSearchInput.addEventListener("input", (event) => {
+    state.levelModalQuery = String(event.target.value || "").trim().toLowerCase();
+    renderLevelModalTable();
   });
 
   elements.userSelect.addEventListener("change", async (event) => {
@@ -135,18 +152,27 @@ function bindEvents() {
     applyFilters({ preserveSession: true });
   });
 
-  elements.cardFilter.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-filter]");
-    if (!button) {
-      return;
-    }
+  elements.cardFilter.addEventListener("click", handleStudyFilterButtonClick);
 
+  elements.bankLevelFilter.addEventListener("change", (event) => {
     const studyState = getStudyState();
-    studyState.filterMode = button.dataset.filter;
-    studyState.currentIndex = 0;
-    updateFilterButtons();
-    closeSettingsPanel();
-    applyFilters({ preserveSession: false });
+    studyState.bankLevelFilter = event.target.value;
+    renderTable();
+    persistAppState();
+  });
+
+  elements.bankStatusFilter.addEventListener("change", (event) => {
+    const studyState = getStudyState();
+    studyState.bankStatusFilter = event.target.value;
+    renderTable();
+    persistAppState();
+  });
+
+  elements.bankMinViews.addEventListener("input", (event) => {
+    const studyState = getStudyState();
+    studyState.bankMinViews = Math.max(0, Number(event.target.value || 0));
+    renderTable();
+    persistAppState();
   });
 
   elements.cardSettingsPanel.addEventListener("click", (event) => {
@@ -176,6 +202,14 @@ function bindEvents() {
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-mode]");
     if (!button) {
+      return;
+    }
+
+    if (button.dataset.mode === "list") {
+      state.mode = "list";
+      openBankModal();
+      updateModeButtons();
+      persistAppState();
       return;
     }
 
@@ -236,6 +270,8 @@ function bindEvents() {
       closeWordModal();
       closeOverviewModal();
       closeLevelModal();
+      closeStatsModal();
+      closeBankModal();
       closeSettingsPanel();
     }
   });
@@ -269,6 +305,18 @@ function bindEvents() {
     }
   });
 
+  elements.statsModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-stats-close]")) {
+      closeStatsModal();
+    }
+  });
+
+  elements.bankModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-bank-close]")) {
+      closeBankModal();
+    }
+  });
+
   elements.roadmapList.addEventListener("dblclick", (event) => {
     const item = event.target.closest(".roadmap-item");
     if (!item || item.dataset.status !== "current") {
@@ -279,6 +327,8 @@ function bindEvents() {
   });
 
   elements.totalWordsButton.addEventListener("click", openOverviewModal);
+  elements.statsToggleBtn.addEventListener("click", openStatsModal);
+  elements.bankToggleBtn.addEventListener("click", openBankModal);
 }
 
 function applyFilters({ preserveSession }) {
@@ -554,9 +604,10 @@ function renderFlashcard() {
 
 function renderTable() {
   const studyState = getStudyState();
+  const bankWords = getBankWords();
   elements.wordTableBody.innerHTML = "";
-  elements.emptyState.hidden = state.filteredWords.length > 0;
-  const rows = state.filteredWords.slice(0, MAX_ROWS);
+  elements.emptyState.hidden = bankWords.length > 0;
+  const rows = bankWords.slice(0, MAX_ROWS);
 
   for (const word of rows) {
     const row = document.createElement("tr");
@@ -570,6 +621,7 @@ function renderTable() {
       <td>${escapeHtml(word.reading)}</td>
       <td>${escapeHtml(word.meaning)}</td>
       <td><span class="level-badge">${escapeHtml(word.levelLabel)}</span></td>
+      <td>${formatNumber(word.viewCount || 0)}</td>
     `;
 
     row.addEventListener("click", () => {
@@ -609,9 +661,8 @@ function syncSelectedTableRow() {
 }
 
 function updateModeVisibility() {
-  elements.studyLayout.classList.toggle("is-list-mode", state.mode === "list");
-  elements.focusArea.hidden = state.mode !== "flashcard";
-  elements.wordBank.hidden = state.mode !== "list";
+  elements.studyLayout.classList.remove("is-list-mode");
+  elements.focusArea.hidden = false;
 }
 
 function updateModeButtons() {
@@ -829,6 +880,20 @@ function renderUserSelect() {
   elements.userSelect.value = state.activeUserId;
 }
 
+function renderBankLevelOptions() {
+  const options = [
+    { value: "all", label: "All levels" },
+    ...state.levels.map((level) => ({ value: level.key, label: level.label })),
+  ];
+
+  elements.bankLevelFilter.innerHTML = options
+    .map(
+      (option) =>
+        `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`,
+    )
+    .join("");
+}
+
 async function hydrateUserState(userId) {
   if (!userId) {
     return;
@@ -855,8 +920,8 @@ async function hydrateUserState(userId) {
 }
 
 function syncControlsFromUserState() {
-  const studyState = getStudyState();
-  elements.searchInput.value = studyState.query || "";
+  syncStudySearchInput();
+  syncBankControls();
   elements.userSelect.value = state.activeUserId;
 }
 
@@ -931,6 +996,18 @@ function updateFilterButtons() {
   for (const item of elements.cardFilter.querySelectorAll("[data-filter]")) {
     item.classList.toggle("is-active", item.dataset.filter === studyState.filterMode);
   }
+
+  if (elements.bankStatusFilter) {
+    elements.bankStatusFilter.value = studyState.bankStatusFilter;
+  }
+
+  if (elements.bankLevelFilter) {
+    elements.bankLevelFilter.value = studyState.bankLevelFilter;
+  }
+
+  if (elements.bankMinViews) {
+    elements.bankMinViews.value = String(studyState.bankMinViews);
+  }
 }
 
 function updateStatsRangeButtons() {
@@ -959,6 +1036,86 @@ function matchesFilterMode(word) {
   }
 
   return true;
+}
+
+function matchesBankStatus(word, studyState) {
+  if (studyState.bankStatusFilter === "starred") {
+    return studyState.starredExpressions.includes(word.expression);
+  }
+
+  if (studyState.bankStatusFilter === "unstarred") {
+    return !studyState.starredExpressions.includes(word.expression);
+  }
+
+  if (studyState.bankStatusFilter === "learned") {
+    return studyState.learnedExpressions.includes(word.expression);
+  }
+
+  if (studyState.bankStatusFilter === "unlearned") {
+    return !studyState.learnedExpressions.includes(word.expression);
+  }
+
+  return true;
+}
+
+function matchesSearchQuery(word, query) {
+  if (!query) {
+    return true;
+  }
+
+  const haystack = [
+    word.expression,
+    word.reading,
+    word.meaning,
+    word.levelLabel,
+    word.tags.join(" "),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return haystack.includes(query);
+}
+
+function getViewCounts() {
+  const studyState = getStudyState();
+  const viewCounts = new Map();
+
+  for (const log of studyState.localActionLogs) {
+    if (log.action !== "view") {
+      continue;
+    }
+
+    viewCounts.set(log.expression, (viewCounts.get(log.expression) || 0) + 1);
+  }
+
+  return viewCounts;
+}
+
+function getBankWords() {
+  const studyState = getStudyState();
+  const viewCounts = getViewCounts();
+
+  return state.words
+    .filter((word) => {
+      if (studyState.bankLevelFilter !== "all" && word.level !== studyState.bankLevelFilter) {
+        return false;
+      }
+
+      if (!matchesBankStatus(word, studyState)) {
+        return false;
+      }
+
+      if (!matchesSearchQuery(word, studyState.bankQuery)) {
+        return false;
+      }
+
+      const viewCount = viewCounts.get(word.expression) || 0;
+      return viewCount > Number(studyState.bankMinViews || 0);
+    })
+    .map((word) => ({
+      ...word,
+      viewCount: viewCounts.get(word.expression) || 0,
+    }));
 }
 
 function getLevelCounts() {
@@ -1075,48 +1232,44 @@ function closeOverviewModal() {
 }
 
 function openLevelModal(levelKey) {
+  state.levelModalLevelKey = levelKey;
+  state.levelModalQuery = "";
   const level = state.levels.find((item) => item.key === levelKey);
-  const words = getLearnedWordsForLevel(levelKey);
 
   elements.levelModalTitle.textContent = `${level?.label || levelKey.toUpperCase()} learned words`;
   elements.levelModalSummary.textContent = `Double click một từ để mở Vocabulary Detail. Hiển thị các từ đã thuộc và số lần đã xem trong cấp độ đang học.`;
-  elements.levelModalBody.innerHTML = words.length
-    ? words
-        .map(
-          (word) => `
-            <tr data-expression="${escapeHtml(word.expression)}">
-              <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
-              <td>${escapeHtml(word.reading)}</td>
-              <td>${escapeHtml(word.meaning)}</td>
-              <td>${formatNumber(word.viewCount)}</td>
-            </tr>
-          `,
-        )
-        .join("")
-    : `
-        <tr>
-          <td colspan="4">Chưa có từ nào đã thuộc trong cấp độ này.</td>
-        </tr>
-      `;
-
-  for (const row of elements.levelModalBody.querySelectorAll("tr[data-expression]")) {
-    row.addEventListener("dblclick", () => {
-      const word = state.words.find(
-        (item) => item.expression === row.dataset.expression,
-      );
-      if (!word) {
-        return;
-      }
-
-      openWordModal(word);
-    });
-  }
-
+  elements.levelSearchInput.value = "";
+  renderLevelModalTable();
   elements.levelModal.hidden = false;
 }
 
 function closeLevelModal() {
   elements.levelModal.hidden = true;
+}
+
+function openStatsModal() {
+  renderStats();
+  elements.statsModal.hidden = false;
+}
+
+function closeStatsModal() {
+  elements.statsModal.hidden = true;
+}
+
+function openBankModal() {
+  syncBankControls();
+  updateFilterButtons();
+  renderTable();
+  elements.bankModal.hidden = false;
+}
+
+function closeBankModal() {
+  elements.bankModal.hidden = true;
+  if (state.mode === "list") {
+    state.mode = "flashcard";
+    updateModeButtons();
+    persistAppState();
+  }
 }
 
 function renderOverviewContent() {
@@ -1344,18 +1497,7 @@ function summarizeLocalActionRows() {
 function getLearnedWordsForLevel(levelKey) {
   const studyState = getStudyState();
   const learnedSet = new Set(studyState.learnedExpressions);
-  const viewCounts = new Map();
-
-  for (const log of studyState.localActionLogs) {
-    if (log.action !== "view") {
-      continue;
-    }
-
-    viewCounts.set(
-      log.expression,
-      (viewCounts.get(log.expression) || 0) + 1,
-    );
-  }
+  const viewCounts = getViewCounts();
 
   return state.words
     .filter(
@@ -1371,6 +1513,44 @@ function getLearnedWordsForLevel(levelKey) {
       }
       return left.expression.localeCompare(right.expression);
     });
+}
+
+function renderLevelModalTable() {
+  const words = getLearnedWordsForLevel(state.levelModalLevelKey).filter((word) =>
+    matchesSearchQuery(word, state.levelModalQuery),
+  );
+
+  elements.levelModalBody.innerHTML = words.length
+    ? words
+        .map(
+          (word) => `
+            <tr data-expression="${escapeHtml(word.expression)}">
+              <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
+              <td>${escapeHtml(word.reading)}</td>
+              <td>${escapeHtml(word.meaning)}</td>
+              <td>${formatNumber(word.viewCount)}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `
+        <tr>
+          <td colspan="4">Không có từ nào khớp với search hiện tại.</td>
+        </tr>
+      `;
+
+  for (const row of elements.levelModalBody.querySelectorAll("tr[data-expression]")) {
+    row.addEventListener("dblclick", () => {
+      const word = state.words.find(
+        (item) => item.expression === row.dataset.expression,
+      );
+      if (!word) {
+        return;
+      }
+
+      openWordModal(word);
+    });
+  }
 }
 
 function getLocalStatsBucket(createdAt) {
@@ -1414,6 +1594,49 @@ function getLocalStatsBucket(createdAt) {
   };
 }
 
+function updateSearchQuery(rawValue) {
+  const studyState = getStudyState();
+  studyState.query = String(rawValue || "").trim().toLowerCase();
+  studyState.currentIndex = 0;
+  syncStudySearchInput();
+  applyFilters({ preserveSession: false });
+}
+
+function updateBankQuery(rawValue) {
+  const studyState = getStudyState();
+  studyState.bankQuery = String(rawValue || "").trim().toLowerCase();
+  syncBankControls();
+  renderTable();
+  persistAppState();
+}
+
+function syncStudySearchInput() {
+  const studyState = getStudyState();
+  elements.searchInput.value = studyState.query || "";
+}
+
+function syncBankControls() {
+  const studyState = getStudyState();
+  elements.bankSearchInput.value = studyState.bankQuery || "";
+  elements.bankLevelFilter.value = studyState.bankLevelFilter;
+  elements.bankStatusFilter.value = studyState.bankStatusFilter;
+  elements.bankMinViews.value = String(studyState.bankMinViews);
+}
+
+function handleStudyFilterButtonClick(event) {
+  const button = event.target.closest("[data-filter]");
+  if (!button) {
+    return;
+  }
+
+  const studyState = getStudyState();
+  studyState.filterMode = button.dataset.filter;
+  studyState.currentIndex = 0;
+  updateFilterButtons();
+  closeSettingsPanel();
+  applyFilters({ preserveSession: false });
+}
+
 function getStudyState() {
   ensureUserState(state.activeUserId);
   return state.userStatesById[state.activeUserId];
@@ -1442,6 +1665,10 @@ function ensureUserState(userId) {
 function createDefaultStudyState() {
   return {
     query: "",
+    bankQuery: "",
+    bankLevelFilter: "all",
+    bankStatusFilter: "all",
+    bankMinViews: 0,
     filterMode: "all",
     statsRange: "day",
     sessionOrder: "random",
@@ -1474,6 +1701,12 @@ function normalizeStudyState(value) {
   const raw = value && typeof value === "object" ? value : {};
   return {
     query: String(raw.query || ""),
+    bankQuery: String(raw.bankQuery || ""),
+    bankLevelFilter: String(raw.bankLevelFilter || "all"),
+    bankStatusFilter: ["all", "starred", "unstarred", "learned", "unlearned"].includes(raw.bankStatusFilter)
+      ? raw.bankStatusFilter
+      : "all",
+    bankMinViews: Math.max(0, Number(raw.bankMinViews || 0)),
     filterMode: ["all", "starred", "unstarred", "learned", "unlearned"].includes(raw.filterMode)
       ? raw.filterMode
       : "all",
