@@ -1,37 +1,32 @@
 const DATA_URL = "/api/words";
+const USERS_URL = "/api/users";
 const SESSION_SIZE = 50;
 const NEW_WORDS_PER_SESSION = 25;
 const MAX_ROWS = 200;
-const STORAGE_KEY = "kotoba-engawa-state-v2";
+const STORAGE_KEY = "kotoba-engawa-state-v3";
+const LEVEL_ORDER = ["n5", "n4", "n3", "n2", "n1"];
 
 const state = {
   words: [],
   levels: [],
-  activeLevel: "all",
-  query: "",
+  users: [],
+  activeUserId: "",
   mode: "flashcard",
-  filterMode: "all",
-  statsRange: "day",
-  sessionOrder: "random",
   filteredWords: [],
   sessionWords: [],
-  currentIndex: 0,
-  selectedListExpression: "",
-  learnedExpressions: new Set(),
-  starredExpressions: new Set(),
-  seenExpressions: new Set(),
-  localActionLogs: [],
   exampleRequestId: 0,
-  lastLoggedViewExpression: "",
-  suppressNextViewLog: false,
+  saveTimers: new Map(),
+  hydratingUsers: new Set(),
+  userStatesById: {},
 };
 
 const elements = {
   searchInput: document.querySelector("#search-input"),
-  levelFilters: document.querySelector("#level-filters"),
+  userSelect: document.querySelector("#user-select"),
+  roadmapSummary: document.querySelector("#roadmap-summary"),
+  roadmapList: document.querySelector("#roadmap-list"),
   cardFilter: document.querySelector("#card-filter"),
   statsRange: document.querySelector("#stats-range"),
-  studyMode: document.querySelector("#study-mode"),
   prevBtn: document.querySelector("#prev-btn"),
   nextBtn: document.querySelector("#next-btn"),
   learnedBtn: document.querySelector("#learned-btn"),
@@ -52,7 +47,6 @@ const elements = {
   cardPosition: document.querySelector("#card-position"),
   resultsSummary: document.querySelector("#results-summary"),
   emptyState: document.querySelector("#empty-state"),
-  wordTable: document.querySelector("#word-table"),
   wordTableBody: document.querySelector("#word-table-body"),
   examplesList: document.querySelector("#examples-list"),
   studyStats: document.querySelector("#study-stats"),
@@ -62,25 +56,53 @@ const elements = {
   modalMeaning: document.querySelector("#modal-meaning"),
   modalLevel: document.querySelector("#modal-level"),
   modalExamplesList: document.querySelector("#modal-examples-list"),
+  overviewModal: document.querySelector("#overview-modal"),
+  overviewContent: document.querySelector("#overview-content"),
+  totalWordsButton: document.querySelector("#total-words-button"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
-  statTotalLevels: document.querySelector('[data-stat="totalLevels"]'),
+  statCurrentLevel: document.querySelector('[data-stat="currentLevel"]'),
   statVisibleWords: document.querySelector('[data-stat="visibleWords"]'),
 };
 
+init();
+
 async function init() {
   try {
-    const response = await fetch(DATA_URL);
-    if (!response.ok) {
-      throw new Error(`Failed to load data: ${response.status}`);
+    restoreAppState();
+
+    const [wordsResponse, usersResponse] = await Promise.all([
+      fetch(DATA_URL),
+      fetch(USERS_URL),
+    ]);
+
+    if (!wordsResponse.ok) {
+      throw new Error(`Failed to load data: ${wordsResponse.status}`);
     }
 
-    const payload = await response.json();
-    state.words = payload.words;
-    state.levels = payload.levels;
+    if (!usersResponse.ok) {
+      throw new Error(`Failed to load users: ${usersResponse.status}`);
+    }
 
-    restoreState();
-    renderLevelFilters();
+    const wordsPayload = await wordsResponse.json();
+    const usersPayload = await usersResponse.json();
+
+    state.words = wordsPayload.words || [];
+    state.levels = sortLevels(wordsPayload.levels || []);
+    state.users = Array.isArray(usersPayload.users) ? usersPayload.users : [];
+
+    if (!state.users.length) {
+      throw new Error("No test users available.");
+    }
+
+    ensureAllUserStates();
+    if (!state.activeUserId || !state.users.some((user) => user.id === state.activeUserId)) {
+      state.activeUserId = state.users[0].id;
+    }
+
+    renderUserSelect();
     bindEvents();
+    await hydrateUserState(state.activeUserId);
+    syncControlsFromUserState();
     updateFilterButtons();
     updateStatsRangeButtons();
     updateModeButtons();
@@ -91,12 +113,22 @@ async function init() {
 }
 
 function bindEvents() {
-  elements.searchInput.value = state.query;
-
   elements.searchInput.addEventListener("input", (event) => {
-    state.query = event.target.value.trim().toLowerCase();
-    state.currentIndex = 0;
+    const studyState = getStudyState();
+    studyState.query = event.target.value.trim().toLowerCase();
+    studyState.currentIndex = 0;
     applyFilters({ preserveSession: false });
+  });
+
+  elements.userSelect.addEventListener("change", async (event) => {
+    state.activeUserId = event.target.value;
+    ensureUserState(state.activeUserId);
+    await hydrateUserState(state.activeUserId);
+    syncControlsFromUserState();
+    updateFilterButtons();
+    updateStatsRangeButtons();
+    updateModeButtons();
+    applyFilters({ preserveSession: true });
   });
 
   elements.cardFilter.addEventListener("click", (event) => {
@@ -105,8 +137,9 @@ function bindEvents() {
       return;
     }
 
-    state.filterMode = button.dataset.filter;
-    state.currentIndex = 0;
+    const studyState = getStudyState();
+    studyState.filterMode = button.dataset.filter;
+    studyState.currentIndex = 0;
     updateFilterButtons();
     closeSettingsPanel();
     applyFilters({ preserveSession: false });
@@ -129,10 +162,11 @@ function bindEvents() {
       return;
     }
 
-    state.statsRange = button.dataset.range;
+    const studyState = getStudyState();
+    studyState.statsRange = button.dataset.range;
     updateStatsRangeButtons();
     renderStats();
-    persistState();
+    persistAppState();
   });
 
   document.addEventListener("click", (event) => {
@@ -155,15 +189,18 @@ function bindEvents() {
     event.stopPropagation();
     toggleSettingsPanel();
   });
+
   elements.cardSettingsPanel.addEventListener("click", (event) => {
     event.stopPropagation();
   });
+
   elements.flashcard.addEventListener("click", (event) => {
     if (event.target.closest("button, .card-settings-panel")) {
       return;
     }
     toggleFlip();
   });
+
   elements.flashcard.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -172,7 +209,7 @@ function bindEvents() {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.target instanceof HTMLInputElement) {
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) {
       return;
     }
 
@@ -191,6 +228,10 @@ function bindEvents() {
       toggleFavorite();
     } else if (event.key.toLowerCase() === "f") {
       toggleFlip();
+    } else if (event.key === "Escape") {
+      closeWordModal();
+      closeOverviewModal();
+      closeSettingsPanel();
     }
   });
 
@@ -201,6 +242,7 @@ function bindEvents() {
     ) {
       return;
     }
+
     closeSettingsPanel();
   });
 
@@ -210,63 +252,22 @@ function bindEvents() {
     }
   });
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      closeWordModal();
+  elements.overviewModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-overview-close]")) {
+      closeOverviewModal();
     }
   });
-}
 
-function renderLevelFilters() {
-  const counts = getLevelCounts();
-  const levels = [
-    { key: "all", label: "All", count: state.words.length },
-    ...state.levels.map((level) => ({
-      ...level,
-      count: counts.get(level.key) || 0,
-    })),
-  ];
-
-  elements.levelFilters.innerHTML = levels
-    .map(
-      (level) => `
-        <tr>
-          <td>
-            <button
-              type="button"
-              class="level-chip ${level.key === state.activeLevel ? "is-active" : ""}"
-              data-level="${level.key}"
-            >
-              ${level.label}
-            </button>
-          </td>
-          <td>${formatNumber(level.count)}</td>
-        </tr>
-      `,
-    )
-    .join("");
-
-  elements.levelFilters.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-level]");
-    if (!button) {
-      return;
-    }
-
-    state.activeLevel = button.dataset.level;
-    state.currentIndex = 0;
-    for (const item of elements.levelFilters.querySelectorAll("[data-level]")) {
-      item.classList.toggle("is-active", item === button);
-    }
-
-    applyFilters({ preserveSession: false });
-  });
+  elements.totalWordsButton.addEventListener("click", openOverviewModal);
 }
 
 function applyFilters({ preserveSession }) {
+  const studyState = getStudyState();
+  const currentLevel = getCurrentRoadmapLevel();
+  const allowedLevel = currentLevel?.key || state.levels[0]?.key || "";
+
   state.filteredWords = state.words.filter((word) => {
-    const matchesLevel =
-      state.activeLevel === "all" || word.level === state.activeLevel;
-    if (!matchesLevel) {
+    if (word.level !== allowedLevel) {
       return false;
     }
 
@@ -274,7 +275,7 @@ function applyFilters({ preserveSession }) {
       return false;
     }
 
-    if (!state.query) {
+    if (!studyState.query) {
       return true;
     }
 
@@ -288,39 +289,42 @@ function applyFilters({ preserveSession }) {
       .join(" ")
       .toLowerCase();
 
-    return haystack.includes(state.query);
+    return haystack.includes(studyState.query);
   });
 
-  if (!preserveSession || !restoreSessionFromStorage()) {
+  if (!preserveSession || !restoreSessionFromStudyState()) {
     createSession();
   }
 
-  if (state.currentIndex >= state.sessionWords.length) {
-    state.currentIndex = Math.max(0, state.sessionWords.length - 1);
+  if (studyState.currentIndex >= state.sessionWords.length) {
+    studyState.currentIndex = Math.max(0, state.sessionWords.length - 1);
   }
 
   render();
 }
 
-function createSession(order = state.sessionOrder) {
+function createSession(order = getStudyState().sessionOrder) {
+  const studyState = getStudyState();
   const availableWords =
-    state.filterMode === "all"
+    studyState.filterMode === "all"
       ? state.filteredWords.filter(
-          (word) => !state.learnedExpressions.has(word.expression),
+          (word) => !studyState.learnedExpressions.includes(word.expression),
         )
       : state.filteredWords;
 
   if (order === "ordered") {
     state.sessionWords = availableWords.slice(0, SESSION_SIZE);
+    studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
     return;
   }
 
+  const seenSet = new Set(studyState.seenExpressions);
   const newWords = shuffle(
-    availableWords.filter((word) => !state.seenExpressions.has(word.expression)),
+    availableWords.filter((word) => !seenSet.has(word.expression)),
   ).slice(0, NEW_WORDS_PER_SESSION);
 
   const oldWords = shuffle(
-    availableWords.filter((word) => state.seenExpressions.has(word.expression)),
+    availableWords.filter((word) => seenSet.has(word.expression)),
   ).slice(0, SESSION_SIZE - newWords.length);
 
   const fallbackWords = shuffle(
@@ -335,14 +339,16 @@ function createSession(order = state.sessionOrder) {
     0,
     SESSION_SIZE,
   );
+  studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
 }
 
 function restartSession(order) {
-  state.sessionOrder = order === "ordered" ? "ordered" : "random";
-  createSession(state.sessionOrder);
-  state.currentIndex = 0;
+  const studyState = getStudyState();
+  studyState.sessionOrder = order === "ordered" ? "ordered" : "random";
+  createSession(studyState.sessionOrder);
+  studyState.currentIndex = 0;
   closeSettingsPanel();
-  playCardMotion(state.sessionOrder === "ordered" ? "left" : "right");
+  playCardMotion(studyState.sessionOrder === "ordered" ? "left" : "right");
   render();
 }
 
@@ -362,6 +368,12 @@ async function archiveAndResetStudy() {
     if (!response.ok) {
       throw new Error(`Archive failed: ${response.status}`);
     }
+
+    await fetch(`/api/user-state/${encodeURIComponent(state.activeUserId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: createDefaultStudyState() }),
+    }).catch(() => {});
 
     resetStudyJourney();
     closeSettingsPanel();
@@ -384,54 +396,36 @@ async function archiveAndResetStudy() {
 }
 
 function createArchiveSnapshot() {
+  const studyState = getStudyState();
   const startedAt =
-    state.localActionLogs
+    studyState.localActionLogs
       .map((log) => log.createdAt)
       .filter(Boolean)
       .sort()[0] || null;
 
   return {
+    userId: state.activeUserId,
     startedAt,
     endedAt: new Date().toISOString(),
-    activeLevel: state.activeLevel,
-    query: state.query,
     mode: state.mode,
-    filterMode: state.filterMode,
-    statsRange: state.statsRange,
-    sessionOrder: state.sessionOrder,
-    currentIndex: state.currentIndex,
+    currentLevel: getCurrentRoadmapLevel()?.key || null,
+    query: studyState.query,
+    filterMode: studyState.filterMode,
+    statsRange: studyState.statsRange,
+    sessionOrder: studyState.sessionOrder,
+    currentIndex: studyState.currentIndex,
     sessionExpressions: state.sessionWords.map((word) => word.expression),
-    learnedExpressions: [...state.learnedExpressions],
-    starredExpressions: [...state.starredExpressions],
-    seenExpressions: [...state.seenExpressions],
+    learnedExpressions: [...studyState.learnedExpressions],
+    starredExpressions: [...studyState.starredExpressions],
+    seenExpressions: [...studyState.seenExpressions],
     currentWord: getCurrentWord() || null,
-    localActionLogs: state.localActionLogs,
+    localActionLogs: studyState.localActionLogs,
   };
 }
 
 function resetStudyJourney() {
-  state.activeLevel = "all";
-  state.query = "";
-  state.mode = "flashcard";
-  state.filterMode = "all";
-  state.statsRange = "day";
-  state.sessionOrder = "random";
-  state.currentIndex = 0;
-  state.selectedListExpression = "";
-  state.learnedExpressions = new Set();
-  state.starredExpressions = new Set();
-  state.seenExpressions = new Set();
-  state.localActionLogs = [];
-  state.lastLoggedViewExpression = "";
-  state.suppressNextViewLog = true;
-
-  elements.searchInput.value = "";
-  for (const item of elements.levelFilters.querySelectorAll("[data-level]")) {
-    item.classList.toggle("is-active", item.dataset.level === "all");
-  }
-  updateStatsRangeButtons();
-  updateFilterButtons();
-  updateModeButtons();
+  state.userStatesById[state.activeUserId] = createDefaultStudyState();
+  syncControlsFromUserState();
   applyFilters({ preserveSession: false });
 }
 
@@ -447,51 +441,85 @@ function playArchiveResetEffect() {
 function render() {
   updateStats();
   updateFilterButtons();
+  updateStatsRangeButtons();
   updateModeButtons();
   updateModeVisibility();
+  renderRoadmap();
   renderFlashcard();
   renderTable();
   renderStats();
-  persistState();
+  renderOverviewContent();
+  persistAppState();
 }
 
 function updateStats() {
+  const currentLevel = getCurrentRoadmapLevel();
+  const studyState = getStudyState();
+
   elements.statTotalWords.textContent = formatNumber(state.words.length);
-  elements.statTotalLevels.textContent = String(state.levels.length);
-  elements.statVisibleWords.textContent = formatNumber(state.sessionWords.length);
-
-  const levelLabel =
-    state.activeLevel === "all"
-      ? "All levels"
-      : state.levels.find((level) => level.key === state.activeLevel)?.label ??
-        state.activeLevel.toUpperCase();
-
-  elements.resultsSummary.textContent = `${levelLabel} • ${formatNumber(
+  elements.statCurrentLevel.textContent = currentLevel?.label || "-";
+  elements.statVisibleWords.textContent = formatNumber(state.filteredWords.length);
+  elements.resultsSummary.textContent = `${currentLevel?.label || "-"} • ${formatNumber(
     state.filteredWords.length,
-  )} matching words`;
+  )} từ • ${formatNumber(studyState.learnedExpressions.length)} đã thuộc`;
+}
+
+function renderRoadmap() {
+  const items = getRoadmapItems();
+  const currentItem = items.find((item) => item.status === "current") || items.at(-1);
+  const completedCount = items.filter((item) => item.status === "complete").length;
+
+  elements.roadmapSummary.innerHTML = `
+    <strong>${escapeHtml(currentItem?.label || "-")} đang học</strong>
+    <p>${formatNumber(completedCount)} / ${formatNumber(items.length)} cấp độ đã hoàn thành. Chỉ mở cấp độ tiếp theo khi hoàn tất cấp độ hiện tại.</p>
+  `;
+
+  elements.roadmapList.innerHTML = items
+    .map(
+      (item, index) => `
+        <article class="roadmap-item is-${item.status}">
+          <div class="roadmap-item__head">
+            <span class="roadmap-item__badge">${escapeHtml(item.label)}</span>
+            <strong>${item.percent}%</strong>
+          </div>
+          <div class="roadmap-item__bar">
+            <span style="width: ${item.percent}%"></span>
+          </div>
+          <p>${formatNumber(item.learned)} / ${formatNumber(item.total)} từ</p>
+          ${
+            index < items.length - 1
+              ? `<div class="roadmap-item__connector is-${item.connectorStatus}"></div>`
+              : ""
+          }
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function renderFlashcard() {
+  const studyState = getStudyState();
   const currentWord = getCurrentWord();
   elements.flashcard.classList.remove("is-flipped");
 
   if (!currentWord) {
     elements.cardExpression.textContent = "Không có dữ liệu";
-    elements.cardReading.textContent = "Tạo đợt học mới hoặc đổi bộ lọc.";
+    elements.cardReading.textContent = "Cấp độ hiện tại đã hoàn thành hoặc không có từ khớp.";
     elements.cardMeaning.textContent = "";
     elements.cardTags.innerHTML = "";
     elements.cardPosition.textContent = "0 / 0";
     elements.examplesList.innerHTML =
-      "<p>Chưa có từ vựng trong đợt học hiện tại.</p>";
+      "<p>Không còn từ trong phiên học hiện tại.</p>";
     return;
   }
 
-  if (state.suppressNextViewLog) {
-    state.suppressNextViewLog = false;
+  if (studyState.suppressNextViewLog) {
+    studyState.suppressNextViewLog = false;
   } else {
-    state.seenExpressions.add(currentWord.expression);
+    addUniqueValue(studyState.seenExpressions, currentWord.expression);
     logView(currentWord);
   }
+
   elements.cardExpression.textContent = currentWord.expression;
   elements.cardReading.textContent = currentWord.reading;
   elements.cardMeaning.textContent = currentWord.meaning;
@@ -499,12 +527,13 @@ function renderFlashcard() {
     .slice(0, 6)
     .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join("");
-  elements.cardPosition.textContent = `${state.currentIndex + 1} / ${state.sessionWords.length}`;
+  elements.cardPosition.textContent = `${studyState.currentIndex + 1} / ${state.sessionWords.length}`;
   updateFavoriteButton(currentWord);
   renderExamples(currentWord);
 }
 
 function renderTable() {
+  const studyState = getStudyState();
   elements.wordTableBody.innerHTML = "";
   elements.emptyState.hidden = state.filteredWords.length > 0;
   const rows = state.filteredWords.slice(0, MAX_ROWS);
@@ -515,10 +544,7 @@ function renderTable() {
       (item) => item.expression === word.expression,
     );
     row.dataset.expression = word.expression;
-    row.classList.toggle(
-      "is-selected",
-      state.selectedListExpression === word.expression,
-    );
+    row.classList.toggle("is-selected", studyState.selectedListExpression === word.expression);
     row.innerHTML = `
       <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
       <td>${escapeHtml(word.reading)}</td>
@@ -527,15 +553,15 @@ function renderTable() {
     `;
 
     row.addEventListener("click", () => {
-      state.selectedListExpression = word.expression;
+      studyState.selectedListExpression = word.expression;
       syncSelectedTableRow();
-      persistState();
+      persistAppState();
     });
 
     row.addEventListener("dblclick", () => {
-      state.selectedListExpression = word.expression;
+      studyState.selectedListExpression = word.expression;
       if (sessionIndex >= 0) {
-        state.currentIndex = sessionIndex;
+        studyState.currentIndex = sessionIndex;
       }
       syncSelectedTableRow();
       openWordModal(word);
@@ -548,6 +574,7 @@ function renderTable() {
 }
 
 function syncSelectedTableRow() {
+  const studyState = getStudyState();
   const currentWord = getCurrentWord();
   for (const row of elements.wordTableBody.querySelectorAll("tr")) {
     row.classList.toggle(
@@ -556,7 +583,7 @@ function syncSelectedTableRow() {
     );
     row.classList.toggle(
       "is-selected",
-      row.dataset.expression === state.selectedListExpression,
+      row.dataset.expression === studyState.selectedListExpression,
     );
   }
 }
@@ -574,57 +601,62 @@ function updateModeButtons() {
 }
 
 function stepCard(direction) {
+  const studyState = getStudyState();
   if (!state.sessionWords.length) {
     return;
   }
 
   playCardMotion(direction < 0 ? "left" : "right");
-  state.currentIndex =
-    (state.currentIndex + direction + state.sessionWords.length) %
+  studyState.currentIndex =
+    (studyState.currentIndex + direction + state.sessionWords.length) %
     state.sessionWords.length;
 
   render();
 }
 
 function markCurrentLearned() {
+  const studyState = getStudyState();
   const currentWord = getCurrentWord();
   if (!currentWord) {
     return;
   }
 
-  state.learnedExpressions.add(currentWord.expression);
-  state.seenExpressions.add(currentWord.expression);
+  addUniqueValue(studyState.learnedExpressions, currentWord.expression);
+  addUniqueValue(studyState.seenExpressions, currentWord.expression);
   logAction("learned", currentWord);
   playCardMotion("up");
   state.sessionWords = state.sessionWords.filter(
     (word) => word.expression !== currentWord.expression,
   );
+  studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
 
-  if (state.currentIndex >= state.sessionWords.length) {
-    state.currentIndex = Math.max(0, state.sessionWords.length - 1);
+  if (studyState.currentIndex >= state.sessionWords.length) {
+    studyState.currentIndex = Math.max(0, state.sessionWords.length - 1);
   }
 
-  render();
+  applyFilters({ preserveSession: false });
 }
 
 function markCurrentUnlearned() {
+  const studyState = getStudyState();
   const currentWord = getCurrentWord();
   if (!currentWord) {
     return;
   }
 
-  state.learnedExpressions.delete(currentWord.expression);
-  state.seenExpressions.add(currentWord.expression);
+  removeValue(studyState.learnedExpressions, currentWord.expression);
+  addUniqueValue(studyState.seenExpressions, currentWord.expression);
   logAction("unlearned", currentWord);
   playCardMotion("down");
-  state.sessionWords.splice(state.currentIndex, 1);
+  state.sessionWords.splice(studyState.currentIndex, 1);
   state.sessionWords.push(currentWord);
+  studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
 
-  if (state.currentIndex >= state.sessionWords.length) {
-    state.currentIndex = 0;
+  if (studyState.currentIndex >= state.sessionWords.length) {
+    studyState.currentIndex = 0;
   }
 
-  render();
+  applyFilters({ preserveSession: false });
 }
 
 function toggleFlip() {
@@ -663,27 +695,29 @@ function playCardMotion(type) {
 }
 
 function toggleFavorite() {
+  const studyState = getStudyState();
   const currentWord = getCurrentWord();
   if (!currentWord) {
     return;
   }
 
-  const isStarred = state.starredExpressions.has(currentWord.expression);
+  const isStarred = studyState.starredExpressions.includes(currentWord.expression);
   if (isStarred) {
-    state.starredExpressions.delete(currentWord.expression);
+    removeValue(studyState.starredExpressions, currentWord.expression);
     logAction("unfavorite", currentWord);
   } else {
-    state.starredExpressions.add(currentWord.expression);
+    addUniqueValue(studyState.starredExpressions, currentWord.expression);
     logAction("favorite", currentWord);
   }
 
   updateFavoriteButton(currentWord);
   renderTable();
-  persistState();
+  persistAppState();
 }
 
 function updateFavoriteButton(word) {
-  const isStarred = state.starredExpressions.has(word.expression);
+  const studyState = getStudyState();
+  const isStarred = studyState.starredExpressions.includes(word.expression);
   elements.favoriteBtn.classList.toggle("is-starred", isStarred);
   elements.favoriteBtn.textContent = isStarred ? "★" : "☆";
 }
@@ -754,104 +788,154 @@ function getDefaultExamples(word) {
   ];
 }
 
-function restoreState() {
+function restoreAppState() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    state.activeLevel = stored.activeLevel || state.activeLevel;
-    state.query = stored.query || "";
-    state.mode = stored.mode || state.mode;
-    state.filterMode = stored.filterMode || state.filterMode;
-    state.statsRange = stored.statsRange || state.statsRange;
-    state.sessionOrder = stored.sessionOrder || state.sessionOrder;
-    state.currentIndex = Number(stored.currentIndex || 0);
-    state.selectedListExpression = stored.selectedListExpression || "";
-    state.learnedExpressions = new Set(stored.learnedExpressions || []);
-    state.starredExpressions = new Set(stored.starredExpressions || []);
-    state.seenExpressions = new Set(stored.seenExpressions || []);
-    state.localActionLogs = Array.isArray(stored.localActionLogs)
-      ? stored.localActionLogs
-      : [];
+    state.activeUserId = stored.activeUserId || "";
+    state.mode = stored.mode || "flashcard";
+    state.userStatesById = normalizeStoredUserStates(stored.userStatesById || {});
   } catch (_error) {
     localStorage.removeItem(STORAGE_KEY);
   }
 }
 
-function restoreSessionFromStorage() {
+function renderUserSelect() {
+  elements.userSelect.innerHTML = state.users
+    .map(
+      (user) =>
+        `<option value="${escapeHtml(user.id)}">${escapeHtml(user.name)}</option>`,
+    )
+    .join("");
+  elements.userSelect.value = state.activeUserId;
+}
+
+async function hydrateUserState(userId) {
+  if (!userId) {
+    return;
+  }
+
+  state.hydratingUsers.add(userId);
+  ensureUserState(userId);
+
   try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    if (!Array.isArray(stored.sessionExpressions)) {
-      return false;
+    const response = await fetch(`/api/user-state/${encodeURIComponent(userId)}`);
+    if (!response.ok) {
+      throw new Error(`Failed to load user state: ${response.status}`);
     }
 
-    const filteredExpressionSet = new Set(
-      state.filteredWords.map((word) => word.expression),
-    );
-    const wordsByExpression = new Map(
-      state.words.map((word) => [word.expression, word]),
-    );
-    state.sessionWords = stored.sessionExpressions
-      .filter((expression) => filteredExpressionSet.has(expression))
-      .map((expression) => wordsByExpression.get(expression))
-      .filter(Boolean)
-      .slice(0, SESSION_SIZE);
-
-    return state.sessionWords.length > 0;
+    const payload = await response.json();
+    if (payload?.state) {
+      state.userStatesById[userId] = normalizeStudyState(payload.state);
+    }
   } catch (_error) {
-    return false;
+    // Keep local fallback when API persistence is unavailable.
+  } finally {
+    state.hydratingUsers.delete(userId);
   }
 }
 
-function persistState() {
+function syncControlsFromUserState() {
+  const studyState = getStudyState();
+  elements.searchInput.value = studyState.query || "";
+  elements.userSelect.value = state.activeUserId;
+}
+
+function restoreSessionFromStudyState() {
+  const studyState = getStudyState();
+  if (!Array.isArray(studyState.sessionExpressions)) {
+    return false;
+  }
+
+  const filteredExpressionSet = new Set(
+    state.filteredWords.map((word) => word.expression),
+  );
+  const wordsByExpression = new Map(
+    state.words.map((word) => [word.expression, word]),
+  );
+
+  state.sessionWords = studyState.sessionExpressions
+    .filter((expression) => filteredExpressionSet.has(expression))
+    .map((expression) => wordsByExpression.get(expression))
+    .filter(Boolean)
+    .slice(0, SESSION_SIZE);
+
+  return state.sessionWords.length > 0;
+}
+
+function persistAppState() {
   const payload = {
-    activeLevel: state.activeLevel,
-    query: state.query,
+    activeUserId: state.activeUserId,
     mode: state.mode,
-    currentIndex: state.currentIndex,
-    selectedListExpression: state.selectedListExpression,
-    filterMode: state.filterMode,
-    statsRange: state.statsRange,
-    sessionOrder: state.sessionOrder,
-    sessionExpressions: state.sessionWords.map((word) => word.expression),
-    learnedExpressions: [...state.learnedExpressions],
-    starredExpressions: [...state.starredExpressions],
-    seenExpressions: [...state.seenExpressions],
-    localActionLogs: state.localActionLogs,
+    userStatesById: state.userStatesById,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  scheduleUserStateSync(state.activeUserId);
+}
+
+function scheduleUserStateSync(userId) {
+  if (!userId || state.hydratingUsers.has(userId)) {
+    return;
+  }
+
+  window.clearTimeout(state.saveTimers.get(userId));
+  const timer = window.setTimeout(() => {
+    saveUserState(userId);
+  }, 350);
+  state.saveTimers.set(userId, timer);
+}
+
+async function saveUserState(userId) {
+  const studyState = state.userStatesById[userId];
+  if (!studyState) {
+    return;
+  }
+
+  try {
+    await fetch(`/api/user-state/${encodeURIComponent(userId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: studyState }),
+    });
+  } catch (_error) {
+    // Local state remains available even if remote persistence fails.
+  }
 }
 
 function getCurrentWord() {
-  return state.sessionWords[state.currentIndex];
+  return state.sessionWords[getStudyState().currentIndex];
 }
 
 function updateFilterButtons() {
+  const studyState = getStudyState();
   for (const item of elements.cardFilter.querySelectorAll("[data-filter]")) {
-    item.classList.toggle("is-active", item.dataset.filter === state.filterMode);
+    item.classList.toggle("is-active", item.dataset.filter === studyState.filterMode);
   }
 }
 
 function updateStatsRangeButtons() {
+  const studyState = getStudyState();
   for (const item of elements.statsRange.querySelectorAll("[data-range]")) {
-    item.classList.toggle("is-active", item.dataset.range === state.statsRange);
+    item.classList.toggle("is-active", item.dataset.range === studyState.statsRange);
   }
 }
 
 function matchesFilterMode(word) {
-  if (state.filterMode === "starred") {
-    return state.starredExpressions.has(word.expression);
+  const studyState = getStudyState();
+  if (studyState.filterMode === "starred") {
+    return studyState.starredExpressions.includes(word.expression);
   }
 
-  if (state.filterMode === "unstarred") {
-    return !state.starredExpressions.has(word.expression);
+  if (studyState.filterMode === "unstarred") {
+    return !studyState.starredExpressions.includes(word.expression);
   }
 
-  if (state.filterMode === "learned") {
-    return state.learnedExpressions.has(word.expression);
+  if (studyState.filterMode === "learned") {
+    return studyState.learnedExpressions.includes(word.expression);
   }
 
-  if (state.filterMode === "unlearned") {
-    return !state.learnedExpressions.has(word.expression);
+  if (studyState.filterMode === "unlearned") {
+    return !studyState.learnedExpressions.includes(word.expression);
   }
 
   return true;
@@ -865,8 +949,61 @@ function getLevelCounts() {
   return counts;
 }
 
+function getRoadmapItems() {
+  const studyState = getStudyState();
+  const counts = getLevelCounts();
+  const currentLevel = getCurrentRoadmapLevel();
+
+  return state.levels.map((level) => {
+    const total = counts.get(level.key) || 0;
+    const learned = state.words.filter(
+      (word) =>
+        word.level === level.key &&
+        studyState.learnedExpressions.includes(word.expression),
+    ).length;
+    const percent = total ? Math.round((learned / total) * 100) : 0;
+    const status =
+      percent >= 100
+        ? "complete"
+        : currentLevel?.key === level.key
+          ? "current"
+          : LEVEL_ORDER.indexOf(level.key) > LEVEL_ORDER.indexOf(currentLevel?.key || level.key)
+            ? "locked"
+            : "upcoming";
+
+    return {
+      ...level,
+      total,
+      learned,
+      percent,
+      status,
+      connectorStatus: percent >= 100 ? "complete" : status === "current" ? "current" : "locked",
+    };
+  });
+}
+
+function getCurrentRoadmapLevel() {
+  const studyState = getStudyState();
+
+  for (const level of state.levels) {
+    const total = state.words.filter((word) => word.level === level.key).length;
+    const learned = state.words.filter(
+      (word) =>
+        word.level === level.key &&
+        studyState.learnedExpressions.includes(word.expression),
+    ).length;
+
+    if (learned < total) {
+      return level;
+    }
+  }
+
+  return state.levels.at(-1) || null;
+}
+
 function renderStar(word) {
-  return state.starredExpressions.has(word.expression)
+  const studyState = getStudyState();
+  return studyState.starredExpressions.includes(word.expression)
     ? '<span class="inline-star">★</span>'
     : "";
 }
@@ -908,21 +1045,67 @@ function closeWordModal() {
   elements.wordModal.hidden = true;
 }
 
+function openOverviewModal() {
+  renderOverviewContent();
+  elements.overviewModal.hidden = false;
+}
+
+function closeOverviewModal() {
+  elements.overviewModal.hidden = true;
+}
+
+function renderOverviewContent() {
+  const studyState = getStudyState();
+  const counts = getLevelCounts();
+  const rows = state.levels
+    .map((level) => {
+      const total = counts.get(level.key) || 0;
+      const learned = state.words.filter(
+        (word) =>
+          word.level === level.key &&
+          studyState.learnedExpressions.includes(word.expression),
+      ).length;
+      const percent = total ? Math.round((learned / total) * 100) : 0;
+
+      return `
+        <div class="overview-row">
+          <div>
+            <strong>${escapeHtml(level.label)}</strong>
+            <p>${formatNumber(learned)} / ${formatNumber(total)} từ</p>
+          </div>
+          <div class="overview-row__bar">
+            <span style="width: ${percent}%"></span>
+          </div>
+          <b>${percent}%</b>
+        </div>
+      `;
+    })
+    .join("");
+
+  elements.overviewContent.innerHTML = `
+    <p class="overview-note">Tổng số từ hiện có: ${formatNumber(state.words.length)}. Popup này thay cho việc click trực tiếp vào bảng JLPT Level cũ.</p>
+    <div class="overview-grid">${rows}</div>
+  `;
+}
+
 function logView(word) {
-  if (state.lastLoggedViewExpression === word.expression) {
+  const studyState = getStudyState();
+  if (studyState.lastLoggedViewExpression === word.expression) {
     return;
   }
 
-  state.lastLoggedViewExpression = word.expression;
+  studyState.lastLoggedViewExpression = word.expression;
   logAction("view", word);
 }
 
 function logAction(action, word) {
-  state.localActionLogs.push({
+  const studyState = getStudyState();
+  studyState.localActionLogs.push({
     id:
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random()}`,
+    userId: state.activeUserId,
     expression: word.expression,
     action,
     word: {
@@ -934,31 +1117,34 @@ function logAction(action, word) {
       tags: word.tags,
     },
     metadata: {
+      userId: state.activeUserId,
       level: word.level,
       mode: state.mode,
-      filterMode: state.filterMode,
-      activeLevel: state.activeLevel,
-      statsRange: state.statsRange,
-      sessionOrder: state.sessionOrder,
-      currentIndex: state.currentIndex,
+      filterMode: studyState.filterMode,
+      currentLevel: getCurrentRoadmapLevel()?.key || null,
+      statsRange: studyState.statsRange,
+      sessionOrder: studyState.sessionOrder,
+      currentIndex: studyState.currentIndex,
       sessionSize: state.sessionWords.length,
-      isLearned: state.learnedExpressions.has(word.expression),
-      isStarred: state.starredExpressions.has(word.expression),
+      isLearned: studyState.learnedExpressions.includes(word.expression),
+      isStarred: studyState.starredExpressions.includes(word.expression),
     },
     createdAt: new Date().toISOString(),
   });
-  persistState();
+  persistAppState();
 
   fetch("/api/actions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      user_id: state.activeUserId,
       expression: word.expression,
       action,
       metadata: {
+        userId: state.activeUserId,
         level: word.level,
         mode: state.mode,
-        filterMode: state.filterMode,
+        filterMode: studyState.filterMode,
       },
     }),
   })
@@ -967,8 +1153,12 @@ function logAction(action, word) {
 }
 
 async function renderStats() {
+  const studyState = getStudyState();
+
   try {
-    const response = await fetch(`/api/stats?range=${state.statsRange}`);
+    const response = await fetch(
+      `/api/stats?range=${encodeURIComponent(studyState.statsRange)}&user_id=${encodeURIComponent(state.activeUserId)}`,
+    );
     if (!response.ok) {
       throw new Error("stats unavailable");
     }
@@ -987,16 +1177,17 @@ async function renderStats() {
 }
 
 function renderLocalStats() {
+  const studyState = getStudyState();
   const rows = summarizeLocalActionRows();
   const totals = summarizeActionRows(rows);
   if (!rows.length) {
     elements.studyStats.innerHTML = `
       <dl>
-        <div><dt>Learned now</dt><dd>${formatNumber(state.learnedExpressions.size)}</dd></div>
-        <div><dt>Starred now</dt><dd>${formatNumber(state.starredExpressions.size)}</dd></div>
+        <div><dt>Learned now</dt><dd>${formatNumber(studyState.learnedExpressions.length)}</dd></div>
+        <div><dt>Starred now</dt><dd>${formatNumber(studyState.starredExpressions.length)}</dd></div>
         <div><dt>Batch</dt><dd>${formatNumber(state.sessionWords.length)}</dd></div>
       </dl>
-      <p class="stats-note">Chưa có action log trong trình duyệt hiện tại.</p>
+      <p class="stats-note">Chưa có action log cho user hiện tại.</p>
     `;
     return;
   }
@@ -1005,13 +1196,15 @@ function renderLocalStats() {
 }
 
 function renderStatsPayload(rows, totals, sourceLabel = "MySQL logs") {
+  const studyState = getStudyState();
   elements.studyStats.innerHTML = `
     <div class="stats-source">${sourceLabel}</div>
     <section class="stats-current">
       <p>Thông tin hiện trạng</p>
       <dl>
-        <div><dt>Learned hiện tại</dt><dd>${formatNumber(state.learnedExpressions.size)}</dd></div>
-        <div><dt>Đang đánh sao</dt><dd>${formatNumber(state.starredExpressions.size)}</dd></div>
+        <div><dt>User</dt><dd>${escapeHtml(getActiveUser()?.name || "-")}</dd></div>
+        <div><dt>Learned hiện tại</dt><dd>${formatNumber(studyState.learnedExpressions.length)}</dd></div>
+        <div><dt>Đang đánh sao</dt><dd>${formatNumber(studyState.starredExpressions.length)}</dd></div>
       </dl>
     </section>
     <dl class="stats-summary-grid">
@@ -1048,8 +1241,9 @@ function summarizeActionRows(rows) {
 }
 
 function summarizeLocalActionRows() {
+  const studyState = getStudyState();
   const rowsByBucket = new Map();
-  for (const log of state.localActionLogs) {
+  for (const log of studyState.localActionLogs) {
     const bucket = getLocalStatsBucket(log.createdAt);
     if (!bucket) {
       continue;
@@ -1083,12 +1277,13 @@ function summarizeLocalActionRows() {
 }
 
 function getLocalStatsBucket(createdAt) {
+  const studyState = getStudyState();
   const date = new Date(createdAt);
   if (Number.isNaN(date.getTime())) {
     return null;
   }
 
-  if (state.statsRange === "month") {
+  if (studyState.statsRange === "month") {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     return {
@@ -1098,76 +1293,151 @@ function getLocalStatsBucket(createdAt) {
     };
   }
 
-  if (state.statsRange === "week") {
-    const weekStart = getWeekStart(date);
+  if (studyState.statsRange === "week") {
+    const weekStart = new Date(date);
+    const day = weekStart.getDay() || 7;
+    weekStart.setDate(weekStart.getDate() - day + 1);
     const year = weekStart.getFullYear();
-    const week = getIsoWeek(weekStart);
-    const label = `${year}-W${String(week).padStart(2, "0")}`;
+    const month = String(weekStart.getMonth() + 1).padStart(2, "0");
+    const dayOfMonth = String(weekStart.getDate()).padStart(2, "0");
     return {
-      key: label,
-      label,
-      start: formatDateKey(weekStart),
+      key: `${year}-${month}-${dayOfMonth}`,
+      label: `${year}-${month}-${dayOfMonth}`,
+      start: `${year}-${month}-${dayOfMonth}`,
     };
   }
 
-  const day = formatDateKey(date);
-  return { key: day, label: day, start: day };
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return {
+    key: `${year}-${month}-${day}`,
+    label: `${year}-${month}-${day}`,
+    start: `${year}-${month}-${day}`,
+  };
 }
 
-function getWeekStart(date) {
-  const value = new Date(date);
-  const day = value.getDay() || 7;
-  value.setHours(0, 0, 0, 0);
-  value.setDate(value.getDate() - day + 1);
-  return value;
+function getStudyState() {
+  ensureUserState(state.activeUserId);
+  return state.userStatesById[state.activeUserId];
 }
 
-function getIsoWeek(date) {
-  const value = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const day = value.getUTCDay() || 7;
-  value.setUTCDate(value.getUTCDate() + 4 - day);
-  const yearStart = new Date(Date.UTC(value.getUTCFullYear(), 0, 1));
-  return Math.ceil(((value - yearStart) / 86400000 + 1) / 7);
+function getActiveUser() {
+  return state.users.find((user) => user.id === state.activeUserId) || null;
 }
 
-function formatDateKey(date) {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-");
+function ensureAllUserStates() {
+  for (const user of state.users) {
+    ensureUserState(user.id);
+  }
 }
 
-function renderError(error) {
-  elements.cardExpression.textContent = "Không tải được dữ liệu";
-  elements.cardReading.textContent =
-    "Hãy chạy `yarn build` và khởi động local server Express.";
-  elements.cardMeaning.textContent = String(error.message || error);
+function ensureUserState(userId) {
+  if (!userId) {
+    return;
+  }
+
+  if (!state.userStatesById[userId]) {
+    state.userStatesById[userId] = createDefaultStudyState();
+  } else {
+    state.userStatesById[userId] = normalizeStudyState(state.userStatesById[userId]);
+  }
+}
+
+function createDefaultStudyState() {
+  return {
+    query: "",
+    filterMode: "all",
+    statsRange: "day",
+    sessionOrder: "random",
+    currentIndex: 0,
+    selectedListExpression: "",
+    sessionExpressions: [],
+    learnedExpressions: [],
+    starredExpressions: [],
+    seenExpressions: [],
+    localActionLogs: [],
+    lastLoggedViewExpression: "",
+    suppressNextViewLog: false,
+  };
+}
+
+function normalizeStoredUserStates(value) {
+  const normalized = {};
+  if (!value || typeof value !== "object") {
+    return normalized;
+  }
+
+  for (const [userId, studyState] of Object.entries(value)) {
+    normalized[userId] = normalizeStudyState(studyState);
+  }
+
+  return normalized;
+}
+
+function normalizeStudyState(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  return {
+    query: String(raw.query || ""),
+    filterMode: ["all", "starred", "unstarred", "learned", "unlearned"].includes(raw.filterMode)
+      ? raw.filterMode
+      : "all",
+    statsRange: ["day", "week", "month"].includes(raw.statsRange)
+      ? raw.statsRange
+      : "day",
+    sessionOrder: raw.sessionOrder === "ordered" ? "ordered" : "random",
+    currentIndex: Number(raw.currentIndex || 0),
+    selectedListExpression: String(raw.selectedListExpression || ""),
+    sessionExpressions: normalizeStringArray(raw.sessionExpressions),
+    learnedExpressions: normalizeStringArray(raw.learnedExpressions),
+    starredExpressions: normalizeStringArray(raw.starredExpressions),
+    seenExpressions: normalizeStringArray(raw.seenExpressions),
+    localActionLogs: Array.isArray(raw.localActionLogs) ? raw.localActionLogs : [],
+    lastLoggedViewExpression: String(raw.lastLoggedViewExpression || ""),
+    suppressNextViewLog: Boolean(raw.suppressNextViewLog),
+  };
+}
+
+function normalizeStringArray(value) {
+  return Array.isArray(value)
+    ? [...new Set(value.map((item) => String(item)).filter(Boolean))]
+    : [];
+}
+
+function addUniqueValue(list, value) {
+  if (!list.includes(value)) {
+    list.push(value);
+  }
+}
+
+function removeValue(list, value) {
+  const index = list.indexOf(value);
+  if (index >= 0) {
+    list.splice(index, 1);
+  }
+}
+
+function sortLevels(levels) {
+  return [...levels].sort((left, right) => {
+    return LEVEL_ORDER.indexOf(left.key) - LEVEL_ORDER.indexOf(right.key);
+  });
 }
 
 function shuffle(items) {
-  for (let index = items.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
-    [items[index], items[randomIndex]] = [items[randomIndex], items[index]];
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
   }
-  return items;
+  return result;
 }
 
 function formatNumber(value) {
-  return new Intl.NumberFormat("en-US").format(value);
-}
-
-function highlightExpression(sentence, expression) {
-  const escapedSentence = escapeHtml(sentence);
-  const escapedExpression = escapeHtml(expression);
-  return escapedSentence.replaceAll(
-    escapedExpression,
-    `<strong>${escapedExpression}</strong>`,
-  );
+  return new Intl.NumberFormat("en-US").format(Number(value || 0));
 }
 
 function escapeHtml(value) {
-  return String(value)
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -1175,4 +1445,22 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-init();
+function highlightExpression(sentence, expression) {
+  const safeSentence = escapeHtml(sentence);
+  const safeExpression = escapeHtml(expression);
+  if (!safeExpression) {
+    return safeSentence;
+  }
+
+  return safeSentence.replaceAll(safeExpression, `<strong>${safeExpression}</strong>`);
+}
+
+function renderError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  document.body.innerHTML = `
+    <main style="padding: 32px; font-family: sans-serif;">
+      <h1>Application error</h1>
+      <p>${escapeHtml(message)}</p>
+    </main>
+  `;
+}

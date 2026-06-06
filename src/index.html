@@ -21,54 +21,52 @@
           </span>
         </a>
 
-        <div class="top-stats" aria-label="Wordlist summary">
-          <div>
-            <span>Total</span>
-            <strong data-stat="totalWords">-</strong>
-          </div>
-          <div>
-            <span>Levels</span>
-            <strong data-stat="totalLevels">-</strong>
-          </div>
-          <div>
-            <span>Visible</span>
-            <strong data-stat="visibleWords">-</strong>
+        <label class="top-search" aria-label="Search vocabulary">
+          <span class="top-search__label">Search</span>
+          <input
+            id="search-input"
+            type="search"
+            placeholder="語彙, ごい, vocabulary..."
+            autocomplete="off"
+          />
+        </label>
+
+        <div class="topbar-actions">
+          <label class="user-switcher">
+            <span>User</span>
+            <select id="user-select"></select>
+          </label>
+
+          <div class="top-stats" aria-label="Wordlist summary">
+            <button type="button" class="stat-tile stat-tile--button" id="total-words-button">
+              <span>Total</span>
+              <strong data-stat="totalWords">-</strong>
+            </button>
+            <div class="stat-tile">
+              <span>Current</span>
+              <strong data-stat="currentLevel">-</strong>
+            </div>
+            <div class="stat-tile">
+              <span>Visible</span>
+              <strong data-stat="visibleWords">-</strong>
+            </div>
           </div>
         </div>
       </header>
 
       <main class="study-layout">
-        <aside class="tool-panel" id="study-tools">
-          <div class="panel-heading">
-            <p>Study Tools</p>
-            <h1>単語帳</h1>
+        <aside class="tool-panel roadmap-panel" id="roadmap-panel">
+          <div class="panel-heading panel-heading--compact">
+            <p>Roadmap</p>
+            <h1>Lộ trình JLPT</h1>
           </div>
 
-          <label class="field">
-            <span>Search</span>
-            <input
-              id="search-input"
-              type="search"
-              placeholder="語彙, ごい, vocabulary..."
-              autocomplete="off"
-            />
-          </label>
-
-          <section class="field">
-            <span>JLPT Level</span>
-            <div class="level-table-wrap">
-              <table class="level-table">
-                <thead>
-                  <tr>
-                    <th>Level</th>
-                    <th>Number</th>
-                  </tr>
-                </thead>
-                <tbody id="level-filters"></tbody>
-              </table>
-            </div>
+          <section class="roadmap-summary" id="roadmap-summary">
+            <strong>Đang tải...</strong>
+            <p>Chuẩn bị lộ trình học theo cấp độ.</p>
           </section>
 
+          <div class="roadmap-list" id="roadmap-list"></div>
         </aside>
 
         <section class="focus-area" id="focus-card">
@@ -142,11 +140,11 @@
                   <div class="restart-options">
                     <button data-restart-session="random" type="button">
                       <strong>Ngẫu nhiên</strong>
-                      <small>Trộn lại tối đa 50 từ trong bộ lọc hiện tại.</small>
+                      <small>Trộn lại tối đa 50 từ trong cấp độ hiện tại.</small>
                     </button>
                     <button data-restart-session="ordered" type="button">
                       <strong>Theo thứ tự</strong>
-                      <small>Học theo thứ tự file CSV sau khi lọc.</small>
+                      <small>Học theo thứ tự file CSV trong cấp độ hiện tại.</small>
                     </button>
                   </div>
                 </section>
@@ -154,7 +152,7 @@
                   <span>Hành trình học</span>
                   <button id="archive-reset-btn" class="archive-reset-button" type="button">
                     <strong>Archive và reset</strong>
-                    <small>Lưu lịch sử hiện tại thành yyyymmdd.zip rồi bắt đầu lại từ đầu.</small>
+                    <small>Lưu lịch sử học của user hiện tại rồi bắt đầu lại từ N5.</small>
                   </button>
                 </section>
               </div>
@@ -242,7 +240,7 @@
           </div>
 
           <div id="empty-state" class="empty-state" hidden>
-            Không có từ nào khớp với bộ lọc hiện tại.
+            Không có từ nào khớp với điều kiện hiện tại.
           </div>
 
           <div class="table-wrap">
@@ -287,6 +285,18 @@
               <p>Loading examples...</p>
             </div>
           </section>
+        </article>
+      </div>
+
+      <div id="overview-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-overview-close></div>
+        <article class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="overview-title">
+          <button class="modal__close" data-overview-close type="button" aria-label="Close">×</button>
+          <p class="modal__eyebrow">JLPT Overview</p>
+          <h2 id="overview-title">Wordlist Summary</h2>
+          <div id="overview-content" class="overview-content">
+            <p>Loading...</p>
+          </div>
         </article>
       </div>
     </div>

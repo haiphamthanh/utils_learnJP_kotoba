@@ -23,6 +23,11 @@ const MYSQL_CONFIG = {
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
 };
+const TEST_USERS = [
+  { id: "user_demo_1", name: "Demo User 1" },
+  { id: "user_demo_2", name: "Demo User 2" },
+  { id: "user_demo_3", name: "Demo User 3" },
+];
 
 let dbPool = null;
 const CRC32_TABLE = createCrc32Table();
@@ -72,6 +77,108 @@ app.get("/api/words", (_request, response) => {
       ok: false,
       message: "Failed to load local wordlist data.",
       error: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+app.get("/api/users", async (_request, response) => {
+  if (!dbPool) {
+    response.json({ users: TEST_USERS, source: "default" });
+    return;
+  }
+
+  try {
+    const [rows] = await dbPool.execute(
+      `SELECT id, name
+       FROM users
+       ORDER BY created_at ASC, id ASC`,
+    );
+    response.json({
+      users: rows.length ? rows : TEST_USERS,
+      source: rows.length ? "mysql" : "default",
+    });
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      message: "Failed to load users.",
+      error: formatError(error),
+    });
+  }
+});
+
+app.get("/api/user-state/:userId", async (request, response) => {
+  const userId = normalizeUserId(request.params.userId);
+  if (!userId) {
+    response.status(400).json({ ok: false, message: "Invalid user id." });
+    return;
+  }
+
+  if (!dbPool) {
+    response.json({ ok: true, userId, state: null, stored: false, source: "default" });
+    return;
+  }
+
+  try {
+    const [rows] = await dbPool.execute(
+      `SELECT state_json
+       FROM user_study_state
+       WHERE user_id = ?
+       LIMIT 1`,
+      [userId],
+    );
+    const rawState = rows[0]?.state_json;
+    const statePayload = typeof rawState === "string" ? JSON.parse(rawState) : rawState;
+    response.json({
+      ok: true,
+      userId,
+      state: statePayload || null,
+      stored: Boolean(statePayload),
+      source: statePayload ? "mysql" : "default",
+    });
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      message: "Failed to load user study state.",
+      error: formatError(error),
+    });
+  }
+});
+
+app.put("/api/user-state/:userId", async (request, response) => {
+  const userId = normalizeUserId(request.params.userId);
+  const statePayload = request.body?.state;
+
+  if (!userId || !isPlainObject(statePayload)) {
+    response.status(400).json({
+      ok: false,
+      message: "Body must include a valid user state object.",
+    });
+    return;
+  }
+
+  if (!dbPool) {
+    response.status(202).json({
+      ok: true,
+      stored: false,
+      message: "MySQL is not configured.",
+    });
+    return;
+  }
+
+  try {
+    await ensureUser(userId);
+    await dbPool.execute(
+      `INSERT INTO user_study_state (user_id, state_json)
+       VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE state_json = VALUES(state_json)`,
+      [userId, JSON.stringify(statePayload)],
+    );
+    response.json({ ok: true, stored: true, userId });
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      message: "Failed to save user study state.",
+      error: formatError(error),
     });
   }
 });
@@ -146,14 +253,15 @@ app.delete("/api/examples/:expression", async (request, response) => {
 });
 
 app.post("/api/actions", async (request, response) => {
+  const userId = normalizeUserId(request.body?.user_id);
   const expression = String(request.body?.expression || "").trim();
   const action = String(request.body?.action || "").trim();
   const metadata = request.body?.metadata || {};
 
-  if (!expression || !isValidAction(action)) {
+  if (!userId || !expression || !isValidAction(action)) {
     response.status(400).json({
       ok: false,
-      message: "Body must include expression and a valid action.",
+      message: "Body must include user_id, expression and a valid action.",
     });
     return;
   }
@@ -168,11 +276,12 @@ app.post("/api/actions", async (request, response) => {
   }
 
   try {
+    await ensureUser(userId);
     await upsertVocabulary(expression);
     await dbPool.execute(
-      `INSERT INTO vocabulary_action_logs (expression, action, metadata)
-       VALUES (?, ?, ?)`,
-      [expression, action, JSON.stringify(metadata)],
+      `INSERT INTO vocabulary_action_logs (user_id, expression, action, metadata)
+       VALUES (?, ?, ?, ?)`,
+      [userId, expression, action, JSON.stringify(metadata)],
     );
 
     response.status(201).json({ ok: true, stored: true });
@@ -186,17 +295,23 @@ app.post("/api/actions", async (request, response) => {
 });
 
 app.get("/api/stats", async (request, response) => {
+  const userId = normalizeUserId(request.query.user_id);
   const range = String(request.query.range || "day");
   const safeRange = ["day", "week", "month"].includes(range) ? range : "day";
   const viewName = getStatsViewName(safeRange);
 
+  if (!userId) {
+    response.status(400).json({ ok: false, message: "user_id is required." });
+    return;
+  }
+
   if (!dbPool) {
-    response.json({ range: safeRange, rows: [], source: "default" });
+    response.json({ range: safeRange, rows: [], source: "default", userId });
     return;
   }
 
   try {
-    const rows = await loadStatsRows(safeRange, viewName);
+    const rows = await loadStatsRows(safeRange, viewName, userId);
     const totals = rows.reduce(
       (summary, row) => ({
         total_actions: summary.total_actions + Number(row.total_actions || 0),
@@ -218,7 +333,7 @@ app.get("/api/stats", async (request, response) => {
       },
     );
 
-    response.json({ range: safeRange, rows, totals, source: "mysql" });
+    response.json({ range: safeRange, rows, totals, source: "mysql", userId });
   } catch (error) {
     response.status(500).json({
       ok: false,
@@ -230,10 +345,16 @@ app.get("/api/stats", async (request, response) => {
 
 app.post("/api/archive", async (request, response) => {
   const archivedAt = new Date();
+  const clientSnapshot = normalizeArchiveSnapshot(request.body);
+  const userId = clientSnapshot.userId;
+
+  if (!userId) {
+    response.status(400).json({ ok: false, message: "userId is required." });
+    return;
+  }
 
   try {
-    const mysqlArchive = dbPool ? await collectMysqlArchiveData() : null;
-    const clientSnapshot = normalizeArchiveSnapshot(request.body);
+    const mysqlArchive = dbPool ? await collectMysqlArchiveData(userId) : null;
     const startedAt =
       mysqlArchive?.startedAt ||
       clientSnapshot.startedAt ||
@@ -244,10 +365,11 @@ app.post("/api/archive", async (request, response) => {
       startedAt,
       endedAt,
       archivedAt: endedAt,
+      userId,
       clientSnapshot,
       mysqlArchive,
     };
-    const filename = `${formatArchiveDate(archivedAt)}.zip`;
+    const filename = `${formatArchiveDate(archivedAt)}-${userId}.zip`;
     const archivePath = resolve(ARCHIVE_DIR, filename);
 
     mkdirSync(ARCHIVE_DIR, { recursive: true });
@@ -257,7 +379,7 @@ app.post("/api/archive", async (request, response) => {
     );
 
     if (dbPool) {
-      await resetMysqlStudyHistory();
+      await resetMysqlStudyHistory(userId);
     }
 
     response.status(201).json({
@@ -303,6 +425,28 @@ async function initDatabase() {
     });
 
     await dbPool.execute(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(64) NOT NULL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          ON UPDATE CURRENT_TIMESTAMP
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    await dbPool.execute(`
+      CREATE TABLE IF NOT EXISTS user_study_state (
+        user_id VARCHAR(64) NOT NULL PRIMARY KEY,
+        state_json JSON NOT NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+          ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_user_study_state_user
+          FOREIGN KEY (user_id) REFERENCES users(id)
+          ON DELETE CASCADE
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    await dbPool.execute(`
       CREATE TABLE IF NOT EXISTS vocabulary (
         expression VARCHAR(255) NOT NULL PRIMARY KEY,
         reading VARCHAR(255) NULL,
@@ -334,19 +478,39 @@ async function initDatabase() {
     await dbPool.execute(`
       CREATE TABLE IF NOT EXISTS vocabulary_action_logs (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL,
         expression VARCHAR(255) NOT NULL,
         action ENUM('view', 'learned', 'unlearned', 'favorite', 'unfavorite') NOT NULL,
         metadata JSON NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_vocabulary_action_logs_user
+          FOREIGN KEY (user_id) REFERENCES users(id)
+          ON DELETE CASCADE,
         CONSTRAINT fk_vocabulary_action_logs_expression
           FOREIGN KEY (expression) REFERENCES vocabulary(expression)
           ON DELETE CASCADE,
+        INDEX idx_vocabulary_action_logs_user (user_id),
         INDEX idx_vocabulary_action_logs_expression (expression),
         INDEX idx_vocabulary_action_logs_created_at (created_at),
         INDEX idx_vocabulary_action_logs_action (action)
       ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
+    await dbPool.execute(`
+      ALTER TABLE vocabulary_action_logs
+      ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) NOT NULL DEFAULT '${TEST_USERS[0].id}' AFTER id
+    `);
+    await dbPool.execute(`
+      UPDATE vocabulary_action_logs
+      SET user_id = '${TEST_USERS[0].id}'
+      WHERE user_id IS NULL OR user_id = ''
+    `);
+    await dbPool.execute(`
+      ALTER TABLE vocabulary_action_logs
+      ALTER COLUMN user_id DROP DEFAULT
+    `).catch(() => {});
+
+    await seedUsers();
     await createStatsViews().catch((error) => {
       console.warn(`MySQL stats views disabled: ${formatError(error)}`);
     });
@@ -362,6 +526,7 @@ async function createStatsViews() {
   await dbPool.execute(`
     CREATE OR REPLACE VIEW vocabulary_action_stats_daily AS
     SELECT
+      user_id,
       DATE(created_at) AS bucket_start,
       DATE_FORMAT(created_at, '%Y-%m-%d') AS bucket,
       COUNT(*) AS total_actions,
@@ -371,12 +536,13 @@ async function createStatsViews() {
       SUM(action = 'favorite') AS favorite_count,
       SUM(action = 'unfavorite') AS unfavorite_count
     FROM vocabulary_action_logs
-    GROUP BY DATE(created_at), DATE_FORMAT(created_at, '%Y-%m-%d')
+    GROUP BY user_id, DATE(created_at), DATE_FORMAT(created_at, '%Y-%m-%d')
   `);
 
   await dbPool.execute(`
     CREATE OR REPLACE VIEW vocabulary_action_stats_weekly AS
     SELECT
+      user_id,
       STR_TO_DATE(CONCAT(YEARWEEK(created_at, 3), ' Monday'), '%X%V %W') AS bucket_start,
       DATE_FORMAT(created_at, '%x-W%v') AS bucket,
       COUNT(*) AS total_actions,
@@ -386,12 +552,13 @@ async function createStatsViews() {
       SUM(action = 'favorite') AS favorite_count,
       SUM(action = 'unfavorite') AS unfavorite_count
     FROM vocabulary_action_logs
-    GROUP BY YEARWEEK(created_at, 3), DATE_FORMAT(created_at, '%x-W%v')
+    GROUP BY user_id, YEARWEEK(created_at, 3), DATE_FORMAT(created_at, '%x-W%v')
   `);
 
   await dbPool.execute(`
     CREATE OR REPLACE VIEW vocabulary_action_stats_monthly AS
     SELECT
+      user_id,
       DATE_FORMAT(created_at, '%Y-%m-01') AS bucket_start,
       DATE_FORMAT(created_at, '%Y-%m') AS bucket,
       COUNT(*) AS total_actions,
@@ -401,11 +568,11 @@ async function createStatsViews() {
       SUM(action = 'favorite') AS favorite_count,
       SUM(action = 'unfavorite') AS unfavorite_count
     FROM vocabulary_action_logs
-    GROUP BY DATE_FORMAT(created_at, '%Y-%m-01'), DATE_FORMAT(created_at, '%Y-%m')
+    GROUP BY user_id, DATE_FORMAT(created_at, '%Y-%m-01'), DATE_FORMAT(created_at, '%Y-%m')
   `);
 }
 
-async function loadStatsRows(range, viewName) {
+async function loadStatsRows(range, viewName, userId) {
   try {
     const [rows] = await dbPool.execute(
       `SELECT
@@ -418,9 +585,11 @@ async function loadStatsRows(range, viewName) {
         favorite_count,
         unfavorite_count
        FROM ${viewName}
-       WHERE bucket_start >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+       WHERE user_id = ?
+         AND bucket_start >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
        ORDER BY bucket_start DESC
        LIMIT 12`,
+      [userId],
     );
     return rows;
   } catch (_error) {
@@ -437,26 +606,31 @@ async function loadStatsRows(range, viewName) {
         SUM(action = 'favorite') AS favorite_count,
         SUM(action = 'unfavorite') AS unfavorite_count
        FROM vocabulary_action_logs
-       WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+       WHERE user_id = ?
+         AND created_at >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
        GROUP BY bucket, bucket_start
        ORDER BY bucket_start DESC
        LIMIT 12`,
+      [userId],
     );
     return rows;
   }
 }
 
-async function collectMysqlArchiveData() {
+async function collectMysqlArchiveData(userId) {
   const [[period]] = await dbPool.execute(
     `SELECT
       MIN(created_at) AS startedAt,
       MAX(created_at) AS endedAt,
       COUNT(*) AS totalActions
-     FROM vocabulary_action_logs`,
+     FROM vocabulary_action_logs
+     WHERE user_id = ?`,
+    [userId],
   );
   const [actionLogs] = await dbPool.execute(
     `SELECT
       logs.id,
+      logs.user_id,
       logs.expression,
       logs.action,
       logs.metadata,
@@ -467,28 +641,36 @@ async function collectMysqlArchiveData() {
       vocabulary.tags
      FROM vocabulary_action_logs AS logs
      LEFT JOIN vocabulary ON vocabulary.expression = logs.expression
+     WHERE logs.user_id = ?
      ORDER BY logs.created_at ASC, logs.id ASC`,
+    [userId],
   );
   const statsDaily = await loadArchiveStatsRows(
     "day",
     "vocabulary_action_stats_daily",
+    userId,
   );
   const statsWeekly = await loadArchiveStatsRows(
     "week",
     "vocabulary_action_stats_weekly",
+    userId,
   );
   const statsMonthly = await loadArchiveStatsRows(
     "month",
     "vocabulary_action_stats_monthly",
+    userId,
   );
   const [actionSummary] = await dbPool.execute(
     `SELECT action, COUNT(*) AS count
      FROM vocabulary_action_logs
+     WHERE user_id = ?
      GROUP BY action
      ORDER BY action ASC`,
+    [userId],
   );
 
   return {
+    userId,
     startedAt: period?.startedAt ? new Date(period.startedAt).toISOString() : null,
     endedAt: period?.endedAt ? new Date(period.endedAt).toISOString() : null,
     totalActions: Number(period?.totalActions || 0),
@@ -502,7 +684,7 @@ async function collectMysqlArchiveData() {
   };
 }
 
-async function loadArchiveStatsRows(range, viewName) {
+async function loadArchiveStatsRows(range, viewName, userId) {
   try {
     const [rows] = await dbPool.execute(
       `SELECT
@@ -515,7 +697,9 @@ async function loadArchiveStatsRows(range, viewName) {
         favorite_count,
         unfavorite_count
        FROM ${viewName}
+       WHERE user_id = ?
        ORDER BY bucket_start ASC`,
+      [userId],
     );
     return rows;
   } catch (_error) {
@@ -532,15 +716,20 @@ async function loadArchiveStatsRows(range, viewName) {
         SUM(action = 'favorite') AS favorite_count,
         SUM(action = 'unfavorite') AS unfavorite_count
        FROM vocabulary_action_logs
+       WHERE user_id = ?
        GROUP BY bucket, bucket_start
        ORDER BY bucket_start ASC`,
+      [userId],
     );
     return rows;
   }
 }
 
-async function resetMysqlStudyHistory() {
-  await dbPool.execute("DELETE FROM vocabulary_action_logs");
+async function resetMysqlStudyHistory(userId) {
+  await dbPool.execute("DELETE FROM vocabulary_action_logs WHERE user_id = ?", [
+    userId,
+  ]);
+  await dbPool.execute("DELETE FROM user_study_state WHERE user_id = ?", [userId]);
 }
 
 async function syncVocabulary() {
@@ -575,6 +764,28 @@ async function upsertVocabulary(expression) {
      VALUES (?)
      ON DUPLICATE KEY UPDATE expression = VALUES(expression)`,
     [expression],
+  );
+}
+
+async function seedUsers() {
+  for (const user of TEST_USERS) {
+    await dbPool.execute(
+      `INSERT INTO users (id, name)
+       VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE name = VALUES(name)`,
+      [user.id, user.name],
+    );
+  }
+}
+
+async function ensureUser(userId) {
+  const seededUser = TEST_USERS.find((user) => user.id === userId);
+  const fallbackName = seededUser?.name || `User ${userId}`;
+  await dbPool.execute(
+    `INSERT INTO users (id, name)
+     VALUES (?, ?)
+     ON DUPLICATE KEY UPDATE name = COALESCE(NULLIF(name, ''), VALUES(name))`,
+    [userId, fallbackName],
   );
 }
 
@@ -737,9 +948,10 @@ function normalizeArchiveSnapshot(body) {
     null;
 
   return {
+    userId: normalizeUserId(snapshot.userId || snapshot.user_id),
     startedAt,
     endedAt: snapshot.endedAt || new Date().toISOString(),
-    activeLevel: String(snapshot.activeLevel || "all"),
+    currentLevel: String(snapshot.currentLevel || ""),
     query: String(snapshot.query || ""),
     mode: String(snapshot.mode || "flashcard"),
     filterMode: String(snapshot.filterMode || "all"),
@@ -818,6 +1030,15 @@ function normalizeStringArray(value) {
   return Array.isArray(value)
     ? value.map((item) => String(item)).filter(Boolean)
     : [];
+}
+
+function normalizeUserId(value) {
+  const normalized = String(value || "").trim();
+  return /^[a-zA-Z0-9_-]{1,64}$/u.test(normalized) ? normalized : "";
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function createZipBuffer(filename, content) {
