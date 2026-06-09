@@ -179,6 +179,20 @@
                   </div>
                 </section>
                 <section class="settings-section">
+                  <span>Danh sách từ cần học</span>
+                  <button
+                    id="study-selection-btn"
+                    class="archive-reset-button archive-reset-button--neutral"
+                    type="button"
+                  >
+                    <strong>Quản lý từ trong level hiện tại</strong>
+                    <small
+                      >Chọn các từ chưa học cần xuất hiện trong phiên học của
+                      user hiện tại.</small
+                    >
+                  </button>
+                </section>
+                <section class="settings-section">
                   <span>Khởi động lại Thẻ ghi nhớ</span>
                   <div class="restart-options">
                     <button data-restart-session="random" type="button">
@@ -422,6 +436,50 @@
                 </tr>
               </thead>
               <tbody id="level-modal-body"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <div id="selection-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-selection-close></div>
+        <article
+          class="modal__panel modal__panel--wide"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="selection-modal-title"
+        >
+          <button
+            class="modal__close"
+            data-selection-close
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p class="modal__eyebrow">Study Selection</p>
+          <h2 id="selection-modal-title">-</h2>
+          <p id="selection-modal-summary" class="overview-note">-</p>
+          <div class="selection-toolbar">
+            <button id="selection-select-all-btn" type="button">
+              Chọn tất cả chưa học
+            </button>
+            <button id="selection-clear-btn" type="button">
+              Bỏ chọn hết
+            </button>
+          </div>
+          <div class="table-wrap table-wrap--modal">
+            <table class="word-table">
+              <thead>
+                <tr>
+                  <th>Use</th>
+                  <th>No.</th>
+                  <th>Word</th>
+                  <th>Reading</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody id="selection-modal-body"></tbody>
             </table>
           </div>
         </article>

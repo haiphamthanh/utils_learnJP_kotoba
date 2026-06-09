@@ -38,6 +38,7 @@ function buildWordPayload() {
   for (const fileName of csvFiles) {
     const levelKey = fileName.replace(/\.csv$/u, "").toLowerCase();
     const levelLabel = levelKey.toUpperCase();
+    let sequenceNumber = 0;
 
     levels.push({
       key: levelKey,
@@ -58,10 +59,15 @@ function buildWordPayload() {
         continue;
       }
 
+      sequenceNumber += 1;
+      const wordKey = `${levelKey}:${sequenceNumber}`;
+
       words.push({
-        id: `${levelKey}:${words.length}`,
+        id: wordKey,
+        wordKey,
         level: levelKey,
         levelLabel,
+        sequenceNumber,
         expression,
         reading,
         meaning,

@@ -963,6 +963,7 @@ function normalizeArchiveSnapshot(body) {
     starredExpressions: normalizeStringArray(snapshot.starredExpressions),
     seenExpressions: normalizeStringArray(snapshot.seenExpressions),
     sessionExpressions: normalizeStringArray(snapshot.sessionExpressions),
+    studySelectionsByLevel: normalizeStudySelections(snapshot.studySelectionsByLevel),
     words: wordSnapshot.words,
     wordlist: wordSnapshot.summary,
     actionSummary: summarizeArchiveActions(localActionLogs),
@@ -977,21 +978,30 @@ function getArchiveWordSnapshot(snapshot, localActionLogs) {
     ...normalizeStringArray(snapshot.seenExpressions),
     ...normalizeStringArray(snapshot.sessionExpressions),
     ...localActionLogs
-      .map((log) => log?.expression)
+      .map((log) => log?.wordKey || log?.word?.wordKey || log?.word?.id || log?.expression)
       .filter(Boolean)
       .map(String),
   ]);
 
-  if (snapshot.currentWord?.expression) {
-    expressions.add(String(snapshot.currentWord.expression));
+  if (snapshot.currentWord?.wordKey || snapshot.currentWord?.id || snapshot.currentWord?.expression) {
+    expressions.add(
+      String(
+        snapshot.currentWord.wordKey ||
+          snapshot.currentWord.id ||
+          snapshot.currentWord.expression,
+      ),
+    );
   }
 
   const wordsFromData = loadWordlistWords();
-  const wordsByExpression = new Map(
-    wordsFromData.map((word) => [word.expression, word]),
+  const wordsByReference = new Map(
+    wordsFromData.flatMap((word) => [
+      [String(word.wordKey || word.id), word],
+      [String(word.expression), word],
+    ]),
   );
   const words = [...expressions]
-    .map((expression) => wordsByExpression.get(expression))
+    .map((expression) => wordsByReference.get(expression))
     .filter(Boolean);
 
   return {
@@ -1015,6 +1025,25 @@ function loadWordlistWords() {
   } catch (_error) {
     return [];
   }
+}
+
+function normalizeStudySelections(value) {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const normalized = {};
+  for (const [levelKey, sequenceNumbers] of Object.entries(value)) {
+    normalized[levelKey] = [
+      ...new Set(
+        (Array.isArray(sequenceNumbers) ? sequenceNumbers : [])
+          .map((item) => Number(item))
+          .filter((item) => item > 0),
+      ),
+    ].sort((left, right) => left - right);
+  }
+
+  return normalized;
 }
 
 function summarizeArchiveActions(actionLogs) {

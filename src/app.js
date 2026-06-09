@@ -43,6 +43,7 @@ const elements = {
   unlearnedBtn: document.querySelector("#unlearned-btn"),
   favoriteBtn: document.querySelector("#favorite-btn"),
   settingsBtn: document.querySelector("#settings-btn"),
+  studySelectionBtn: document.querySelector("#study-selection-btn"),
   archiveResetBtn: document.querySelector("#archive-reset-btn"),
   cardSettingsPanel: document.querySelector("#card-settings-panel"),
   appShell: document.querySelector(".app-shell"),
@@ -72,6 +73,12 @@ const elements = {
   levelModalTitle: document.querySelector("#level-modal-title"),
   levelModalSummary: document.querySelector("#level-modal-summary"),
   levelModalBody: document.querySelector("#level-modal-body"),
+  selectionModal: document.querySelector("#selection-modal"),
+  selectionModalTitle: document.querySelector("#selection-modal-title"),
+  selectionModalSummary: document.querySelector("#selection-modal-summary"),
+  selectionModalBody: document.querySelector("#selection-modal-body"),
+  selectionSelectAllBtn: document.querySelector("#selection-select-all-btn"),
+  selectionClearBtn: document.querySelector("#selection-clear-btn"),
   statsModal: document.querySelector("#stats-modal"),
   bankModal: document.querySelector("#bank-modal"),
   totalWordsButton: document.querySelector("#total-words-button"),
@@ -103,8 +110,9 @@ async function init() {
     const wordsPayload = await wordsResponse.json();
     const usersPayload = await usersResponse.json();
 
-    state.words = wordsPayload.words || [];
+    state.words = enrichWords(wordsPayload.words || []);
     state.levels = sortLevels(wordsPayload.levels || []);
+    remapAllStudyStates();
     state.users = Array.isArray(usersPayload.users) ? usersPayload.users : [];
 
     if (!state.users.length) {
@@ -188,6 +196,11 @@ function bindEvents() {
   });
 
   elements.archiveResetBtn.addEventListener("click", archiveAndResetStudy);
+  elements.studySelectionBtn.addEventListener("click", () => {
+    openSelectionModal();
+  });
+  elements.selectionSelectAllBtn.addEventListener("click", selectAllCurrentLevelWords);
+  elements.selectionClearBtn.addEventListener("click", clearAllCurrentLevelWords);
 
   elements.statsRange.addEventListener("click", (event) => {
     const button = event.target.closest("[data-range]");
@@ -274,6 +287,7 @@ function bindEvents() {
       closeWordModal();
       closeOverviewModal();
       closeLevelModal();
+      closeSelectionModal();
       closeStatsModal();
       closeBankModal();
       closeActionModal();
@@ -307,6 +321,12 @@ function bindEvents() {
   elements.levelModal.addEventListener("click", (event) => {
     if (event.target.closest("[data-level-close]")) {
       closeLevelModal();
+    }
+  });
+
+  elements.selectionModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-selection-close]")) {
+      closeSelectionModal();
     }
   });
 
@@ -352,13 +372,140 @@ function bindEvents() {
   });
 }
 
+function enrichWords(words) {
+  return words.map((word, index) => {
+    const level = String(word.level || "").toLowerCase();
+    const sequenceNumber = Math.max(
+      1,
+      Number(word.sequenceNumber || getSequenceFromId(word.id) || index + 1),
+    );
+    const wordKey = String(word.wordKey || word.id || `${level}:${sequenceNumber}`);
+
+    return {
+      ...word,
+      id: wordKey,
+      wordKey,
+      level,
+      levelLabel: word.levelLabel || level.toUpperCase(),
+      sequenceNumber,
+      tags: Array.isArray(word.tags) ? word.tags : [],
+    };
+  });
+}
+
+function getSequenceFromId(value) {
+  const match = String(value || "").match(/:(\d+)$/u);
+  return match ? Number(match[1]) : 0;
+}
+
+function remapAllStudyStates() {
+  for (const [userId, studyState] of Object.entries(state.userStatesById)) {
+    state.userStatesById[userId] = normalizeStudyState(studyState);
+  }
+}
+
+function getWordKey(word) {
+  return word?.wordKey || word?.id || `${word?.level}:${word?.sequenceNumber}`;
+}
+
+function getWordReferenceMap() {
+  const map = new Map();
+  for (const word of state.words) {
+    map.set(getWordKey(word), word);
+    map.set(word.expression, word);
+  }
+  return map;
+}
+
+function getWordByReference(value) {
+  if (!value) {
+    return null;
+  }
+
+  const map = getWordReferenceMap();
+  return map.get(String(value)) || null;
+}
+
+function getCurrentLevelKey() {
+  return getCurrentRoadmapLevel()?.key || state.levels[0]?.key || "";
+}
+
+function getStudySelectionEntry(levelKey) {
+  const studyState = getStudyState();
+  return studyState.studySelectionsByLevel[levelKey] || [];
+}
+
+function ensureLevelStudySelection(levelKey) {
+  if (!levelKey) {
+    return [];
+  }
+
+  const studyState = getStudyState();
+  const learnedKeys = new Set(studyState.learnedExpressions);
+  const availableSequenceNumbers = state.words
+    .filter((word) => word.level === levelKey && !learnedKeys.has(getWordKey(word)))
+    .map((word) => word.sequenceNumber);
+
+  const hasExistingSelection = Object.prototype.hasOwnProperty.call(
+    studyState.studySelectionsByLevel,
+    levelKey,
+  );
+  const existing = hasExistingSelection ? getStudySelectionEntry(levelKey) : [];
+  const sanitized = [
+    ...new Set(
+      existing
+        .map((value) => Number(value))
+        .filter((value) => availableSequenceNumbers.includes(value)),
+    ),
+  ];
+
+  studyState.studySelectionsByLevel[levelKey] =
+    hasExistingSelection
+      ? sanitized
+      : [...availableSequenceNumbers];
+
+  return studyState.studySelectionsByLevel[levelKey];
+}
+
+function getSelectedWordKeySetForLevel(levelKey) {
+  const selectedSequenceNumbers = new Set(ensureLevelStudySelection(levelKey));
+  return new Set(
+    state.words
+      .filter(
+        (word) =>
+          word.level === levelKey && selectedSequenceNumbers.has(word.sequenceNumber),
+      )
+      .map((word) => getWordKey(word)),
+  );
+}
+
+function setStudySelectionForLevel(levelKey, sequenceNumbers) {
+  const studyState = getStudyState();
+  const validNumbers = new Set(
+    state.words
+      .filter((word) => word.level === levelKey)
+      .map((word) => word.sequenceNumber),
+  );
+  studyState.studySelectionsByLevel[levelKey] = [
+    ...new Set(
+      sequenceNumbers
+        .map((value) => Number(value))
+        .filter((value) => validNumbers.has(value)),
+    ),
+  ].sort((left, right) => left - right);
+}
+
 function applyFilters({ preserveSession }) {
   const studyState = getStudyState();
-  const currentLevel = getCurrentRoadmapLevel();
-  const allowedLevel = currentLevel?.key || state.levels[0]?.key || "";
+  const allowedLevel = getCurrentLevelKey();
+  const selectedWordKeys = getSelectedWordKeySetForLevel(allowedLevel);
 
   state.filteredWords = state.words.filter((word) => {
     if (word.level !== allowedLevel) {
+      return false;
+    }
+
+    if (!selectedWordKeys.has(getWordKey(word))) {
       return false;
     }
 
@@ -371,6 +518,7 @@ function applyFilters({ preserveSession }) {
     }
 
     const haystack = [
+      String(word.sequenceNumber || ""),
       word.expression,
       word.reading,
       word.meaning,
@@ -399,30 +547,30 @@ function createSession(order = getStudyState().sessionOrder) {
   const availableWords =
     studyState.filterMode === "all"
       ? state.filteredWords.filter(
-          (word) => !studyState.learnedExpressions.includes(word.expression),
+          (word) => !studyState.learnedExpressions.includes(getWordKey(word)),
         )
       : state.filteredWords;
 
   if (order === "ordered") {
     state.sessionWords = availableWords.slice(0, SESSION_SIZE);
-    studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
+    studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
     return;
   }
 
   const seenSet = new Set(studyState.seenExpressions);
   const newWords = shuffle(
-    availableWords.filter((word) => !seenSet.has(word.expression)),
+    availableWords.filter((word) => !seenSet.has(getWordKey(word))),
   ).slice(0, NEW_WORDS_PER_SESSION);
 
   const oldWords = shuffle(
-    availableWords.filter((word) => seenSet.has(word.expression)),
+    availableWords.filter((word) => seenSet.has(getWordKey(word))),
   ).slice(0, SESSION_SIZE - newWords.length);
 
   const fallbackWords = shuffle(
     availableWords.filter(
       (word) =>
-        !newWords.some((item) => item.expression === word.expression) &&
-        !oldWords.some((item) => item.expression === word.expression),
+        !newWords.some((item) => getWordKey(item) === getWordKey(word)) &&
+        !oldWords.some((item) => getWordKey(item) === getWordKey(word)),
     ),
   ).slice(0, SESSION_SIZE - newWords.length - oldWords.length);
 
@@ -430,7 +578,7 @@ function createSession(order = getStudyState().sessionOrder) {
     0,
     SESSION_SIZE,
   );
-  studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
+  studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
 }
 
 function restartSession(order) {
@@ -505,10 +653,11 @@ function createArchiveSnapshot() {
     statsRange: studyState.statsRange,
     sessionOrder: studyState.sessionOrder,
     currentIndex: studyState.currentIndex,
-    sessionExpressions: state.sessionWords.map((word) => word.expression),
+    sessionExpressions: state.sessionWords.map((word) => getWordKey(word)),
     learnedExpressions: [...studyState.learnedExpressions],
     starredExpressions: [...studyState.starredExpressions],
     seenExpressions: [...studyState.seenExpressions],
+    studySelectionsByLevel: studyState.studySelectionsByLevel,
     currentWord: getCurrentWord() || null,
     localActionLogs: studyState.localActionLogs,
   };
@@ -546,13 +695,18 @@ function render() {
 function updateStats() {
   const currentLevel = getCurrentRoadmapLevel();
   const studyState = getStudyState();
+  const selectedCount = currentLevel?.key
+    ? ensureLevelStudySelection(currentLevel.key).length
+    : 0;
 
   elements.statTotalWords.textContent = formatNumber(state.words.length);
   elements.statCurrentLevel.textContent = currentLevel?.label || "-";
   elements.statVisibleWords.textContent = formatNumber(state.filteredWords.length);
   elements.resultsSummary.textContent = `${currentLevel?.label || "-"} • ${formatNumber(
     state.filteredWords.length,
-  )} từ • ${formatNumber(studyState.learnedExpressions.length)} đã thuộc`;
+  )} từ đang chọn • ${formatNumber(selectedCount)} mục học • ${formatNumber(
+    studyState.learnedExpressions.length,
+  )} đã thuộc`;
 }
 
 function renderRoadmap() {
@@ -607,7 +761,7 @@ function renderFlashcard() {
   if (studyState.suppressNextViewLog) {
     studyState.suppressNextViewLog = false;
   } else {
-    addUniqueValue(studyState.seenExpressions, currentWord.expression);
+    addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
     logView(currentWord);
   }
 
@@ -633,12 +787,12 @@ function renderTable() {
   for (const word of rows) {
     const row = document.createElement("tr");
     const sessionIndex = state.sessionWords.findIndex(
-      (item) => item.expression === word.expression,
+      (item) => getWordKey(item) === getWordKey(word),
     );
-    row.dataset.expression = word.expression;
-    row.classList.toggle("is-selected", studyState.selectedListExpression === word.expression);
+    row.dataset.wordKey = getWordKey(word);
+    row.classList.toggle("is-selected", studyState.selectedListExpression === getWordKey(word));
     row.innerHTML = `
-      <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
+      <td><strong>#${formatNumber(word.sequenceNumber)} ${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
       <td>${escapeHtml(word.reading)}</td>
       <td>${escapeHtml(word.meaning)}</td>
       <td><span class="level-badge">${escapeHtml(word.levelLabel)}</span></td>
@@ -646,13 +800,13 @@ function renderTable() {
     `;
 
     row.addEventListener("click", () => {
-      studyState.selectedListExpression = word.expression;
+      studyState.selectedListExpression = getWordKey(word);
       syncSelectedTableRow();
       persistAppState();
     });
 
     row.addEventListener("dblclick", () => {
-      studyState.selectedListExpression = word.expression;
+      studyState.selectedListExpression = getWordKey(word);
       if (sessionIndex >= 0) {
         studyState.currentIndex = sessionIndex;
       }
@@ -672,11 +826,11 @@ function syncSelectedTableRow() {
   for (const row of elements.wordTableBody.querySelectorAll("tr")) {
     row.classList.toggle(
       "is-current",
-      currentWord && row.dataset.expression === currentWord.expression,
+      currentWord && row.dataset.wordKey === getWordKey(currentWord),
     );
     row.classList.toggle(
       "is-selected",
-      row.dataset.expression === studyState.selectedListExpression,
+      row.dataset.wordKey === studyState.selectedListExpression,
     );
   }
 }
@@ -713,14 +867,18 @@ function markCurrentLearned() {
     return;
   }
 
-  addUniqueValue(studyState.learnedExpressions, currentWord.expression);
-  addUniqueValue(studyState.seenExpressions, currentWord.expression);
+  addUniqueValue(studyState.learnedExpressions, getWordKey(currentWord));
+  addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
+  removeValue(
+    getStudySelectionEntry(currentWord.level),
+    currentWord.sequenceNumber,
+  );
   logAction("learned", currentWord);
   playCardMotion("up");
   state.sessionWords = state.sessionWords.filter(
-    (word) => word.expression !== currentWord.expression,
+    (word) => getWordKey(word) !== getWordKey(currentWord),
   );
-  studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
+  studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
 
   if (studyState.currentIndex >= state.sessionWords.length) {
     studyState.currentIndex = Math.max(0, state.sessionWords.length - 1);
@@ -736,13 +894,17 @@ function markCurrentUnlearned() {
     return;
   }
 
-  removeValue(studyState.learnedExpressions, currentWord.expression);
-  addUniqueValue(studyState.seenExpressions, currentWord.expression);
+  removeValue(studyState.learnedExpressions, getWordKey(currentWord));
+  addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
+  addUniqueValue(
+    getStudySelectionEntry(currentWord.level),
+    currentWord.sequenceNumber,
+  );
   logAction("unlearned", currentWord);
   playCardMotion("down");
   state.sessionWords.splice(studyState.currentIndex, 1);
   state.sessionWords.push(currentWord);
-  studyState.sessionExpressions = state.sessionWords.map((word) => word.expression);
+  studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
 
   if (studyState.currentIndex >= state.sessionWords.length) {
     studyState.currentIndex = 0;
@@ -793,12 +955,12 @@ function toggleFavorite() {
     return;
   }
 
-  const isStarred = studyState.starredExpressions.includes(currentWord.expression);
+  const isStarred = studyState.starredExpressions.includes(getWordKey(currentWord));
   if (isStarred) {
-    removeValue(studyState.starredExpressions, currentWord.expression);
+    removeValue(studyState.starredExpressions, getWordKey(currentWord));
     logAction("unfavorite", currentWord);
   } else {
-    addUniqueValue(studyState.starredExpressions, currentWord.expression);
+    addUniqueValue(studyState.starredExpressions, getWordKey(currentWord));
     logAction("favorite", currentWord);
   }
 
@@ -809,7 +971,7 @@ function toggleFavorite() {
 
 function updateFavoriteButton(word) {
   const studyState = getStudyState();
-  const isStarred = studyState.starredExpressions.includes(word.expression);
+  const isStarred = studyState.starredExpressions.includes(getWordKey(word));
   elements.favoriteBtn.classList.toggle("is-starred", isStarred);
   elements.favoriteBtn.textContent = isStarred ? "★" : "☆";
 }
@@ -952,16 +1114,16 @@ function restoreSessionFromStudyState() {
     return false;
   }
 
-  const filteredExpressionSet = new Set(
-    state.filteredWords.map((word) => word.expression),
+  const filteredWordKeySet = new Set(
+    state.filteredWords.map((word) => getWordKey(word)),
   );
-  const wordsByExpression = new Map(
-    state.words.map((word) => [word.expression, word]),
+  const wordsByKey = new Map(
+    state.words.map((word) => [getWordKey(word), word]),
   );
 
   state.sessionWords = studyState.sessionExpressions
-    .filter((expression) => filteredExpressionSet.has(expression))
-    .map((expression) => wordsByExpression.get(expression))
+    .filter((wordKey) => filteredWordKeySet.has(wordKey))
+    .map((wordKey) => wordsByKey.get(wordKey))
     .filter(Boolean)
     .slice(0, SESSION_SIZE);
 
@@ -1041,19 +1203,19 @@ function updateStatsRangeButtons() {
 function matchesFilterMode(word) {
   const studyState = getStudyState();
   if (studyState.filterMode === "starred") {
-    return studyState.starredExpressions.includes(word.expression);
+    return studyState.starredExpressions.includes(getWordKey(word));
   }
 
   if (studyState.filterMode === "unstarred") {
-    return !studyState.starredExpressions.includes(word.expression);
+    return !studyState.starredExpressions.includes(getWordKey(word));
   }
 
   if (studyState.filterMode === "learned") {
-    return studyState.learnedExpressions.includes(word.expression);
+    return studyState.learnedExpressions.includes(getWordKey(word));
   }
 
   if (studyState.filterMode === "unlearned") {
-    return !studyState.learnedExpressions.includes(word.expression);
+    return !studyState.learnedExpressions.includes(getWordKey(word));
   }
 
   return true;
@@ -1061,19 +1223,19 @@ function matchesFilterMode(word) {
 
 function matchesBankStatus(word, studyState) {
   if (studyState.bankStatusFilter === "starred") {
-    return studyState.starredExpressions.includes(word.expression);
+    return studyState.starredExpressions.includes(getWordKey(word));
   }
 
   if (studyState.bankStatusFilter === "unstarred") {
-    return !studyState.starredExpressions.includes(word.expression);
+    return !studyState.starredExpressions.includes(getWordKey(word));
   }
 
   if (studyState.bankStatusFilter === "learned") {
-    return studyState.learnedExpressions.includes(word.expression);
+    return studyState.learnedExpressions.includes(getWordKey(word));
   }
 
   if (studyState.bankStatusFilter === "unlearned") {
-    return !studyState.learnedExpressions.includes(word.expression);
+    return !studyState.learnedExpressions.includes(getWordKey(word));
   }
 
   return true;
@@ -1085,6 +1247,7 @@ function matchesSearchQuery(word, query) {
   }
 
   const haystack = [
+    String(word.sequenceNumber || ""),
     word.expression,
     word.reading,
     word.meaning,
@@ -1106,7 +1269,11 @@ function getViewCounts() {
       continue;
     }
 
-    viewCounts.set(log.expression, (viewCounts.get(log.expression) || 0) + 1);
+    const resolvedWord = getWordByReference(
+      log.wordKey || log.word?.wordKey || log.word?.id || log.expression,
+    );
+    const wordKey = resolvedWord ? getWordKey(resolvedWord) : log.expression;
+    viewCounts.set(wordKey, (viewCounts.get(wordKey) || 0) + 1);
   }
 
   return viewCounts;
@@ -1130,12 +1297,12 @@ function getBankWords() {
         return false;
       }
 
-      const viewCount = viewCounts.get(word.expression) || 0;
+      const viewCount = viewCounts.get(getWordKey(word)) || 0;
       return viewCount > Number(studyState.bankMinViews || 0);
     })
     .map((word) => ({
       ...word,
-      viewCount: viewCounts.get(word.expression) || 0,
+      viewCount: viewCounts.get(getWordKey(word)) || 0,
     }));
 }
 
@@ -1157,7 +1324,7 @@ function getRoadmapItems() {
     const learned = state.words.filter(
       (word) =>
         word.level === level.key &&
-        studyState.learnedExpressions.includes(word.expression),
+        studyState.learnedExpressions.includes(getWordKey(word)),
     ).length;
     const percent = total ? Math.round((learned / total) * 100) : 0;
     const status =
@@ -1188,7 +1355,7 @@ function getCurrentRoadmapLevel() {
     const learned = state.words.filter(
       (word) =>
         word.level === level.key &&
-        studyState.learnedExpressions.includes(word.expression),
+        studyState.learnedExpressions.includes(getWordKey(word)),
     ).length;
 
     if (learned < total) {
@@ -1201,7 +1368,7 @@ function getCurrentRoadmapLevel() {
 
 function renderStar(word) {
   const studyState = getStudyState();
-  return studyState.starredExpressions.includes(word.expression)
+  return studyState.starredExpressions.includes(getWordKey(word))
     ? '<span class="inline-star">★</span>'
     : "";
 }
@@ -1210,7 +1377,7 @@ function openWordModal(word) {
   elements.modalTitle.textContent = word.expression;
   elements.modalReading.textContent = word.reading || "-";
   elements.modalMeaning.textContent = word.meaning || "-";
-  elements.modalLevel.textContent = word.levelLabel || "-";
+  elements.modalLevel.textContent = `${word.levelLabel || "-"} • #${formatNumber(word.sequenceNumber)}`;
   renderModalExamples(word);
   elements.wordModal.hidden = false;
 }
@@ -1276,6 +1443,109 @@ function closeLevelModal() {
   elements.levelModal.hidden = true;
 }
 
+function openSelectionModal() {
+  const levelKey = getCurrentLevelKey();
+  const level = state.levels.find((item) => item.key === levelKey);
+  const selectedCount = ensureLevelStudySelection(levelKey).length;
+  const unlearnedCount = getUnlearnedWordsForLevel(levelKey).length;
+
+  elements.selectionModalTitle.textContent = `${level?.label || levelKey.toUpperCase()} study selection`;
+  elements.selectionModalSummary.textContent = `${formatNumber(selectedCount)} / ${formatNumber(unlearnedCount)} từ chưa học đang được chọn cho user hiện tại.`;
+  renderSelectionModalTable();
+  elements.selectionModal.hidden = false;
+  closeSettingsPanel();
+}
+
+function closeSelectionModal() {
+  elements.selectionModal.hidden = true;
+}
+
+function getUnlearnedWordsForLevel(levelKey) {
+  const studyState = getStudyState();
+  const learnedSet = new Set(studyState.learnedExpressions);
+  return state.words.filter(
+    (word) => word.level === levelKey && !learnedSet.has(getWordKey(word)),
+  );
+}
+
+function renderSelectionModalTable() {
+  const levelKey = getCurrentLevelKey();
+  const selectedSequenceNumbers = new Set(ensureLevelStudySelection(levelKey));
+  const rows = getUnlearnedWordsForLevel(levelKey).sort(
+    (left, right) => left.sequenceNumber - right.sequenceNumber,
+  );
+  elements.selectionModalSummary.textContent = `${formatNumber(selectedSequenceNumbers.size)} / ${formatNumber(rows.length)} từ chưa học đang được chọn cho user hiện tại.`;
+
+  elements.selectionModalBody.innerHTML = rows.length
+    ? rows
+        .map(
+          (word) => `
+            <tr data-word-key="${escapeHtml(getWordKey(word))}">
+              <td>
+                <input
+                  type="checkbox"
+                  data-selection-toggle="${escapeHtml(String(word.sequenceNumber))}"
+                  ${selectedSequenceNumbers.has(word.sequenceNumber) ? "checked" : ""}
+                />
+              </td>
+              <td>#${formatNumber(word.sequenceNumber)}</td>
+              <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
+              <td>${escapeHtml(word.reading)}</td>
+              <td>${escapeHtml(word.meaning)}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `
+        <tr>
+          <td colspan="5">Không còn từ chưa học nào trong level hiện tại.</td>
+        </tr>
+      `;
+
+  for (const input of elements.selectionModalBody.querySelectorAll("[data-selection-toggle]")) {
+    input.addEventListener("change", () => {
+      toggleStudySelection(Number(input.dataset.selectionToggle), input.checked);
+    });
+  }
+}
+
+function toggleStudySelection(sequenceNumber, checked) {
+  const levelKey = getCurrentLevelKey();
+  const currentSelection = ensureLevelStudySelection(levelKey);
+  if (checked) {
+    addUniqueValue(currentSelection, sequenceNumber);
+  } else {
+    removeValue(currentSelection, sequenceNumber);
+  }
+
+  setStudySelectionForLevel(levelKey, currentSelection);
+  getStudyState().currentIndex = 0;
+  renderSelectionModalTable();
+  persistAppState();
+  applyFilters({ preserveSession: false });
+}
+
+function selectAllCurrentLevelWords() {
+  const levelKey = getCurrentLevelKey();
+  setStudySelectionForLevel(
+    levelKey,
+    getUnlearnedWordsForLevel(levelKey).map((word) => word.sequenceNumber),
+  );
+  getStudyState().currentIndex = 0;
+  renderSelectionModalTable();
+  persistAppState();
+  applyFilters({ preserveSession: false });
+}
+
+function clearAllCurrentLevelWords() {
+  const levelKey = getCurrentLevelKey();
+  setStudySelectionForLevel(levelKey, []);
+  getStudyState().currentIndex = 0;
+  renderSelectionModalTable();
+  persistAppState();
+  applyFilters({ preserveSession: false });
+}
+
 function openStatsModal() {
   renderStats();
   elements.statsModal.hidden = false;
@@ -1324,7 +1594,7 @@ function renderOverviewContent() {
       const learned = state.words.filter(
         (word) =>
           word.level === level.key &&
-          studyState.learnedExpressions.includes(word.expression),
+          studyState.learnedExpressions.includes(getWordKey(word)),
       ).length;
       const percent = total ? Math.round((learned / total) * 100) : 0;
 
@@ -1351,11 +1621,11 @@ function renderOverviewContent() {
 
 function logView(word) {
   const studyState = getStudyState();
-  if (studyState.lastLoggedViewExpression === word.expression) {
+  if (studyState.lastLoggedViewExpression === getWordKey(word)) {
     return;
   }
 
-  studyState.lastLoggedViewExpression = word.expression;
+  studyState.lastLoggedViewExpression = getWordKey(word);
   logAction("view", word);
 }
 
@@ -1367,9 +1637,13 @@ function logAction(action, word) {
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random()}`,
     userId: state.activeUserId,
+    wordKey: getWordKey(word),
     expression: word.expression,
     action,
     word: {
+      id: getWordKey(word),
+      wordKey: getWordKey(word),
+      sequenceNumber: word.sequenceNumber,
       expression: word.expression,
       reading: word.reading,
       meaning: word.meaning,
@@ -1387,8 +1661,9 @@ function logAction(action, word) {
       sessionOrder: studyState.sessionOrder,
       currentIndex: studyState.currentIndex,
       sessionSize: state.sessionWords.length,
-      isLearned: studyState.learnedExpressions.includes(word.expression),
-      isStarred: studyState.starredExpressions.includes(word.expression),
+      sequenceNumber: word.sequenceNumber,
+      isLearned: studyState.learnedExpressions.includes(getWordKey(word)),
+      isStarred: studyState.starredExpressions.includes(getWordKey(word)),
     },
     createdAt: new Date().toISOString(),
   });
@@ -1403,6 +1678,8 @@ function logAction(action, word) {
       action,
       metadata: {
         userId: state.activeUserId,
+        wordKey: getWordKey(word),
+        sequenceNumber: word.sequenceNumber,
         level: word.level,
         mode: state.mode,
         filterMode: studyState.filterMode,
@@ -1544,17 +1821,17 @@ function getLearnedWordsForLevel(levelKey) {
 
   return state.words
     .filter(
-      (word) => word.level === levelKey && learnedSet.has(word.expression),
+      (word) => word.level === levelKey && learnedSet.has(getWordKey(word)),
     )
     .map((word) => ({
       ...word,
-      viewCount: viewCounts.get(word.expression) || 0,
+      viewCount: viewCounts.get(getWordKey(word)) || 0,
     }))
     .sort((left, right) => {
       if (right.viewCount !== left.viewCount) {
         return right.viewCount - left.viewCount;
       }
-      return left.expression.localeCompare(right.expression);
+      return left.sequenceNumber - right.sequenceNumber;
     });
 }
 
@@ -1567,8 +1844,8 @@ function renderLevelModalTable() {
     ? words
         .map(
           (word) => `
-            <tr data-expression="${escapeHtml(word.expression)}">
-              <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
+            <tr data-word-key="${escapeHtml(getWordKey(word))}">
+              <td><strong>#${formatNumber(word.sequenceNumber)} ${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
               <td>${escapeHtml(word.reading)}</td>
               <td>${escapeHtml(word.meaning)}</td>
               <td>${formatNumber(word.viewCount)}</td>
@@ -1582,11 +1859,9 @@ function renderLevelModalTable() {
         </tr>
       `;
 
-  for (const row of elements.levelModalBody.querySelectorAll("tr[data-expression]")) {
+  for (const row of elements.levelModalBody.querySelectorAll("tr[data-word-key]")) {
     row.addEventListener("dblclick", () => {
-      const word = state.words.find(
-        (item) => item.expression === row.dataset.expression,
-      );
+      const word = getWordByReference(row.dataset.wordKey);
       if (!word) {
         return;
       }
@@ -1717,6 +1992,7 @@ function createDefaultStudyState() {
     sessionOrder: "random",
     currentIndex: 0,
     selectedListExpression: "",
+    studySelectionsByLevel: {},
     sessionExpressions: [],
     learnedExpressions: [],
     starredExpressions: [],
@@ -1758,13 +2034,14 @@ function normalizeStudyState(value) {
       : "day",
     sessionOrder: raw.sessionOrder === "ordered" ? "ordered" : "random",
     currentIndex: Number(raw.currentIndex || 0),
-    selectedListExpression: String(raw.selectedListExpression || ""),
-    sessionExpressions: normalizeStringArray(raw.sessionExpressions),
-    learnedExpressions: normalizeStringArray(raw.learnedExpressions),
-    starredExpressions: normalizeStringArray(raw.starredExpressions),
-    seenExpressions: normalizeStringArray(raw.seenExpressions),
+    selectedListExpression: normalizeWordReference(raw.selectedListExpression || ""),
+    studySelectionsByLevel: normalizeStudySelections(raw.studySelectionsByLevel),
+    sessionExpressions: normalizeWordReferenceArray(raw.sessionExpressions),
+    learnedExpressions: normalizeWordReferenceArray(raw.learnedExpressions),
+    starredExpressions: normalizeWordReferenceArray(raw.starredExpressions),
+    seenExpressions: normalizeWordReferenceArray(raw.seenExpressions),
     localActionLogs: Array.isArray(raw.localActionLogs) ? raw.localActionLogs : [],
-    lastLoggedViewExpression: String(raw.lastLoggedViewExpression || ""),
+    lastLoggedViewExpression: normalizeWordReference(raw.lastLoggedViewExpression || ""),
     suppressNextViewLog: Boolean(raw.suppressNextViewLog),
   };
 }
@@ -1773,6 +2050,34 @@ function normalizeStringArray(value) {
   return Array.isArray(value)
     ? [...new Set(value.map((item) => String(item)).filter(Boolean))]
     : [];
+}
+
+function normalizeWordReference(value) {
+  const word = getWordByReference(value);
+  return word ? getWordKey(word) : String(value || "");
+}
+
+function normalizeWordReferenceArray(value) {
+  return [...new Set(normalizeStringArray(value).map((item) => normalizeWordReference(item)).filter(Boolean))];
+}
+
+function normalizeStudySelections(value) {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const normalized = {};
+  for (const [levelKey, sequenceNumbers] of Object.entries(value)) {
+    normalized[levelKey] = [
+      ...new Set(
+        (Array.isArray(sequenceNumbers) ? sequenceNumbers : [])
+          .map((item) => Number(item))
+          .filter((item) => item > 0),
+      ),
+    ].sort((left, right) => left - right);
+  }
+
+  return normalized;
 }
 
 function addUniqueValue(list, value) {

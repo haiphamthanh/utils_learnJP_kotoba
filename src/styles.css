@@ -796,14 +796,39 @@ select:focus {
   color: var(--vermillion);
 }
 
+.archive-reset-button--neutral {
+  border-color: rgba(38, 58, 99, 0.2);
+  color: var(--ink);
+}
+
 .archive-reset-button:hover:not(:disabled) {
   border-color: rgba(180, 68, 52, 0.5);
   background: rgba(180, 68, 52, 0.08);
 }
 
+.archive-reset-button--neutral:hover:not(:disabled) {
+  border-color: rgba(38, 58, 99, 0.4);
+  background: rgba(38, 58, 99, 0.06);
+}
+
 .archive-reset-button:disabled {
   cursor: wait;
   opacity: 0.76;
+}
+
+.selection-toolbar {
+  display: flex;
+  gap: 10px;
+  margin: 14px 0 16px;
+}
+
+.selection-toolbar button {
+  padding: 10px 14px;
+  border: 1px solid rgba(38, 58, 99, 0.18);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
 }
 
 .flashcard.is-motion-left {
