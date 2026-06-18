@@ -1,4 +1,5 @@
 const DATA_URL = "/api/words";
+const GRAMMAR_URL = "/data/grammar-links.json";
 const USERS_URL = "/api/users";
 const SESSION_SIZE = 50;
 const NEW_WORDS_PER_SESSION = 25;
@@ -9,6 +10,7 @@ const LEVEL_ORDER = ["n5", "n4", "n3", "n2", "n1"];
 const state = {
   words: [],
   levels: [],
+  grammarByLevel: {},
   users: [],
   activeUserId: "",
   mode: "flashcard",
@@ -20,12 +22,15 @@ const state = {
   userStatesById: {},
   levelModalLevelKey: "",
   levelModalQuery: "",
+  grammarQuery: "",
 };
 
 const elements = {
   searchInput: document.querySelector("#search-input"),
   bankSearchInput: document.querySelector("#bank-search-input"),
+  grammarSearchInput: document.querySelector("#grammar-search-input"),
   levelSearchInput: document.querySelector("#level-search-input"),
+  grammarLevelSelect: document.querySelector("#grammar-level-select"),
   userSelect: document.querySelector("#user-select"),
   statsToggleBtn: document.querySelector("#stats-toggle-btn"),
   bankToggleBtn: document.querySelector("#bank-toggle-btn"),
@@ -49,6 +54,7 @@ const elements = {
   appShell: document.querySelector(".app-shell"),
   studyLayout: document.querySelector(".study-layout"),
   focusArea: document.querySelector("#focus-card"),
+  grammarArea: document.querySelector("#grammar-area"),
   flashcard: document.querySelector("#flashcard"),
   cardExpression: document.querySelector("#card-expression"),
   cardReading: document.querySelector("#card-reading"),
@@ -83,6 +89,13 @@ const elements = {
   bankModal: document.querySelector("#bank-modal"),
   totalWordsButton: document.querySelector("#total-words-button"),
   currentLevelButton: document.querySelector("#current-level-button"),
+  grammarList: document.querySelector("#grammar-list"),
+  grammarSummary: document.querySelector("#grammar-summary"),
+  grammarOpenLink: document.querySelector("#grammar-open-link"),
+  grammarCurrentLevel: document.querySelector("#grammar-current-level"),
+  grammarCurrentTitle: document.querySelector("#grammar-current-title"),
+  grammarCurrentName: document.querySelector("#grammar-current-name"),
+  grammarFrame: document.querySelector("#grammar-frame"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
   statCurrentLevel: document.querySelector('[data-stat="currentLevel"]'),
   statVisibleWords: document.querySelector('[data-stat="visibleWords"]'),
@@ -94,8 +107,9 @@ async function init() {
   try {
     restoreAppState();
 
-    const [wordsResponse, usersResponse] = await Promise.all([
+    const [wordsResponse, grammarResponse, usersResponse] = await Promise.all([
       fetch(DATA_URL),
+      fetch(GRAMMAR_URL),
       fetch(USERS_URL),
     ]);
 
@@ -108,10 +122,12 @@ async function init() {
     }
 
     const wordsPayload = await wordsResponse.json();
+    const grammarPayload = grammarResponse.ok ? await grammarResponse.json() : {};
     const usersPayload = await usersResponse.json();
 
     state.words = enrichWords(wordsPayload.words || []);
     state.levels = sortLevels(wordsPayload.levels || []);
+    state.grammarByLevel = normalizeGrammarPayload(grammarPayload);
     remapAllStudyStates();
     state.users = Array.isArray(usersPayload.users) ? usersPayload.users : [];
 
@@ -145,6 +161,21 @@ function bindEvents() {
 
   elements.bankSearchInput.addEventListener("input", (event) => {
     updateBankQuery(event.target.value);
+  });
+
+  elements.grammarSearchInput.addEventListener("input", (event) => {
+    const studyState = getStudyState();
+    studyState.grammarQuery = String(event.target.value || "").trim().toLowerCase();
+    renderGrammarWorkspace();
+    persistAppState();
+  });
+
+  elements.grammarLevelSelect.addEventListener("change", (event) => {
+    const studyState = getStudyState();
+    studyState.grammarLevel = event.target.value;
+    studyState.grammarItemLink = "";
+    renderGrammarWorkspace();
+    persistAppState();
   });
 
   elements.levelSearchInput.addEventListener("input", (event) => {
@@ -229,6 +260,7 @@ function bindEvents() {
       return;
     }
 
+    elements.bankModal.hidden = true;
     state.mode = button.dataset.mode;
     updateModeButtons();
     render();
@@ -393,6 +425,27 @@ function enrichWords(words) {
   });
 }
 
+function normalizeGrammarPayload(payload) {
+  const normalized = {};
+  if (!payload || typeof payload !== "object") {
+    return normalized;
+  }
+
+  for (const [levelKey, items] of Object.entries(payload)) {
+    normalized[levelKey] = Array.isArray(items)
+      ? items.map((item, index) => ({
+          id: `${levelKey}:${index + 1}`,
+          level: levelKey,
+          title: String(item.title || item.grammarName || "Untitled grammar"),
+          grammarName: String(item.grammarName || item.title || "Untitled grammar"),
+          link: String(item.link || ""),
+        }))
+      : [];
+  }
+
+  return normalized;
+}
+
 function getSequenceFromId(value) {
   const match = String(value || "").match(/:(\d+)$/u);
   return match ? Number(match[1]) : 0;
@@ -430,82 +483,68 @@ function getCurrentLevelKey() {
   return getCurrentRoadmapLevel()?.key || state.levels[0]?.key || "";
 }
 
-function getStudySelectionEntry(levelKey) {
-  const studyState = getStudyState();
-  return studyState.studySelectionsByLevel[levelKey] || [];
+function isWordLearned(word, studyState = getStudyState()) {
+  return Boolean(word?.learned) || studyState.learnedExpressions.includes(getWordKey(word));
 }
 
-function ensureLevelStudySelection(levelKey) {
-  if (!levelKey) {
-    return [];
+function getLearnedWordsCount(levelKey = "") {
+  return state.words.filter((word) => (!levelKey || word.level === levelKey) && isWordLearned(word))
+    .length;
+}
+
+function getWordsForLevel(levelKey) {
+  return state.words.filter((word) => word.level === levelKey);
+}
+
+function getAvailableGrammarLevels() {
+  return state.levels.filter((level) => (state.grammarByLevel[level.key] || []).length > 0);
+}
+
+function getActiveGrammarLevel() {
+  const studyState = getStudyState();
+  const availableLevels = getAvailableGrammarLevels();
+  if (!availableLevels.length) {
+    return "";
   }
 
-  const studyState = getStudyState();
-  const learnedKeys = new Set(studyState.learnedExpressions);
-  const availableSequenceNumbers = state.words
-    .filter((word) => word.level === levelKey && !learnedKeys.has(getWordKey(word)))
-    .map((word) => word.sequenceNumber);
-
-  const hasExistingSelection = Object.prototype.hasOwnProperty.call(
-    studyState.studySelectionsByLevel,
-    levelKey,
-  );
-  const existing = hasExistingSelection ? getStudySelectionEntry(levelKey) : [];
-  const sanitized = [
-    ...new Set(
-      existing
-        .map((value) => Number(value))
-        .filter((value) => availableSequenceNumbers.includes(value)),
-    ),
-  ];
-
-  studyState.studySelectionsByLevel[levelKey] =
-    hasExistingSelection
-      ? sanitized
-      : [...availableSequenceNumbers];
-
-  return studyState.studySelectionsByLevel[levelKey];
+  const preferredLevel = studyState.grammarLevel || getCurrentLevelKey();
+  return availableLevels.some((level) => level.key === preferredLevel)
+    ? preferredLevel
+    : availableLevels[0].key;
 }
 
-function getSelectedWordKeySetForLevel(levelKey) {
-  const selectedSequenceNumbers = new Set(ensureLevelStudySelection(levelKey));
-  return new Set(
-    state.words
-      .filter(
-        (word) =>
-          word.level === levelKey && selectedSequenceNumbers.has(word.sequenceNumber),
-      )
-      .map((word) => getWordKey(word)),
+function getVisibleGrammarItems() {
+  const studyState = getStudyState();
+  const levelKey = getActiveGrammarLevel();
+  const query = studyState.grammarQuery || "";
+  const items = state.grammarByLevel[levelKey] || [];
+
+  if (!query) {
+    return items;
+  }
+
+  return items.filter((item) =>
+    [item.title, item.grammarName, item.link].join(" ").toLowerCase().includes(query),
   );
 }
 
-function setStudySelectionForLevel(levelKey, sequenceNumbers) {
+function getActiveGrammarItem() {
   const studyState = getStudyState();
-  const validNumbers = new Set(
-    state.words
-      .filter((word) => word.level === levelKey)
-      .map((word) => word.sequenceNumber),
-  );
-  studyState.studySelectionsByLevel[levelKey] = [
-    ...new Set(
-      sequenceNumbers
-        .map((value) => Number(value))
-        .filter((value) => validNumbers.has(value)),
-    ),
-  ].sort((left, right) => left - right);
+  const items = getVisibleGrammarItems();
+  if (!items.length) {
+    return null;
+  }
+
+  const bySavedLink = items.find((item) => item.link === studyState.grammarItemLink);
+  return bySavedLink || items[0];
 }
 
 function applyFilters({ preserveSession }) {
   const studyState = getStudyState();
   const allowedLevel = getCurrentLevelKey();
-  const selectedWordKeys = getSelectedWordKeySetForLevel(allowedLevel);
 
   state.filteredWords = state.words.filter((word) => {
     if (word.level !== allowedLevel) {
-      return false;
-    }
-
-    if (!selectedWordKeys.has(getWordKey(word))) {
       return false;
     }
 
@@ -547,7 +586,7 @@ function createSession(order = getStudyState().sessionOrder) {
   const availableWords =
     studyState.filterMode === "all"
       ? state.filteredWords.filter(
-          (word) => !studyState.learnedExpressions.includes(getWordKey(word)),
+          (word) => !isWordLearned(word, studyState),
         )
       : state.filteredWords;
 
@@ -657,7 +696,6 @@ function createArchiveSnapshot() {
     learnedExpressions: [...studyState.learnedExpressions],
     starredExpressions: [...studyState.starredExpressions],
     seenExpressions: [...studyState.seenExpressions],
-    studySelectionsByLevel: studyState.studySelectionsByLevel,
     currentWord: getCurrentWord() || null,
     localActionLogs: studyState.localActionLogs,
   };
@@ -687,6 +725,8 @@ function render() {
   renderRoadmap();
   renderFlashcard();
   renderTable();
+  renderGrammarLevelOptions();
+  renderGrammarWorkspace();
   renderStats();
   renderOverviewContent();
   persistAppState();
@@ -695,18 +735,16 @@ function render() {
 function updateStats() {
   const currentLevel = getCurrentRoadmapLevel();
   const studyState = getStudyState();
-  const selectedCount = currentLevel?.key
-    ? ensureLevelStudySelection(currentLevel.key).length
-    : 0;
+  const learnedCount = currentLevel?.key ? getLearnedWordsCount(currentLevel.key) : 0;
 
   elements.statTotalWords.textContent = formatNumber(state.words.length);
   elements.statCurrentLevel.textContent = currentLevel?.label || "-";
   elements.statVisibleWords.textContent = formatNumber(state.filteredWords.length);
   elements.resultsSummary.textContent = `${currentLevel?.label || "-"} • ${formatNumber(
     state.filteredWords.length,
-  )} từ đang chọn • ${formatNumber(selectedCount)} mục học • ${formatNumber(
-    studyState.learnedExpressions.length,
-  )} đã thuộc`;
+  )} từ hiển thị • ${formatNumber(learnedCount)} đã thuộc • ${formatNumber(
+    getLearnedWordsCount(),
+  )} tổng đã thuộc`;
 }
 
 function renderRoadmap() {
@@ -820,6 +858,76 @@ function renderTable() {
   syncSelectedTableRow();
 }
 
+function renderGrammarLevelOptions() {
+  const levels = getAvailableGrammarLevels();
+  if (!elements.grammarLevelSelect) {
+    return;
+  }
+
+  elements.grammarLevelSelect.innerHTML = levels
+    .map(
+      (level) =>
+        `<option value="${escapeHtml(level.key)}">${escapeHtml(level.label)}</option>`,
+    )
+    .join("");
+
+  elements.grammarLevelSelect.value = getActiveGrammarLevel();
+}
+
+function renderGrammarWorkspace() {
+  if (!elements.grammarList) {
+    return;
+  }
+
+  const levelKey = getActiveGrammarLevel();
+  const level = state.levels.find((item) => item.key === levelKey);
+  const items = getVisibleGrammarItems();
+  const activeItem = getActiveGrammarItem();
+  const studyState = getStudyState();
+
+  if (studyState.grammarItemLink !== (activeItem?.link || "")) {
+    studyState.grammarItemLink = activeItem?.link || "";
+  }
+
+  elements.grammarSummary.textContent = `${level?.label || "-"} • ${formatNumber(items.length)} bài`;
+  elements.grammarCurrentLevel.textContent = level?.label
+    ? `${level.label} Grammar`
+    : "Grammar";
+  elements.grammarCurrentTitle.textContent = activeItem?.title || "Không có bài ngữ pháp";
+  elements.grammarCurrentName.textContent = activeItem?.grammarName || "Chọn level khác hoặc đổi từ khoá tìm kiếm.";
+  elements.grammarOpenLink.href = activeItem?.link || "#";
+  elements.grammarOpenLink.setAttribute("aria-disabled", activeItem?.link ? "false" : "true");
+  elements.grammarFrame.src = activeItem?.link || "about:blank";
+
+  elements.grammarList.innerHTML = items.length
+    ? items
+        .map(
+          (item, index) => `
+            <button
+              type="button"
+              class="grammar-list__item ${item.link === activeItem?.link ? "is-active" : ""}"
+              data-grammar-link="${escapeHtml(item.link)}"
+            >
+              <span class="grammar-list__index">${String(index + 1).padStart(2, "0")}</span>
+              <span class="grammar-list__body">
+                <strong>${escapeHtml(item.grammarName)}</strong>
+                <small>${escapeHtml(item.title)}</small>
+              </span>
+            </button>
+          `,
+        )
+        .join("")
+    : `<div class="empty-state empty-state--inline">Không có bài ngữ pháp khớp điều kiện hiện tại.</div>`;
+
+  for (const item of elements.grammarList.querySelectorAll("[data-grammar-link]")) {
+    item.addEventListener("click", () => {
+      studyState.grammarItemLink = item.dataset.grammarLink;
+      renderGrammarWorkspace();
+      persistAppState();
+    });
+  }
+}
+
 function syncSelectedTableRow() {
   const studyState = getStudyState();
   const currentWord = getCurrentWord();
@@ -836,8 +944,9 @@ function syncSelectedTableRow() {
 }
 
 function updateModeVisibility() {
-  elements.studyLayout.classList.remove("is-list-mode");
-  elements.focusArea.hidden = false;
+  elements.studyLayout.classList.toggle("is-grammar-mode", state.mode === "grammar");
+  elements.focusArea.hidden = state.mode === "grammar";
+  elements.grammarArea.hidden = state.mode !== "grammar";
 }
 
 function updateModeButtons() {
@@ -869,10 +978,6 @@ function markCurrentLearned() {
 
   addUniqueValue(studyState.learnedExpressions, getWordKey(currentWord));
   addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
-  removeValue(
-    getStudySelectionEntry(currentWord.level),
-    currentWord.sequenceNumber,
-  );
   logAction("learned", currentWord);
   playCardMotion("up");
   state.sessionWords = state.sessionWords.filter(
@@ -896,10 +1001,6 @@ function markCurrentUnlearned() {
 
   removeValue(studyState.learnedExpressions, getWordKey(currentWord));
   addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
-  addUniqueValue(
-    getStudySelectionEntry(currentWord.level),
-    currentWord.sequenceNumber,
-  );
   logAction("unlearned", currentWord);
   playCardMotion("down");
   state.sessionWords.splice(studyState.currentIndex, 1);
@@ -1046,7 +1147,7 @@ function restoreAppState() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     state.activeUserId = stored.activeUserId || "";
-    state.mode = stored.mode || "flashcard";
+    state.mode = "flashcard";
     state.userStatesById = normalizeStoredUserStates(stored.userStatesById || {});
   } catch (_error) {
     localStorage.removeItem(STORAGE_KEY);
@@ -1105,6 +1206,7 @@ async function hydrateUserState(userId) {
 function syncControlsFromUserState() {
   syncStudySearchInput();
   syncBankControls();
+  syncGrammarControls();
   elements.userSelect.value = state.activeUserId;
 }
 
@@ -1211,11 +1313,11 @@ function matchesFilterMode(word) {
   }
 
   if (studyState.filterMode === "learned") {
-    return studyState.learnedExpressions.includes(getWordKey(word));
+    return isWordLearned(word, studyState);
   }
 
   if (studyState.filterMode === "unlearned") {
-    return !studyState.learnedExpressions.includes(getWordKey(word));
+    return !isWordLearned(word, studyState);
   }
 
   return true;
@@ -1231,11 +1333,11 @@ function matchesBankStatus(word, studyState) {
   }
 
   if (studyState.bankStatusFilter === "learned") {
-    return studyState.learnedExpressions.includes(getWordKey(word));
+    return isWordLearned(word, studyState);
   }
 
   if (studyState.bankStatusFilter === "unlearned") {
-    return !studyState.learnedExpressions.includes(getWordKey(word));
+    return !isWordLearned(word, studyState);
   }
 
   return true;
@@ -1298,7 +1400,7 @@ function getBankWords() {
       }
 
       const viewCount = viewCounts.get(getWordKey(word)) || 0;
-      return viewCount > Number(studyState.bankMinViews || 0);
+      return isWordLearned(word, studyState) || viewCount > Number(studyState.bankMinViews || 0);
     })
     .map((word) => ({
       ...word,
@@ -1321,11 +1423,7 @@ function getRoadmapItems() {
 
   return state.levels.map((level) => {
     const total = counts.get(level.key) || 0;
-    const learned = state.words.filter(
-      (word) =>
-        word.level === level.key &&
-        studyState.learnedExpressions.includes(getWordKey(word)),
-    ).length;
+    const learned = getLearnedWordsCount(level.key);
     const percent = total ? Math.round((learned / total) * 100) : 0;
     const status =
       percent >= 100
@@ -1348,15 +1446,9 @@ function getRoadmapItems() {
 }
 
 function getCurrentRoadmapLevel() {
-  const studyState = getStudyState();
-
   for (const level of state.levels) {
     const total = state.words.filter((word) => word.level === level.key).length;
-    const learned = state.words.filter(
-      (word) =>
-        word.level === level.key &&
-        studyState.learnedExpressions.includes(getWordKey(word)),
-    ).length;
+    const learned = getLearnedWordsCount(level.key);
 
     if (learned < total) {
       return level;
@@ -1446,11 +1538,11 @@ function closeLevelModal() {
 function openSelectionModal() {
   const levelKey = getCurrentLevelKey();
   const level = state.levels.find((item) => item.key === levelKey);
-  const selectedCount = ensureLevelStudySelection(levelKey).length;
-  const unlearnedCount = getUnlearnedWordsForLevel(levelKey).length;
+  const learnedCount = getLearnedWordsCount(levelKey);
+  const totalCount = getWordsForLevel(levelKey).length;
 
-  elements.selectionModalTitle.textContent = `${level?.label || levelKey.toUpperCase()} study selection`;
-  elements.selectionModalSummary.textContent = `${formatNumber(selectedCount)} / ${formatNumber(unlearnedCount)} từ chưa học đang được chọn cho user hiện tại.`;
+  elements.selectionModalTitle.textContent = `${level?.label || levelKey.toUpperCase()} learned markers`;
+  elements.selectionModalSummary.textContent = `${formatNumber(learnedCount)} / ${formatNumber(totalCount)} từ đang được xem là đã thuộc.`;
   renderSelectionModalTable();
   elements.selectionModal.hidden = false;
   closeSettingsPanel();
@@ -1460,21 +1552,12 @@ function closeSelectionModal() {
   elements.selectionModal.hidden = true;
 }
 
-function getUnlearnedWordsForLevel(levelKey) {
-  const studyState = getStudyState();
-  const learnedSet = new Set(studyState.learnedExpressions);
-  return state.words.filter(
-    (word) => word.level === levelKey && !learnedSet.has(getWordKey(word)),
-  );
-}
-
 function renderSelectionModalTable() {
   const levelKey = getCurrentLevelKey();
-  const selectedSequenceNumbers = new Set(ensureLevelStudySelection(levelKey));
-  const rows = getUnlearnedWordsForLevel(levelKey).sort(
+  const rows = getWordsForLevel(levelKey).sort(
     (left, right) => left.sequenceNumber - right.sequenceNumber,
   );
-  elements.selectionModalSummary.textContent = `${formatNumber(selectedSequenceNumbers.size)} / ${formatNumber(rows.length)} từ chưa học đang được chọn cho user hiện tại.`;
+  elements.selectionModalSummary.textContent = `${formatNumber(getLearnedWordsCount(levelKey))} / ${formatNumber(rows.length)} từ đang được xem là đã thuộc.`;
 
   elements.selectionModalBody.innerHTML = rows.length
     ? rows
@@ -1484,8 +1567,8 @@ function renderSelectionModalTable() {
               <td>
                 <input
                   type="checkbox"
-                  data-selection-toggle="${escapeHtml(String(word.sequenceNumber))}"
-                  ${selectedSequenceNumbers.has(word.sequenceNumber) ? "checked" : ""}
+                  data-learned-toggle="${escapeHtml(getWordKey(word))}"
+                  ${isWordLearned(word) ? "checked" : ""}
                 />
               </td>
               <td>#${formatNumber(word.sequenceNumber)}</td>
@@ -1498,28 +1581,31 @@ function renderSelectionModalTable() {
         .join("")
     : `
         <tr>
-          <td colspan="5">Không còn từ chưa học nào trong level hiện tại.</td>
+          <td colspan="5">Không có từ nào trong level hiện tại.</td>
         </tr>
       `;
 
-  for (const input of elements.selectionModalBody.querySelectorAll("[data-selection-toggle]")) {
+  for (const input of elements.selectionModalBody.querySelectorAll("[data-learned-toggle]")) {
     input.addEventListener("change", () => {
-      toggleStudySelection(Number(input.dataset.selectionToggle), input.checked);
+      toggleLearnedMarker(input.dataset.learnedToggle, input.checked);
     });
   }
 }
 
-function toggleStudySelection(sequenceNumber, checked) {
-  const levelKey = getCurrentLevelKey();
-  const currentSelection = ensureLevelStudySelection(levelKey);
-  if (checked) {
-    addUniqueValue(currentSelection, sequenceNumber);
-  } else {
-    removeValue(currentSelection, sequenceNumber);
+function toggleLearnedMarker(wordKey, checked) {
+  const studyState = getStudyState();
+  const word = getWordByReference(wordKey);
+  if (!word) {
+    return;
   }
 
-  setStudySelectionForLevel(levelKey, currentSelection);
-  getStudyState().currentIndex = 0;
+  if (checked) {
+    addUniqueValue(studyState.learnedExpressions, getWordKey(word));
+  } else {
+    removeValue(studyState.learnedExpressions, getWordKey(word));
+  }
+
+  studyState.currentIndex = 0;
   renderSelectionModalTable();
   persistAppState();
   applyFilters({ preserveSession: false });
@@ -1527,10 +1613,10 @@ function toggleStudySelection(sequenceNumber, checked) {
 
 function selectAllCurrentLevelWords() {
   const levelKey = getCurrentLevelKey();
-  setStudySelectionForLevel(
-    levelKey,
-    getUnlearnedWordsForLevel(levelKey).map((word) => word.sequenceNumber),
-  );
+  const studyState = getStudyState();
+  for (const word of getWordsForLevel(levelKey)) {
+    addUniqueValue(studyState.learnedExpressions, getWordKey(word));
+  }
   getStudyState().currentIndex = 0;
   renderSelectionModalTable();
   persistAppState();
@@ -1539,8 +1625,11 @@ function selectAllCurrentLevelWords() {
 
 function clearAllCurrentLevelWords() {
   const levelKey = getCurrentLevelKey();
-  setStudySelectionForLevel(levelKey, []);
-  getStudyState().currentIndex = 0;
+  const studyState = getStudyState();
+  for (const word of getWordsForLevel(levelKey)) {
+    removeValue(studyState.learnedExpressions, getWordKey(word));
+  }
+  studyState.currentIndex = 0;
   renderSelectionModalTable();
   persistAppState();
   applyFilters({ preserveSession: false });
@@ -1586,16 +1675,11 @@ function closeBankModal() {
 }
 
 function renderOverviewContent() {
-  const studyState = getStudyState();
   const counts = getLevelCounts();
   const rows = state.levels
     .map((level) => {
       const total = counts.get(level.key) || 0;
-      const learned = state.words.filter(
-        (word) =>
-          word.level === level.key &&
-          studyState.learnedExpressions.includes(getWordKey(word)),
-      ).length;
+      const learned = getLearnedWordsCount(level.key);
       const percent = total ? Math.round((learned / total) * 100) : 0;
 
       return `
@@ -1721,7 +1805,7 @@ function renderLocalStats() {
   if (!rows.length) {
     elements.studyStats.innerHTML = `
       <dl>
-        <div><dt>Learned now</dt><dd>${formatNumber(studyState.learnedExpressions.length)}</dd></div>
+        <div><dt>Learned now</dt><dd>${formatNumber(getLearnedWordsCount())}</dd></div>
         <div><dt>Starred now</dt><dd>${formatNumber(studyState.starredExpressions.length)}</dd></div>
         <div><dt>Batch</dt><dd>${formatNumber(state.sessionWords.length)}</dd></div>
       </dl>
@@ -1741,7 +1825,7 @@ function renderStatsPayload(rows, totals, sourceLabel = "MySQL logs") {
       <p>Thông tin hiện trạng</p>
       <dl>
         <div><dt>User</dt><dd>${escapeHtml(getActiveUser()?.name || "-")}</dd></div>
-        <div><dt>Learned hiện tại</dt><dd>${formatNumber(studyState.learnedExpressions.length)}</dd></div>
+        <div><dt>Learned hiện tại</dt><dd>${formatNumber(getLearnedWordsCount())}</dd></div>
         <div><dt>Đang đánh sao</dt><dd>${formatNumber(studyState.starredExpressions.length)}</dd></div>
       </dl>
     </section>
@@ -1815,13 +1899,11 @@ function summarizeLocalActionRows() {
 }
 
 function getLearnedWordsForLevel(levelKey) {
-  const studyState = getStudyState();
-  const learnedSet = new Set(studyState.learnedExpressions);
   const viewCounts = getViewCounts();
 
   return state.words
     .filter(
-      (word) => word.level === levelKey && learnedSet.has(getWordKey(word)),
+      (word) => word.level === levelKey && isWordLearned(word),
     )
     .map((word) => ({
       ...word,
@@ -1941,6 +2023,16 @@ function syncBankControls() {
   elements.bankMinViews.value = String(studyState.bankMinViews);
 }
 
+function syncGrammarControls() {
+  const studyState = getStudyState();
+  if (elements.grammarSearchInput) {
+    elements.grammarSearchInput.value = studyState.grammarQuery || "";
+  }
+  if (elements.grammarLevelSelect) {
+    elements.grammarLevelSelect.value = getActiveGrammarLevel();
+  }
+}
+
 function handleStudyFilterButtonClick(event) {
   const button = event.target.closest("[data-filter]");
   if (!button) {
@@ -1987,6 +2079,9 @@ function createDefaultStudyState() {
     bankLevelFilter: "all",
     bankStatusFilter: "all",
     bankMinViews: 0,
+    grammarLevel: "",
+    grammarQuery: "",
+    grammarItemLink: "",
     filterMode: "all",
     statsRange: "day",
     sessionOrder: "random",
@@ -2026,6 +2121,9 @@ function normalizeStudyState(value) {
       ? raw.bankStatusFilter
       : "all",
     bankMinViews: Math.max(0, Number(raw.bankMinViews || 0)),
+    grammarLevel: String(raw.grammarLevel || ""),
+    grammarQuery: String(raw.grammarQuery || "").trim().toLowerCase(),
+    grammarItemLink: String(raw.grammarItemLink || ""),
     filterMode: ["all", "starred", "unstarred", "learned", "unlearned"].includes(raw.filterMode)
       ? raw.filterMode
       : "all",

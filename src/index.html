@@ -35,6 +35,29 @@
         <div class="topbar__secondary">
           <div class="topbar-actions">
             <div class="toolbar-row">
+              <div class="mode-switch" aria-label="Study mode">
+                <button
+                  type="button"
+                  class="mode-switch__button is-active"
+                  data-mode="flashcard"
+                >
+                  Cards
+                </button>
+                <button
+                  type="button"
+                  class="mode-switch__button"
+                  data-mode="list"
+                >
+                  List
+                </button>
+                <button
+                  type="button"
+                  class="mode-switch__button"
+                  data-mode="grammar"
+                >
+                  Grammar
+                </button>
+              </div>
               <button
                 type="button"
                 class="icon-button"
@@ -179,15 +202,15 @@
                   </div>
                 </section>
                 <section class="settings-section">
-                  <span>Danh sách từ cần học</span>
+                  <span>Đánh dấu đã thuộc</span>
                   <button
                     id="study-selection-btn"
                     class="archive-reset-button archive-reset-button--neutral"
                     type="button"
                   >
-                    <strong>Quản lý từ trong level hiện tại</strong>
+                    <strong>Quản lý từ đã thuộc</strong>
                     <small
-                      >Chọn các từ chưa học cần xuất hiện trong phiên học của
+                      >Đánh dấu nhanh các từ đã thuộc trong level hiện tại cho
                       user hiện tại.</small
                     >
                   </button>
@@ -245,6 +268,74 @@
             <div id="examples-list" class="examples-list">
               <p>Loading examples...</p>
             </div>
+          </div>
+        </section>
+
+        <section class="focus-area grammar-area" id="grammar-area" hidden>
+          <div class="section-heading section-heading--grammar">
+            <div>
+              <p>Grammar Studio</p>
+              <div class="focus-title-row">
+                <h2>文法の窓</h2>
+              </div>
+            </div>
+            <div class="heading-tools heading-tools--grammar">
+              <label class="focus-search" aria-label="Search grammar">
+                <span>Search grammar</span>
+                <input
+                  id="grammar-search-input"
+                  type="search"
+                  placeholder="〜にかかっては, grammar..."
+                  autocomplete="off"
+                />
+              </label>
+              <label class="field field--compact">
+                <span>Level</span>
+                <select id="grammar-level-select"></select>
+              </label>
+            </div>
+          </div>
+
+          <div class="grammar-layout">
+            <aside class="grammar-list-panel">
+              <div class="grammar-list-panel__summary">
+                <strong id="grammar-summary">-</strong>
+                <a
+                  id="grammar-open-link"
+                  class="grammar-open-link"
+                  href="#"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Mở bài gốc
+                </a>
+              </div>
+              <div id="grammar-list" class="grammar-list"></div>
+            </aside>
+
+            <section class="grammar-viewer">
+              <div class="grammar-viewer__meta">
+                <p id="grammar-current-level">-</p>
+                <h3 id="grammar-current-title">Chọn một mẫu ngữ pháp</h3>
+                <div id="grammar-current-name" class="grammar-current-name">
+                  -
+                </div>
+              </div>
+              <div class="grammar-frame-wrap">
+                <iframe
+                  id="grammar-frame"
+                  title="Grammar lesson preview"
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                ></iframe>
+                <div class="grammar-frame-overlay">
+                  <p>
+                    Một số website có thể chặn nhúng bằng iframe. Nếu khung
+                    không hiển thị, hãy dùng nút <strong>Mở bài gốc</strong>.
+                  </p>
+                </div>
+              </div>
+            </section>
           </div>
         </section>
       </main>
@@ -462,10 +553,10 @@
           <p id="selection-modal-summary" class="overview-note">-</p>
           <div class="selection-toolbar">
             <button id="selection-select-all-btn" type="button">
-              Chọn tất cả chưa học
+              Đánh dấu tất cả đã thuộc
             </button>
             <button id="selection-clear-btn" type="button">
-              Bỏ chọn hết
+              Bỏ đánh dấu tất cả
             </button>
           </div>
           <div class="table-wrap table-wrap--modal">

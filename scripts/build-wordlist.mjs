@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 const rootDir = resolve(".");
 const srcDir = resolve(rootDir, "src");
 const wordListDir = resolve(rootDir, "word-list");
+const grammarDir = resolve(rootDir, "grammar");
 const distDir = resolve(rootDir, "dist");
 const dataDir = resolve(distDir, "data");
 
@@ -23,6 +24,7 @@ function build() {
     JSON.stringify(payload, null, 2),
     "utf8",
   );
+  buildGrammarPayload();
 
   console.log(`Built static site at: ${distDir}`);
 }
@@ -54,6 +56,7 @@ function buildWordPayload() {
       const reading = (row.reading || "").trim();
       const meaning = (row.meaning || "").trim();
       const tags = splitTags(row.tags || "");
+      const learned = parseBoolean(row.learned);
 
       if (!expression) {
         continue;
@@ -68,6 +71,7 @@ function buildWordPayload() {
         level: levelKey,
         levelLabel,
         sequenceNumber,
+        learned,
         expression,
         reading,
         meaning,
@@ -83,8 +87,30 @@ function buildWordPayload() {
   };
 }
 
+function buildGrammarPayload() {
+  const grammarFile = resolve(grammarDir, "links.json");
+  if (!existsSync(grammarFile)) {
+    writeFileSync(resolve(dataDir, "grammar-links.json"), JSON.stringify({}, null, 2), "utf8");
+    return;
+  }
+
+  const payload = JSON.parse(readFileSync(grammarFile, "utf8"));
+  writeFileSync(
+    resolve(dataDir, "grammar-links.json"),
+    JSON.stringify(payload, null, 2),
+    "utf8",
+  );
+}
+
 function splitTags(rawTags) {
   return rawTags.split(/\s+/u).filter(Boolean);
+}
+
+function parseBoolean(value) {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase();
+  return ["1", "true", "yes", "y", "learned"].includes(normalized);
 }
 
 function parseCsv(content) {
