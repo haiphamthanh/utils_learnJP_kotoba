@@ -13,7 +13,7 @@
   --sky: #d9e9e5;
   --shadow: 0 22px 60px rgba(25, 32, 28, 0.08);
   --radius: 18px;
-  --page-width: 1320px;
+  --page-width: 1720px;
 }
 
 * {
@@ -46,7 +46,7 @@ button {
 }
 
 .app-shell {
-  width: min(calc(100% - 32px), var(--page-width));
+  width: min(calc(100% - 24px), var(--page-width));
   margin: 0 auto;
   padding: 28px 0 56px;
 }
@@ -354,10 +354,10 @@ select:focus {
 
 .study-layout {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr);
   grid-template-areas:
     "tools focus";
-  gap: 20px;
+  gap: 18px;
   align-items: start;
 }
 
@@ -383,8 +383,33 @@ select:focus {
 
 .focus-area {
   grid-area: focus;
-  padding: 24px;
+  padding: 20px;
   min-height: 560px;
+}
+
+#focus-card {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.88fr) minmax(380px, 1.12fr);
+  grid-template-areas:
+    "heading heading"
+    "card examples";
+  gap: 18px;
+  align-items: stretch;
+}
+
+#focus-card > .section-heading {
+  grid-area: heading;
+  margin-bottom: 0;
+}
+
+#focus-card > .flashcard {
+  grid-area: card;
+}
+
+#focus-card > .examples-panel {
+  grid-area: examples;
+  margin-top: 0;
+  height: 100%;
 }
 
 .grammar-area {
@@ -829,7 +854,7 @@ select:focus {
 
 .flashcard {
   position: relative;
-  min-height: 380px;
+  min-height: 320px;
   cursor: pointer;
   overflow: visible;
   perspective: 62.5rem;
@@ -843,9 +868,9 @@ select:focus {
   position: absolute;
   top: 18px;
   right: 18px;
-  width: 96px;
-  height: 96px;
-  border: 14px solid rgba(200, 164, 94, 0.13);
+  width: 72px;
+  height: 72px;
+  border: 10px solid rgba(200, 164, 94, 0.11);
   border-radius: 50%;
   pointer-events: none;
   z-index: 3;
@@ -1102,7 +1127,7 @@ select:focus {
   align-content: center;
   width: 100%;
   min-height: 100%;
-  padding: 38px 84px 38px 38px;
+  padding: 28px 68px 28px 28px;
   border: 1px solid rgba(28, 76, 74, 0.12);
   border-radius: 26px;
   background:
@@ -1134,7 +1159,7 @@ select:focus {
 .flashcard h3 {
   margin: 12px 0 10px;
   font-family: "Iowan Old Style", "Yu Mincho", "Hiragino Mincho ProN", serif;
-  font-size: clamp(2.8rem, 5vw, 4.5rem);
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
   font-weight: 700;
   line-height: 1.12;
   overflow-wrap: anywhere;
@@ -1143,14 +1168,14 @@ select:focus {
 .flashcard__reading {
   margin: 0;
   color: var(--muted);
-  font-size: 1.15rem;
+  font-size: 1rem;
 }
 
 .flashcard__meaning {
-  margin: 14px 0 22px;
+  margin: 10px 0 18px;
   color: var(--ink);
-  font-size: 1.3rem;
-  line-height: 1.7;
+  font-size: 1.12rem;
+  line-height: 1.6;
 }
 
 .tag {
@@ -1350,16 +1375,19 @@ select:focus {
 
 .examples-list {
   display: grid;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 12px;
+  align-content: start;
 }
 
 .examples-panel {
-  margin-top: 22px;
-  padding: 18px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 18px 20px;
   border: 1px solid rgba(23, 20, 18, 0.08);
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.8);
+  min-height: 320px;
 }
 
 .examples-heading {
@@ -1385,7 +1413,7 @@ select:focus {
 }
 
 .example-item {
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid rgba(23, 20, 18, 0.08);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.76);
@@ -1540,6 +1568,11 @@ select:focus {
   width: min(860px, 100%);
 }
 
+.modal__panel--word {
+  width: min(1040px, calc(100vw - 40px));
+  padding: 26px;
+}
+
 .bank-modal__controls {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1593,13 +1626,17 @@ select:focus {
 
 .modal__details {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin: 0;
 }
 
 .modal__details div {
-  padding-top: 10px;
-  border-top: 1px solid rgba(23, 20, 18, 0.1);
+  min-height: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(23, 20, 18, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .modal__details dt {
@@ -1610,7 +1647,8 @@ select:focus {
 }
 
 .modal__details dd {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
+  line-height: 1.55;
 }
 
 .action-help-list {
@@ -1683,7 +1721,7 @@ select:focus {
 
 .modal__examples {
   margin-top: 18px;
-  padding-top: 14px;
+  padding-top: 18px;
   border-top: 1px solid rgba(23, 20, 18, 0.1);
 }
 
@@ -1728,6 +1766,14 @@ select:focus {
     grid-template-areas: "tools focus";
   }
 
+  #focus-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "heading"
+      "card"
+      "examples";
+  }
+
   .grammar-layout {
     grid-template-columns: 1fr;
   }
@@ -1770,15 +1816,15 @@ select:focus {
   }
 
   .flashcard {
-    min-height: 320px;
+    min-height: 280px;
   }
 
   .flashcard__face {
-    padding: 24px 64px 24px 24px;
+    padding: 22px 54px 22px 22px;
   }
 
   .flashcard h3 {
-    font-size: 2.25rem;
+    font-size: 2rem;
   }
 
   .section-heading {
@@ -1824,6 +1870,19 @@ select:focus {
 
   .field--wide {
     grid-column: auto;
+  }
+
+  .modal__panel--word {
+    width: min(100%, calc(100vw - 20px));
+    padding: 18px;
+  }
+
+  .modal__panel h2 {
+    font-size: 1.55rem;
+  }
+
+  .modal__details {
+    grid-template-columns: 1fr;
   }
 
   .grammar-list {
