@@ -1,0 +1,19 @@
+# Replace WorkingDirectory with your actual server path.
+# Suggested path: /etc/systemd/system/learn-jp-wordlist.service
+
+[Unit]
+Description=Learn JP Wordlist
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/learn-jp-wordlist
+EnvironmentFile=/var/www/learn-jp-wordlist/.env
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

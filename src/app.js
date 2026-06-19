@@ -1,27 +1,60 @@
-const DATA_URL = "./data/words.json";
-const MAX_ROWS = 150;
+const DATA_URL = "/api/words";
+const GRAMMAR_URL = "/data/grammar-links.json";
+const USERS_URL = "/api/users";
+const SESSION_SIZE = 50;
+const NEW_WORDS_PER_SESSION = 25;
+const MAX_ROWS = 200;
+const STORAGE_KEY = "kotoba-engawa-state-v3";
+const LEVEL_ORDER = ["n5", "n4", "n3", "n2", "n1"];
 
 const state = {
   words: [],
   levels: [],
-  activeLevel: "all",
-  query: "",
+  grammarByLevel: {},
+  users: [],
+  activeUserId: "",
   mode: "flashcard",
   filteredWords: [],
-  currentIndex: 0,
+  sessionWords: [],
+  exampleRequestId: 0,
+  saveTimers: new Map(),
+  hydratingUsers: new Set(),
+  userStatesById: {},
+  levelModalLevelKey: "",
+  levelModalQuery: "",
+  grammarQuery: "",
 };
 
 const elements = {
   searchInput: document.querySelector("#search-input"),
-  levelFilters: document.querySelector("#level-filters"),
-  studyMode: document.querySelector("#study-mode"),
-  randomBtn: document.querySelector("#random-btn"),
-  shuffleBtn: document.querySelector("#shuffle-btn"),
+  bankSearchInput: document.querySelector("#bank-search-input"),
+  grammarSearchInput: document.querySelector("#grammar-search-input"),
+  levelSearchInput: document.querySelector("#level-search-input"),
+  grammarLevelSelect: document.querySelector("#grammar-level-select"),
+  userSelect: document.querySelector("#user-select"),
+  statsToggleBtn: document.querySelector("#stats-toggle-btn"),
+  bankToggleBtn: document.querySelector("#bank-toggle-btn"),
+  actionInfoBtn: document.querySelector("#action-info-btn"),
+  roadmapSummary: document.querySelector("#roadmap-summary"),
+  roadmapList: document.querySelector("#roadmap-list"),
+  cardFilter: document.querySelector("#card-filter"),
+  bankLevelFilter: document.querySelector("#bank-level-filter"),
+  bankStatusFilter: document.querySelector("#bank-status-filter"),
+  bankMinViews: document.querySelector("#bank-min-views"),
+  statsRange: document.querySelector("#stats-range"),
   prevBtn: document.querySelector("#prev-btn"),
   nextBtn: document.querySelector("#next-btn"),
-  flipBtn: document.querySelector("#flip-btn"),
-  flashcardPanel: document.querySelector("#flashcard-panel"),
-  listPanel: document.querySelector("#list-panel"),
+  learnedBtn: document.querySelector("#learned-btn"),
+  unlearnedBtn: document.querySelector("#unlearned-btn"),
+  favoriteBtn: document.querySelector("#favorite-btn"),
+  settingsBtn: document.querySelector("#settings-btn"),
+  studySelectionBtn: document.querySelector("#study-selection-btn"),
+  archiveResetBtn: document.querySelector("#archive-reset-btn"),
+  cardSettingsPanel: document.querySelector("#card-settings-panel"),
+  appShell: document.querySelector(".app-shell"),
+  studyLayout: document.querySelector(".study-layout"),
+  focusArea: document.querySelector("#focus-card"),
+  grammarArea: document.querySelector("#grammar-area"),
   flashcard: document.querySelector("#flashcard"),
   cardExpression: document.querySelector("#card-expression"),
   cardReading: document.querySelector("#card-reading"),
@@ -30,27 +63,92 @@ const elements = {
   cardPosition: document.querySelector("#card-position"),
   resultsSummary: document.querySelector("#results-summary"),
   emptyState: document.querySelector("#empty-state"),
-  wordTable: document.querySelector("#word-table"),
   wordTableBody: document.querySelector("#word-table-body"),
+  examplesList: document.querySelector("#examples-list"),
+  studyStats: document.querySelector("#study-stats"),
+  wordModal: document.querySelector("#word-modal"),
+  actionModal: document.querySelector("#action-modal"),
+  modalTitle: document.querySelector("#modal-title"),
+  modalReading: document.querySelector("#modal-reading"),
+  modalMeaning: document.querySelector("#modal-meaning"),
+  modalLevel: document.querySelector("#modal-level"),
+  modalExamplesList: document.querySelector("#modal-examples-list"),
+  overviewModal: document.querySelector("#overview-modal"),
+  overviewContent: document.querySelector("#overview-content"),
+  levelModal: document.querySelector("#level-modal"),
+  levelModalTitle: document.querySelector("#level-modal-title"),
+  levelModalSummary: document.querySelector("#level-modal-summary"),
+  levelModalBody: document.querySelector("#level-modal-body"),
+  selectionModal: document.querySelector("#selection-modal"),
+  selectionModalTitle: document.querySelector("#selection-modal-title"),
+  selectionModalSummary: document.querySelector("#selection-modal-summary"),
+  selectionModalBody: document.querySelector("#selection-modal-body"),
+  selectionSelectAllBtn: document.querySelector("#selection-select-all-btn"),
+  selectionClearBtn: document.querySelector("#selection-clear-btn"),
+  statsModal: document.querySelector("#stats-modal"),
+  bankModal: document.querySelector("#bank-modal"),
+  totalWordsButton: document.querySelector("#total-words-button"),
+  currentLevelButton: document.querySelector("#current-level-button"),
+  grammarList: document.querySelector("#grammar-list"),
+  grammarSummary: document.querySelector("#grammar-summary"),
+  grammarOpenLink: document.querySelector("#grammar-open-link"),
+  grammarCurrentLevel: document.querySelector("#grammar-current-level"),
+  grammarCurrentTitle: document.querySelector("#grammar-current-title"),
+  grammarCurrentName: document.querySelector("#grammar-current-name"),
+  grammarFrame: document.querySelector("#grammar-frame"),
   statTotalWords: document.querySelector('[data-stat="totalWords"]'),
-  statTotalLevels: document.querySelector('[data-stat="totalLevels"]'),
+  statCurrentLevel: document.querySelector('[data-stat="currentLevel"]'),
   statVisibleWords: document.querySelector('[data-stat="visibleWords"]'),
 };
 
+init();
+
 async function init() {
   try {
-    const response = await fetch(DATA_URL);
-    if (!response.ok) {
-      throw new Error(`Failed to load data: ${response.status}`);
+    restoreAppState();
+
+    const [wordsResponse, grammarResponse, usersResponse] = await Promise.all([
+      fetch(DATA_URL),
+      fetch(GRAMMAR_URL),
+      fetch(USERS_URL),
+    ]);
+
+    if (!wordsResponse.ok) {
+      throw new Error(`Failed to load data: ${wordsResponse.status}`);
     }
 
-    const payload = await response.json();
-    state.words = payload.words;
-    state.levels = payload.levels;
+    if (!usersResponse.ok) {
+      throw new Error(`Failed to load users: ${usersResponse.status}`);
+    }
 
-    renderLevelFilters();
+    const wordsPayload = await wordsResponse.json();
+    const grammarPayload = grammarResponse.ok ? await grammarResponse.json() : {};
+    const usersPayload = await usersResponse.json();
+
+    state.words = enrichWords(wordsPayload.words || []);
+    state.levels = sortLevels(wordsPayload.levels || []);
+    state.grammarByLevel = normalizeGrammarPayload(grammarPayload);
+    remapAllStudyStates();
+    state.users = Array.isArray(usersPayload.users) ? usersPayload.users : [];
+
+    if (!state.users.length) {
+      throw new Error("No test users available.");
+    }
+
+    ensureAllUserStates();
+    if (!state.activeUserId || !state.users.some((user) => user.id === state.activeUserId)) {
+      state.activeUserId = state.users[0].id;
+    }
+
+    renderUserSelect();
+    renderBankLevelOptions();
     bindEvents();
-    applyFilters();
+    await hydrateUserState(state.activeUserId);
+    syncControlsFromUserState();
+    updateFilterButtons();
+    updateStatsRangeButtons();
+    updateModeButtons();
+    applyFilters({ preserveSession: true });
   } catch (error) {
     renderError(error);
   }
@@ -58,43 +156,138 @@ async function init() {
 
 function bindEvents() {
   elements.searchInput.addEventListener("input", (event) => {
-    state.query = event.target.value.trim().toLowerCase();
-    state.currentIndex = 0;
-    applyFilters();
+    updateSearchQuery(event.target.value);
   });
 
-  elements.studyMode.addEventListener("click", (event) => {
+  elements.bankSearchInput.addEventListener("input", (event) => {
+    updateBankQuery(event.target.value);
+  });
+
+  elements.grammarSearchInput.addEventListener("input", (event) => {
+    const studyState = getStudyState();
+    studyState.grammarQuery = String(event.target.value || "").trim().toLowerCase();
+    renderGrammarWorkspace();
+    persistAppState();
+  });
+
+  elements.grammarLevelSelect.addEventListener("change", (event) => {
+    const studyState = getStudyState();
+    studyState.grammarLevel = event.target.value;
+    studyState.grammarItemLink = "";
+    renderGrammarWorkspace();
+    persistAppState();
+  });
+
+  elements.levelSearchInput.addEventListener("input", (event) => {
+    state.levelModalQuery = String(event.target.value || "").trim().toLowerCase();
+    renderLevelModalTable();
+  });
+
+  elements.userSelect.addEventListener("change", async (event) => {
+    state.activeUserId = event.target.value;
+    ensureUserState(state.activeUserId);
+    await hydrateUserState(state.activeUserId);
+    syncControlsFromUserState();
+    updateFilterButtons();
+    updateStatsRangeButtons();
+    updateModeButtons();
+    applyFilters({ preserveSession: true });
+  });
+
+  elements.cardFilter.addEventListener("click", handleStudyFilterButtonClick);
+
+  elements.bankLevelFilter.addEventListener("change", (event) => {
+    const studyState = getStudyState();
+    studyState.bankLevelFilter = event.target.value;
+    renderTable();
+    persistAppState();
+  });
+
+  elements.bankStatusFilter.addEventListener("change", (event) => {
+    const studyState = getStudyState();
+    studyState.bankStatusFilter = event.target.value;
+    renderTable();
+    persistAppState();
+  });
+
+  elements.bankMinViews.addEventListener("input", (event) => {
+    const studyState = getStudyState();
+    studyState.bankMinViews = Math.max(0, Number(event.target.value || 0));
+    renderTable();
+    persistAppState();
+  });
+
+  elements.cardSettingsPanel.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-restart-session]");
+    if (!button) {
+      return;
+    }
+
+    restartSession(button.dataset.restartSession);
+  });
+
+  elements.archiveResetBtn.addEventListener("click", archiveAndResetStudy);
+  elements.studySelectionBtn.addEventListener("click", () => {
+    openSelectionModal();
+  });
+  elements.selectionSelectAllBtn.addEventListener("click", selectAllCurrentLevelWords);
+  elements.selectionClearBtn.addEventListener("click", clearAllCurrentLevelWords);
+
+  elements.statsRange.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-range]");
+    if (!button) {
+      return;
+    }
+
+    const studyState = getStudyState();
+    studyState.statsRange = button.dataset.range;
+    updateStatsRangeButtons();
+    renderStats();
+    persistAppState();
+  });
+
+  document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-mode]");
     if (!button) {
       return;
     }
 
-    state.mode = button.dataset.mode;
-    for (const item of elements.studyMode.querySelectorAll("button")) {
-      item.classList.toggle("is-active", item === button);
-    }
-    updateModeVisibility();
-  });
-
-  elements.randomBtn.addEventListener("click", () => {
-    if (!state.filteredWords.length) {
+    if (button.dataset.mode === "list") {
+      state.mode = "list";
+      openBankModal();
+      updateModeButtons();
+      persistAppState();
       return;
     }
-    state.currentIndex = Math.floor(Math.random() * state.filteredWords.length);
-    renderFlashcard();
-    syncSelectedTableRow();
-  });
 
-  elements.shuffleBtn.addEventListener("click", () => {
-    state.filteredWords = shuffle([...state.filteredWords]);
-    state.currentIndex = 0;
+    elements.bankModal.hidden = true;
+    state.mode = button.dataset.mode;
+    updateModeButtons();
     render();
   });
 
-  elements.prevBtn.addEventListener("click", () => stepCard(-1));
-  elements.nextBtn.addEventListener("click", () => stepCard(1));
-  elements.flipBtn.addEventListener("click", toggleFlip);
-  elements.flashcard.addEventListener("click", toggleFlip);
+  elements.prevBtn?.addEventListener("click", () => stepCard(-1));
+  elements.nextBtn?.addEventListener("click", () => stepCard(1));
+  elements.learnedBtn?.addEventListener("click", markCurrentLearned);
+  elements.unlearnedBtn?.addEventListener("click", markCurrentUnlearned);
+  elements.favoriteBtn.addEventListener("click", toggleFavorite);
+  elements.actionInfoBtn.addEventListener("click", openActionModal);
+  elements.settingsBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleSettingsPanel();
+  });
+
+  elements.cardSettingsPanel.addEventListener("click", (event) => {
+    event.stopPropagation();
+  });
+
+  elements.flashcard.addEventListener("click", (event) => {
+    if (event.target.closest("button, .card-settings-panel")) {
+      return;
+    }
+    toggleFlip();
+  });
+
   elements.flashcard.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -103,7 +296,7 @@ function bindEvents() {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.target instanceof HTMLInputElement) {
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) {
       return;
     }
 
@@ -111,59 +304,260 @@ function bindEvents() {
       stepCard(-1);
     } else if (event.key === "ArrowRight") {
       stepCard(1);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      markCurrentLearned();
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      markCurrentUnlearned();
+    } else if (event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      toggleFavorite();
     } else if (event.key.toLowerCase() === "f") {
       toggleFlip();
+    } else if (event.key === "Escape") {
+      closeWordModal();
+      closeOverviewModal();
+      closeLevelModal();
+      closeSelectionModal();
+      closeStatsModal();
+      closeBankModal();
+      closeActionModal();
+      closeSettingsPanel();
     }
   });
-}
 
-function renderLevelFilters() {
-  const levels = [{ key: "all", label: "Tất cả" }, ...state.levels];
-
-  elements.levelFilters.innerHTML = levels
-    .map(
-      (level) => `
-        <button
-          type="button"
-          class="level-chip ${level.key === state.activeLevel ? "is-active" : ""}"
-          data-level="${level.key}"
-        >
-          ${level.label}
-        </button>
-      `,
-    )
-    .join("");
-
-  elements.levelFilters.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-level]");
-    if (!button) {
+  document.addEventListener("click", (event) => {
+    if (
+      elements.cardSettingsPanel.hidden ||
+      event.target.closest("#settings-btn, #card-settings-panel")
+    ) {
       return;
     }
 
-    state.activeLevel = button.dataset.level;
-    state.currentIndex = 0;
+    closeSettingsPanel();
+  });
 
-    for (const item of elements.levelFilters.querySelectorAll("[data-level]")) {
-      item.classList.toggle("is-active", item === button);
+  elements.wordModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-modal-close]")) {
+      closeWordModal();
+    }
+  });
+
+  elements.overviewModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-overview-close]")) {
+      closeOverviewModal();
+    }
+  });
+
+  elements.levelModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-level-close]")) {
+      closeLevelModal();
+    }
+  });
+
+  elements.selectionModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-selection-close]")) {
+      closeSelectionModal();
+    }
+  });
+
+  elements.statsModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-stats-close]")) {
+      closeStatsModal();
+    }
+  });
+
+  elements.bankModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-bank-close]")) {
+      closeBankModal();
+    }
+  });
+
+  elements.actionModal.addEventListener("click", (event) => {
+    if (event.target.closest("[data-action-close]")) {
+      closeActionModal();
+    }
+  });
+
+  elements.roadmapList.addEventListener("dblclick", (event) => {
+    const item = event.target.closest(".roadmap-item");
+    if (!item || item.dataset.status !== "current") {
+      return;
     }
 
-    applyFilters();
+    openLevelModal(item.dataset.level);
+  });
+
+  elements.totalWordsButton.addEventListener("click", openOverviewModal);
+  elements.currentLevelButton.addEventListener("click", openCurrentLevelBank);
+  elements.statsToggleBtn.addEventListener("click", openStatsModal);
+  elements.bankToggleBtn.addEventListener("click", openBankModal);
+
+  elements.overviewContent.addEventListener("dblclick", (event) => {
+    const item = event.target.closest("[data-overview-level]");
+    if (!item) {
+      return;
+    }
+
+    openLevelModal(item.dataset.overviewLevel);
   });
 }
 
-function applyFilters() {
+function enrichWords(words) {
+  return words.map((word, index) => {
+    const level = String(word.level || "").toLowerCase();
+    const sequenceNumber = Math.max(
+      1,
+      Number(word.sequenceNumber || getSequenceFromId(word.id) || index + 1),
+    );
+    const wordKey = String(word.wordKey || word.id || `${level}:${sequenceNumber}`);
+
+    return {
+      ...word,
+      id: wordKey,
+      wordKey,
+      level,
+      levelLabel: word.levelLabel || level.toUpperCase(),
+      sequenceNumber,
+      tags: Array.isArray(word.tags) ? word.tags : [],
+    };
+  });
+}
+
+function normalizeGrammarPayload(payload) {
+  const normalized = {};
+  if (!payload || typeof payload !== "object") {
+    return normalized;
+  }
+
+  for (const [levelKey, items] of Object.entries(payload)) {
+    normalized[levelKey] = Array.isArray(items)
+      ? items.map((item, index) => ({
+          id: `${levelKey}:${index + 1}`,
+          level: levelKey,
+          title: String(item.title || item.grammarName || "Untitled grammar"),
+          grammarName: String(item.grammarName || item.title || "Untitled grammar"),
+          link: String(item.link || ""),
+        }))
+      : [];
+  }
+
+  return normalized;
+}
+
+function getSequenceFromId(value) {
+  const match = String(value || "").match(/:(\d+)$/u);
+  return match ? Number(match[1]) : 0;
+}
+
+function remapAllStudyStates() {
+  for (const [userId, studyState] of Object.entries(state.userStatesById)) {
+    state.userStatesById[userId] = normalizeStudyState(studyState);
+  }
+}
+
+function getWordKey(word) {
+  return word?.wordKey || word?.id || `${word?.level}:${word?.sequenceNumber}`;
+}
+
+function getWordReferenceMap() {
+  const map = new Map();
+  for (const word of state.words) {
+    map.set(getWordKey(word), word);
+    map.set(word.expression, word);
+  }
+  return map;
+}
+
+function getWordByReference(value) {
+  if (!value) {
+    return null;
+  }
+
+  const map = getWordReferenceMap();
+  return map.get(String(value)) || null;
+}
+
+function getCurrentLevelKey() {
+  return getCurrentRoadmapLevel()?.key || state.levels[0]?.key || "";
+}
+
+function isWordLearned(word, studyState = getStudyState()) {
+  return Boolean(word?.learned) || studyState.learnedExpressions.includes(getWordKey(word));
+}
+
+function getLearnedWordsCount(levelKey = "") {
+  return state.words.filter((word) => (!levelKey || word.level === levelKey) && isWordLearned(word))
+    .length;
+}
+
+function getWordsForLevel(levelKey) {
+  return state.words.filter((word) => word.level === levelKey);
+}
+
+function getAvailableGrammarLevels() {
+  return state.levels.filter((level) => (state.grammarByLevel[level.key] || []).length > 0);
+}
+
+function getActiveGrammarLevel() {
+  const studyState = getStudyState();
+  const availableLevels = getAvailableGrammarLevels();
+  if (!availableLevels.length) {
+    return "";
+  }
+
+  const preferredLevel = studyState.grammarLevel || getCurrentLevelKey();
+  return availableLevels.some((level) => level.key === preferredLevel)
+    ? preferredLevel
+    : availableLevels[0].key;
+}
+
+function getVisibleGrammarItems() {
+  const studyState = getStudyState();
+  const levelKey = getActiveGrammarLevel();
+  const query = studyState.grammarQuery || "";
+  const items = state.grammarByLevel[levelKey] || [];
+
+  if (!query) {
+    return items;
+  }
+
+  return items.filter((item) =>
+    [item.title, item.grammarName, item.link].join(" ").toLowerCase().includes(query),
+  );
+}
+
+function getActiveGrammarItem() {
+  const studyState = getStudyState();
+  const items = getVisibleGrammarItems();
+  if (!items.length) {
+    return null;
+  }
+
+  const bySavedLink = items.find((item) => item.link === studyState.grammarItemLink);
+  return bySavedLink || items[0];
+}
+
+function applyFilters({ preserveSession }) {
+  const studyState = getStudyState();
+  const allowedLevel = getCurrentLevelKey();
+
   state.filteredWords = state.words.filter((word) => {
-    const matchesLevel =
-      state.activeLevel === "all" || word.level === state.activeLevel;
-    if (!matchesLevel) {
+    if (word.level !== allowedLevel) {
       return false;
     }
 
-    if (!state.query) {
+    if (!matchesFilterMode(word)) {
+      return false;
+    }
+
+    if (!studyState.query) {
       return true;
     }
 
     const haystack = [
+      String(word.sequenceNumber || ""),
       word.expression,
       word.reading,
       word.meaning,
@@ -173,50 +567,240 @@ function applyFilters() {
       .join(" ")
       .toLowerCase();
 
-    return haystack.includes(state.query);
+    return haystack.includes(studyState.query);
   });
 
-  if (state.currentIndex >= state.filteredWords.length) {
-    state.currentIndex = 0;
+  if (!preserveSession || !restoreSessionFromStudyState()) {
+    createSession();
+  }
+
+  if (studyState.currentIndex >= state.sessionWords.length) {
+    studyState.currentIndex = Math.max(0, state.sessionWords.length - 1);
   }
 
   render();
 }
 
+function createSession(order = getStudyState().sessionOrder) {
+  const studyState = getStudyState();
+  const availableWords =
+    studyState.filterMode === "all"
+      ? state.filteredWords.filter(
+          (word) => !isWordLearned(word, studyState),
+        )
+      : state.filteredWords;
+
+  if (order === "ordered") {
+    state.sessionWords = availableWords.slice(0, SESSION_SIZE);
+    studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
+    return;
+  }
+
+  const seenSet = new Set(studyState.seenExpressions);
+  const newWords = shuffle(
+    availableWords.filter((word) => !seenSet.has(getWordKey(word))),
+  ).slice(0, NEW_WORDS_PER_SESSION);
+
+  const oldWords = shuffle(
+    availableWords.filter((word) => seenSet.has(getWordKey(word))),
+  ).slice(0, SESSION_SIZE - newWords.length);
+
+  const fallbackWords = shuffle(
+    availableWords.filter(
+      (word) =>
+        !newWords.some((item) => getWordKey(item) === getWordKey(word)) &&
+        !oldWords.some((item) => getWordKey(item) === getWordKey(word)),
+    ),
+  ).slice(0, SESSION_SIZE - newWords.length - oldWords.length);
+
+  state.sessionWords = shuffle([...newWords, ...oldWords, ...fallbackWords]).slice(
+    0,
+    SESSION_SIZE,
+  );
+  studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
+}
+
+function restartSession(order) {
+  const studyState = getStudyState();
+  studyState.sessionOrder = order === "ordered" ? "ordered" : "random";
+  createSession(studyState.sessionOrder);
+  studyState.currentIndex = 0;
+  closeSettingsPanel();
+  playCardMotion(studyState.sessionOrder === "ordered" ? "left" : "right");
+  render();
+}
+
+async function archiveAndResetStudy() {
+  const originalLabel = elements.archiveResetBtn.innerHTML;
+  elements.archiveResetBtn.disabled = true;
+  elements.archiveResetBtn.innerHTML =
+    "<strong>Đang archive...</strong><small>Đang lưu lịch sử học hiện tại.</small>";
+
+  try {
+    const response = await fetch("/api/archive", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(createArchiveSnapshot()),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Archive failed: ${response.status}`);
+    }
+
+    await fetch(`/api/user-state/${encodeURIComponent(state.activeUserId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: createDefaultStudyState() }),
+    }).catch(() => {});
+
+    resetStudyJourney();
+    closeSettingsPanel();
+    playArchiveResetEffect();
+  } catch (error) {
+    elements.archiveResetBtn.innerHTML =
+      "<strong>Archive thất bại</strong><small>Kiểm tra server log rồi thử lại.</small>";
+    window.setTimeout(() => {
+      elements.archiveResetBtn.innerHTML = originalLabel;
+      elements.archiveResetBtn.disabled = false;
+    }, 1800);
+    console.error(error);
+    return;
+  }
+
+  window.setTimeout(() => {
+    elements.archiveResetBtn.innerHTML = originalLabel;
+    elements.archiveResetBtn.disabled = false;
+  }, 500);
+}
+
+function createArchiveSnapshot() {
+  const studyState = getStudyState();
+  const startedAt =
+    studyState.localActionLogs
+      .map((log) => log.createdAt)
+      .filter(Boolean)
+      .sort()[0] || null;
+
+  return {
+    userId: state.activeUserId,
+    startedAt,
+    endedAt: new Date().toISOString(),
+    mode: state.mode,
+    currentLevel: getCurrentRoadmapLevel()?.key || null,
+    query: studyState.query,
+    filterMode: studyState.filterMode,
+    statsRange: studyState.statsRange,
+    sessionOrder: studyState.sessionOrder,
+    currentIndex: studyState.currentIndex,
+    sessionExpressions: state.sessionWords.map((word) => getWordKey(word)),
+    learnedExpressions: [...studyState.learnedExpressions],
+    starredExpressions: [...studyState.starredExpressions],
+    seenExpressions: [...studyState.seenExpressions],
+    currentWord: getCurrentWord() || null,
+    localActionLogs: studyState.localActionLogs,
+  };
+}
+
+function resetStudyJourney() {
+  state.userStatesById[state.activeUserId] = createDefaultStudyState();
+  syncControlsFromUserState();
+  applyFilters({ preserveSession: true });
+}
+
+function playArchiveResetEffect() {
+  elements.appShell.classList.remove("is-archive-reset");
+  void elements.appShell.offsetWidth;
+  elements.appShell.classList.add("is-archive-reset");
+  window.setTimeout(() => {
+    elements.appShell.classList.remove("is-archive-reset");
+  }, 520);
+}
+
 function render() {
   updateStats();
+  updateFilterButtons();
+  updateStatsRangeButtons();
+  updateModeButtons();
+  updateModeVisibility();
+  renderRoadmap();
   renderFlashcard();
   renderTable();
-  updateModeVisibility();
+  renderGrammarLevelOptions();
+  renderGrammarWorkspace();
+  renderStats();
+  renderOverviewContent();
+  persistAppState();
 }
 
 function updateStats() {
+  const currentLevel = getCurrentRoadmapLevel();
+  const studyState = getStudyState();
+  const learnedCount = currentLevel?.key ? getLearnedWordsCount(currentLevel.key) : 0;
+
   elements.statTotalWords.textContent = formatNumber(state.words.length);
-  elements.statTotalLevels.textContent = String(state.levels.length);
+  elements.statCurrentLevel.textContent = currentLevel?.label || "-";
   elements.statVisibleWords.textContent = formatNumber(state.filteredWords.length);
-
-  const levelLabel =
-    state.activeLevel === "all"
-      ? "Tất cả level"
-      : state.levels.find((level) => level.key === state.activeLevel)?.label ??
-        state.activeLevel.toUpperCase();
-
-  elements.resultsSummary.textContent = `${levelLabel} • ${formatNumber(
+  elements.resultsSummary.textContent = `${currentLevel?.label || "-"} • ${formatNumber(
     state.filteredWords.length,
-  )} từ`;
+  )} từ hiển thị • ${formatNumber(learnedCount)} đã thuộc • ${formatNumber(
+    getLearnedWordsCount(),
+  )} tổng đã thuộc`;
+}
+
+function renderRoadmap() {
+  const items = getRoadmapItems();
+  const currentItem = items.find((item) => item.status === "current") || items.at(-1);
+  const completedCount = items.filter((item) => item.status === "complete").length;
+
+  elements.roadmapSummary.innerHTML = `
+    <strong>${escapeHtml(currentItem?.label || "-")} đang học</strong>
+    <p>${formatNumber(completedCount)} / ${formatNumber(items.length)} cấp độ đã hoàn thành. Chỉ mở cấp độ tiếp theo khi hoàn tất cấp độ hiện tại.</p>
+  `;
+
+  elements.roadmapList.innerHTML = items
+    .map(
+      (item, index) => `
+        <article class="roadmap-item is-${item.status}" data-level="${item.key}" data-status="${item.status}">
+          <div class="roadmap-item__head">
+            <span class="roadmap-item__badge">${escapeHtml(item.label)}</span>
+            <strong>${item.percent}%</strong>
+          </div>
+          <div class="roadmap-item__bar">
+            <span style="width: ${item.percent}%"></span>
+          </div>
+          <p>${formatNumber(item.learned)} / ${formatNumber(item.total)} từ</p>
+          ${
+            index < items.length - 1
+              ? `<div class="roadmap-item__connector is-${item.connectorStatus}"></div>`
+              : ""
+          }
+        </article>
+      `,
+    )
+    .join("");
 }
 
 function renderFlashcard() {
-  const currentWord = state.filteredWords[state.currentIndex];
+  const studyState = getStudyState();
+  const currentWord = getCurrentWord();
   elements.flashcard.classList.remove("is-flipped");
 
   if (!currentWord) {
     elements.cardExpression.textContent = "Không có dữ liệu";
-    elements.cardReading.textContent = "Hãy đổi level hoặc từ khóa tìm kiếm.";
+    elements.cardReading.textContent = "Cấp độ hiện tại đã hoàn thành hoặc không có từ khớp.";
     elements.cardMeaning.textContent = "";
     elements.cardTags.innerHTML = "";
     elements.cardPosition.textContent = "0 / 0";
+    elements.examplesList.innerHTML =
+      "<p>Không còn từ trong phiên học hiện tại.</p>";
     return;
+  }
+
+  if (studyState.suppressNextViewLog) {
+    studyState.suppressNextViewLog = false;
+  } else {
+    addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
+    logView(currentWord);
   }
 
   elements.cardExpression.textContent = currentWord.expression;
@@ -226,33 +810,46 @@ function renderFlashcard() {
     .slice(0, 6)
     .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join("");
-  elements.cardPosition.textContent = `${state.currentIndex + 1} / ${state.filteredWords.length}`;
+  elements.cardPosition.textContent = `${studyState.currentIndex + 1} / ${state.sessionWords.length}`;
+  updateFavoriteButton(currentWord);
+  renderExamples(currentWord);
 }
 
 function renderTable() {
+  const studyState = getStudyState();
+  const bankWords = getBankWords();
   elements.wordTableBody.innerHTML = "";
-  elements.emptyState.hidden = state.filteredWords.length > 0;
-  elements.wordTable.hidden = state.mode !== "list";
+  elements.emptyState.hidden = bankWords.length > 0;
+  const rows = bankWords.slice(0, MAX_ROWS);
 
-  const rows = state.filteredWords.slice(0, MAX_ROWS);
-
-  for (const [index, word] of rows.entries()) {
+  for (const word of rows) {
     const row = document.createElement("tr");
-    row.dataset.index = String(index);
+    const sessionIndex = state.sessionWords.findIndex(
+      (item) => getWordKey(item) === getWordKey(word),
+    );
+    row.dataset.wordKey = getWordKey(word);
+    row.classList.toggle("is-selected", studyState.selectedListExpression === getWordKey(word));
     row.innerHTML = `
-      <td><strong>${escapeHtml(word.expression)}</strong></td>
+      <td><strong>#${formatNumber(word.sequenceNumber)} ${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
       <td>${escapeHtml(word.reading)}</td>
       <td>${escapeHtml(word.meaning)}</td>
       <td><span class="level-badge">${escapeHtml(word.levelLabel)}</span></td>
+      <td>${formatNumber(word.viewCount || 0)}</td>
     `;
 
     row.addEventListener("click", () => {
-      state.currentIndex = index;
-      state.mode = "flashcard";
-      for (const item of elements.studyMode.querySelectorAll("button")) {
-        item.classList.toggle("is-active", item.dataset.mode === "flashcard");
+      studyState.selectedListExpression = getWordKey(word);
+      syncSelectedTableRow();
+      persistAppState();
+    });
+
+    row.addEventListener("dblclick", () => {
+      studyState.selectedListExpression = getWordKey(word);
+      if (sessionIndex >= 0) {
+        studyState.currentIndex = sessionIndex;
       }
-      render();
+      syncSelectedTableRow();
+      openWordModal(word);
     });
 
     elements.wordTableBody.appendChild(row);
@@ -261,61 +858,1360 @@ function renderTable() {
   syncSelectedTableRow();
 }
 
+function renderGrammarLevelOptions() {
+  const levels = getAvailableGrammarLevels();
+  if (!elements.grammarLevelSelect) {
+    return;
+  }
+
+  elements.grammarLevelSelect.innerHTML = levels
+    .map(
+      (level) =>
+        `<option value="${escapeHtml(level.key)}">${escapeHtml(level.label)}</option>`,
+    )
+    .join("");
+
+  elements.grammarLevelSelect.value = getActiveGrammarLevel();
+}
+
+function renderGrammarWorkspace() {
+  if (!elements.grammarList) {
+    return;
+  }
+
+  const levelKey = getActiveGrammarLevel();
+  const level = state.levels.find((item) => item.key === levelKey);
+  const items = getVisibleGrammarItems();
+  const activeItem = getActiveGrammarItem();
+  const studyState = getStudyState();
+
+  if (studyState.grammarItemLink !== (activeItem?.link || "")) {
+    studyState.grammarItemLink = activeItem?.link || "";
+  }
+
+  elements.grammarSummary.textContent = `${level?.label || "-"} • ${formatNumber(items.length)} bài`;
+  elements.grammarCurrentLevel.textContent = level?.label
+    ? `${level.label} Grammar`
+    : "Grammar";
+  elements.grammarCurrentTitle.textContent = activeItem?.title || "Không có bài ngữ pháp";
+  elements.grammarCurrentName.textContent = activeItem?.grammarName || "Chọn level khác hoặc đổi từ khoá tìm kiếm.";
+  elements.grammarOpenLink.href = activeItem?.link || "#";
+  elements.grammarOpenLink.setAttribute("aria-disabled", activeItem?.link ? "false" : "true");
+  elements.grammarFrame.src = activeItem?.link || "about:blank";
+
+  elements.grammarList.innerHTML = items.length
+    ? items
+        .map(
+          (item, index) => `
+            <button
+              type="button"
+              class="grammar-list__item ${item.link === activeItem?.link ? "is-active" : ""}"
+              data-grammar-link="${escapeHtml(item.link)}"
+            >
+              <span class="grammar-list__index">${String(index + 1).padStart(2, "0")}</span>
+              <span class="grammar-list__body">
+                <strong>${escapeHtml(item.grammarName)}</strong>
+                <small>${escapeHtml(item.title)}</small>
+              </span>
+            </button>
+          `,
+        )
+        .join("")
+    : `<div class="empty-state empty-state--inline">Không có bài ngữ pháp khớp điều kiện hiện tại.</div>`;
+
+  for (const item of elements.grammarList.querySelectorAll("[data-grammar-link]")) {
+    item.addEventListener("click", () => {
+      studyState.grammarItemLink = item.dataset.grammarLink;
+      renderGrammarWorkspace();
+      persistAppState();
+    });
+  }
+}
+
 function syncSelectedTableRow() {
+  const studyState = getStudyState();
+  const currentWord = getCurrentWord();
   for (const row of elements.wordTableBody.querySelectorAll("tr")) {
-    row.style.background =
-      Number(row.dataset.index) === state.currentIndex
-        ? "rgba(184, 92, 56, 0.12)"
-        : "";
+    row.classList.toggle(
+      "is-current",
+      currentWord && row.dataset.wordKey === getWordKey(currentWord),
+    );
+    row.classList.toggle(
+      "is-selected",
+      row.dataset.wordKey === studyState.selectedListExpression,
+    );
   }
 }
 
 function updateModeVisibility() {
-  elements.flashcardPanel.hidden = state.mode !== "flashcard";
-  elements.listPanel.hidden = state.mode !== "list";
+  elements.studyLayout.classList.toggle("is-grammar-mode", state.mode === "grammar");
+  elements.focusArea.hidden = state.mode === "grammar";
+  elements.grammarArea.hidden = state.mode !== "grammar";
+}
+
+function updateModeButtons() {
+  for (const item of document.querySelectorAll("[data-mode]")) {
+    item.classList.toggle("is-active", item.dataset.mode === state.mode);
+  }
 }
 
 function stepCard(direction) {
-  if (!state.filteredWords.length) {
+  const studyState = getStudyState();
+  if (!state.sessionWords.length) {
     return;
   }
 
-  state.currentIndex =
-    (state.currentIndex + direction + state.filteredWords.length) %
-    state.filteredWords.length;
+  playCardMotion(direction < 0 ? "left" : "right");
+  studyState.currentIndex =
+    (studyState.currentIndex + direction + state.sessionWords.length) %
+    state.sessionWords.length;
 
-  renderFlashcard();
-  syncSelectedTableRow();
+  render();
+}
+
+function markCurrentLearned() {
+  const studyState = getStudyState();
+  const currentWord = getCurrentWord();
+  if (!currentWord) {
+    return;
+  }
+
+  addUniqueValue(studyState.learnedExpressions, getWordKey(currentWord));
+  addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
+  logAction("learned", currentWord);
+  playCardMotion("up");
+  state.sessionWords = state.sessionWords.filter(
+    (word) => getWordKey(word) !== getWordKey(currentWord),
+  );
+  studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
+
+  if (studyState.currentIndex >= state.sessionWords.length) {
+    studyState.currentIndex = Math.max(0, state.sessionWords.length - 1);
+  }
+
+  applyFilters({ preserveSession: true });
+}
+
+function markCurrentUnlearned() {
+  const studyState = getStudyState();
+  const currentWord = getCurrentWord();
+  if (!currentWord) {
+    return;
+  }
+
+  removeValue(studyState.learnedExpressions, getWordKey(currentWord));
+  addUniqueValue(studyState.seenExpressions, getWordKey(currentWord));
+  logAction("unlearned", currentWord);
+  playCardMotion("down");
+  state.sessionWords.splice(studyState.currentIndex, 1);
+  state.sessionWords.push(currentWord);
+  studyState.sessionExpressions = state.sessionWords.map((word) => getWordKey(word));
+
+  if (studyState.currentIndex >= state.sessionWords.length) {
+    studyState.currentIndex = 0;
+  }
+
+  applyFilters({ preserveSession: true });
 }
 
 function toggleFlip() {
-  if (!state.filteredWords.length) {
+  if (!state.sessionWords.length) {
     return;
   }
+  playCardMotion("flip");
   elements.flashcard.classList.toggle("is-flipped");
 }
 
-function renderError(error) {
-  elements.cardExpression.textContent = "Không tải được dữ liệu";
-  elements.cardReading.textContent =
-    "Hãy chạy builder và mở site qua static server.";
-  elements.cardMeaning.textContent = String(error.message || error);
+function toggleSettingsPanel() {
+  const willOpen = elements.cardSettingsPanel.hidden;
+  elements.cardSettingsPanel.hidden = !willOpen;
+  elements.settingsBtn.setAttribute("aria-expanded", String(willOpen));
+}
+
+function closeSettingsPanel() {
+  elements.cardSettingsPanel.hidden = true;
+  elements.settingsBtn.setAttribute("aria-expanded", "false");
+}
+
+function playCardMotion(type) {
+  const className = `is-motion-${type}`;
+  elements.flashcard.classList.remove(
+    "is-motion-flip",
+    "is-motion-left",
+    "is-motion-right",
+    "is-motion-up",
+    "is-motion-down",
+  );
+  void elements.flashcard.offsetWidth;
+  elements.flashcard.classList.add(className);
+  window.setTimeout(() => {
+    elements.flashcard.classList.remove(className);
+  }, 540);
+}
+
+function toggleFavorite() {
+  const studyState = getStudyState();
+  const currentWord = getCurrentWord();
+  if (!currentWord) {
+    return;
+  }
+
+  const isStarred = studyState.starredExpressions.includes(getWordKey(currentWord));
+  if (isStarred) {
+    removeValue(studyState.starredExpressions, getWordKey(currentWord));
+    logAction("unfavorite", currentWord);
+  } else {
+    addUniqueValue(studyState.starredExpressions, getWordKey(currentWord));
+    logAction("favorite", currentWord);
+  }
+
+  updateFavoriteButton(currentWord);
+  renderTable();
+  persistAppState();
+}
+
+function updateFavoriteButton(word) {
+  const studyState = getStudyState();
+  const isStarred = studyState.starredExpressions.includes(getWordKey(word));
+  elements.favoriteBtn.classList.toggle("is-starred", isStarred);
+  elements.favoriteBtn.textContent = isStarred ? "★" : "☆";
+}
+
+async function renderExamples(word) {
+  const requestId = (state.exampleRequestId += 1);
+  elements.examplesList.innerHTML = "<p>Loading examples...</p>";
+
+  try {
+    const response = await fetch(
+      `/api/examples/${encodeURIComponent(word.expression)}`,
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to load examples: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    if (requestId !== state.exampleRequestId) {
+      return;
+    }
+
+    const examples = payload.examples?.length
+      ? payload.examples
+      : getDefaultExamples(word);
+
+    elements.examplesList.innerHTML = renderExampleItems(examples, word);
+  } catch (_error) {
+    if (requestId !== state.exampleRequestId) {
+      return;
+    }
+
+    elements.examplesList.innerHTML = renderExampleItems(
+      getDefaultExamples(word),
+      word,
+    );
+  }
+}
+
+function renderExampleItems(examples, word) {
+  return examples
+    .slice(0, 3)
+    .map(
+      (example) => `
+        <article class="example-item">
+          <p>${highlightExpression(example.sentence, word.expression)}</p>
+          ${
+            example.translation
+              ? `<small>${escapeHtml(example.translation)}</small>`
+              : ""
+          }
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function getDefaultExamples(word) {
+  return [
+    {
+      sentence: `${word.expression} の例文はまだ登録されていません。`,
+    },
+    {
+      sentence: `${word.expression} を使った短い文を追加できます。`,
+    },
+    {
+      sentence: `${word.expression} の自然な使い方を後で保存してください。`,
+    },
+  ];
+}
+
+function restoreAppState() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    state.activeUserId = stored.activeUserId || "";
+    state.mode = "flashcard";
+    state.userStatesById = normalizeStoredUserStates(stored.userStatesById || {});
+  } catch (_error) {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
+
+function renderUserSelect() {
+  elements.userSelect.innerHTML = state.users
+    .map(
+      (user) =>
+        `<option value="${escapeHtml(user.id)}">${escapeHtml(user.name)}</option>`,
+    )
+    .join("");
+  elements.userSelect.value = state.activeUserId;
+}
+
+function renderBankLevelOptions() {
+  const options = [
+    { value: "all", label: "All levels" },
+    ...state.levels.map((level) => ({ value: level.key, label: level.label })),
+  ];
+
+  elements.bankLevelFilter.innerHTML = options
+    .map(
+      (option) =>
+        `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`,
+    )
+    .join("");
+}
+
+async function hydrateUserState(userId) {
+  if (!userId) {
+    return;
+  }
+
+  state.hydratingUsers.add(userId);
+  ensureUserState(userId);
+
+  try {
+    const response = await fetch(`/api/user-state/${encodeURIComponent(userId)}`);
+    if (!response.ok) {
+      throw new Error(`Failed to load user state: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    if (payload?.state) {
+      state.userStatesById[userId] = normalizeStudyState(payload.state);
+    }
+  } catch (_error) {
+    // Keep local fallback when API persistence is unavailable.
+  } finally {
+    state.hydratingUsers.delete(userId);
+  }
+}
+
+function syncControlsFromUserState() {
+  syncStudySearchInput();
+  syncBankControls();
+  syncGrammarControls();
+  elements.userSelect.value = state.activeUserId;
+}
+
+function restoreSessionFromStudyState() {
+  const studyState = getStudyState();
+  if (!Array.isArray(studyState.sessionExpressions)) {
+    return false;
+  }
+
+  const filteredWordKeySet = new Set(
+    state.filteredWords.map((word) => getWordKey(word)),
+  );
+  const wordsByKey = new Map(
+    state.words.map((word) => [getWordKey(word), word]),
+  );
+
+  state.sessionWords = studyState.sessionExpressions
+    .filter((wordKey) => filteredWordKeySet.has(wordKey))
+    .map((wordKey) => wordsByKey.get(wordKey))
+    .filter(Boolean)
+    .slice(0, SESSION_SIZE);
+
+  return state.sessionWords.length > 0;
+}
+
+function persistAppState() {
+  const payload = {
+    activeUserId: state.activeUserId,
+    mode: state.mode,
+    userStatesById: state.userStatesById,
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  scheduleUserStateSync(state.activeUserId);
+}
+
+function scheduleUserStateSync(userId) {
+  if (!userId || state.hydratingUsers.has(userId)) {
+    return;
+  }
+
+  window.clearTimeout(state.saveTimers.get(userId));
+  const timer = window.setTimeout(() => {
+    saveUserState(userId);
+  }, 350);
+  state.saveTimers.set(userId, timer);
+}
+
+async function saveUserState(userId) {
+  const studyState = state.userStatesById[userId];
+  if (!studyState) {
+    return;
+  }
+
+  try {
+    await fetch(`/api/user-state/${encodeURIComponent(userId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: studyState }),
+    });
+  } catch (_error) {
+    // Local state remains available even if remote persistence fails.
+  }
+}
+
+function getCurrentWord() {
+  return state.sessionWords[getStudyState().currentIndex];
+}
+
+function updateFilterButtons() {
+  const studyState = getStudyState();
+  for (const item of elements.cardFilter.querySelectorAll("[data-filter]")) {
+    item.classList.toggle("is-active", item.dataset.filter === studyState.filterMode);
+  }
+
+  if (elements.bankStatusFilter) {
+    elements.bankStatusFilter.value = studyState.bankStatusFilter;
+  }
+
+  if (elements.bankLevelFilter) {
+    elements.bankLevelFilter.value = studyState.bankLevelFilter;
+  }
+
+  if (elements.bankMinViews) {
+    elements.bankMinViews.value = String(studyState.bankMinViews);
+  }
+}
+
+function updateStatsRangeButtons() {
+  const studyState = getStudyState();
+  for (const item of elements.statsRange.querySelectorAll("[data-range]")) {
+    item.classList.toggle("is-active", item.dataset.range === studyState.statsRange);
+  }
+}
+
+function matchesFilterMode(word) {
+  const studyState = getStudyState();
+  if (studyState.filterMode === "starred") {
+    return studyState.starredExpressions.includes(getWordKey(word));
+  }
+
+  if (studyState.filterMode === "unstarred") {
+    return !studyState.starredExpressions.includes(getWordKey(word));
+  }
+
+  if (studyState.filterMode === "learned") {
+    return isWordLearned(word, studyState);
+  }
+
+  if (studyState.filterMode === "unlearned") {
+    return !isWordLearned(word, studyState);
+  }
+
+  return true;
+}
+
+function matchesBankStatus(word, studyState) {
+  if (studyState.bankStatusFilter === "starred") {
+    return studyState.starredExpressions.includes(getWordKey(word));
+  }
+
+  if (studyState.bankStatusFilter === "unstarred") {
+    return !studyState.starredExpressions.includes(getWordKey(word));
+  }
+
+  if (studyState.bankStatusFilter === "learned") {
+    return isWordLearned(word, studyState);
+  }
+
+  if (studyState.bankStatusFilter === "unlearned") {
+    return !isWordLearned(word, studyState);
+  }
+
+  return true;
+}
+
+function matchesSearchQuery(word, query) {
+  if (!query) {
+    return true;
+  }
+
+  const haystack = [
+    String(word.sequenceNumber || ""),
+    word.expression,
+    word.reading,
+    word.meaning,
+    word.levelLabel,
+    word.tags.join(" "),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return haystack.includes(query);
+}
+
+function getViewCounts() {
+  const studyState = getStudyState();
+  const viewCounts = new Map();
+
+  for (const log of studyState.localActionLogs) {
+    if (log.action !== "view") {
+      continue;
+    }
+
+    const resolvedWord = getWordByReference(
+      log.wordKey || log.word?.wordKey || log.word?.id || log.expression,
+    );
+    const wordKey = resolvedWord ? getWordKey(resolvedWord) : log.expression;
+    viewCounts.set(wordKey, (viewCounts.get(wordKey) || 0) + 1);
+  }
+
+  return viewCounts;
+}
+
+function getBankWords() {
+  const studyState = getStudyState();
+  const viewCounts = getViewCounts();
+
+  return state.words
+    .filter((word) => {
+      if (studyState.bankLevelFilter !== "all" && word.level !== studyState.bankLevelFilter) {
+        return false;
+      }
+
+      if (!matchesBankStatus(word, studyState)) {
+        return false;
+      }
+
+      if (!matchesSearchQuery(word, studyState.bankQuery)) {
+        return false;
+      }
+
+      const viewCount = viewCounts.get(getWordKey(word)) || 0;
+      return isWordLearned(word, studyState) || viewCount > Number(studyState.bankMinViews || 0);
+    })
+    .map((word) => ({
+      ...word,
+      viewCount: viewCounts.get(getWordKey(word)) || 0,
+    }));
+}
+
+function getLevelCounts() {
+  const counts = new Map();
+  for (const word of state.words) {
+    counts.set(word.level, (counts.get(word.level) || 0) + 1);
+  }
+  return counts;
+}
+
+function getRoadmapItems() {
+  const studyState = getStudyState();
+  const counts = getLevelCounts();
+  const currentLevel = getCurrentRoadmapLevel();
+
+  return state.levels.map((level) => {
+    const total = counts.get(level.key) || 0;
+    const learned = getLearnedWordsCount(level.key);
+    const percent = total ? Math.round((learned / total) * 100) : 0;
+    const status =
+      percent >= 100
+        ? "complete"
+        : currentLevel?.key === level.key
+          ? "current"
+          : LEVEL_ORDER.indexOf(level.key) > LEVEL_ORDER.indexOf(currentLevel?.key || level.key)
+            ? "locked"
+            : "upcoming";
+
+    return {
+      ...level,
+      total,
+      learned,
+      percent,
+      status,
+      connectorStatus: percent >= 100 ? "complete" : status === "current" ? "current" : "locked",
+    };
+  });
+}
+
+function getCurrentRoadmapLevel() {
+  for (const level of state.levels) {
+    const total = state.words.filter((word) => word.level === level.key).length;
+    const learned = getLearnedWordsCount(level.key);
+
+    if (learned < total) {
+      return level;
+    }
+  }
+
+  return state.levels.at(-1) || null;
+}
+
+function renderStar(word) {
+  const studyState = getStudyState();
+  return studyState.starredExpressions.includes(getWordKey(word))
+    ? '<span class="inline-star">★</span>'
+    : "";
+}
+
+function openWordModal(word) {
+  elements.modalTitle.textContent = word.expression;
+  elements.modalReading.textContent = word.reading || "-";
+  elements.modalMeaning.textContent = word.meaning || "-";
+  elements.modalLevel.textContent = `${word.levelLabel || "-"} • #${formatNumber(word.sequenceNumber)}`;
+  renderModalExamples(word);
+  elements.wordModal.hidden = false;
+}
+
+async function renderModalExamples(word) {
+  elements.modalExamplesList.innerHTML = "<p>Loading examples...</p>";
+
+  try {
+    const response = await fetch(
+      `/api/examples/${encodeURIComponent(word.expression)}`,
+    );
+    if (!response.ok) {
+      throw new Error("examples unavailable");
+    }
+
+    const payload = await response.json();
+    const examples = payload.examples?.length
+      ? payload.examples
+      : getDefaultExamples(word);
+    elements.modalExamplesList.innerHTML = renderExampleItems(examples, word);
+  } catch (_error) {
+    elements.modalExamplesList.innerHTML = renderExampleItems(
+      getDefaultExamples(word),
+      word,
+    );
+  }
+}
+
+function closeWordModal() {
+  elements.wordModal.hidden = true;
+}
+
+function openOverviewModal() {
+  renderOverviewContent();
+  elements.overviewModal.hidden = false;
+}
+
+function closeOverviewModal() {
+  elements.overviewModal.hidden = true;
+}
+
+function openActionModal() {
+  elements.actionModal.hidden = false;
+}
+
+function closeActionModal() {
+  elements.actionModal.hidden = true;
+}
+
+function openLevelModal(levelKey) {
+  state.levelModalLevelKey = levelKey;
+  state.levelModalQuery = "";
+  const level = state.levels.find((item) => item.key === levelKey);
+
+  elements.levelModalTitle.textContent = `${level?.label || levelKey.toUpperCase()} learned words`;
+  elements.levelModalSummary.textContent = `Double click một từ để mở Vocabulary Detail. Hiển thị các từ đã thuộc và số lần đã xem trong cấp độ đang học.`;
+  elements.levelSearchInput.value = "";
+  renderLevelModalTable();
+  elements.levelModal.hidden = false;
+}
+
+function closeLevelModal() {
+  elements.levelModal.hidden = true;
+}
+
+function openSelectionModal() {
+  const levelKey = getCurrentLevelKey();
+  const level = state.levels.find((item) => item.key === levelKey);
+  const learnedCount = getLearnedWordsCount(levelKey);
+  const totalCount = getWordsForLevel(levelKey).length;
+
+  elements.selectionModalTitle.textContent = `${level?.label || levelKey.toUpperCase()} learned markers`;
+  elements.selectionModalSummary.textContent = `${formatNumber(learnedCount)} / ${formatNumber(totalCount)} từ đang được xem là đã thuộc.`;
+  renderSelectionModalTable();
+  elements.selectionModal.hidden = false;
+  closeSettingsPanel();
+}
+
+function closeSelectionModal() {
+  elements.selectionModal.hidden = true;
+}
+
+function renderSelectionModalTable() {
+  const levelKey = getCurrentLevelKey();
+  const rows = getWordsForLevel(levelKey).sort(
+    (left, right) => left.sequenceNumber - right.sequenceNumber,
+  );
+  elements.selectionModalSummary.textContent = `${formatNumber(getLearnedWordsCount(levelKey))} / ${formatNumber(rows.length)} từ đang được xem là đã thuộc.`;
+
+  elements.selectionModalBody.innerHTML = rows.length
+    ? rows
+        .map(
+          (word) => `
+            <tr data-word-key="${escapeHtml(getWordKey(word))}">
+              <td>
+                <input
+                  type="checkbox"
+                  data-learned-toggle="${escapeHtml(getWordKey(word))}"
+                  ${isWordLearned(word) ? "checked" : ""}
+                />
+              </td>
+              <td>#${formatNumber(word.sequenceNumber)}</td>
+              <td><strong>${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
+              <td>${escapeHtml(word.reading)}</td>
+              <td>${escapeHtml(word.meaning)}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `
+        <tr>
+          <td colspan="5">Không có từ nào trong level hiện tại.</td>
+        </tr>
+      `;
+
+  for (const input of elements.selectionModalBody.querySelectorAll("[data-learned-toggle]")) {
+    input.addEventListener("change", () => {
+      toggleLearnedMarker(input.dataset.learnedToggle, input.checked);
+    });
+  }
+}
+
+function toggleLearnedMarker(wordKey, checked) {
+  const studyState = getStudyState();
+  const word = getWordByReference(wordKey);
+  if (!word) {
+    return;
+  }
+
+  if (checked) {
+    addUniqueValue(studyState.learnedExpressions, getWordKey(word));
+  } else {
+    removeValue(studyState.learnedExpressions, getWordKey(word));
+  }
+
+  studyState.currentIndex = 0;
+  renderSelectionModalTable();
+  persistAppState();
+  applyFilters({ preserveSession: false });
+}
+
+function selectAllCurrentLevelWords() {
+  const levelKey = getCurrentLevelKey();
+  const studyState = getStudyState();
+  for (const word of getWordsForLevel(levelKey)) {
+    addUniqueValue(studyState.learnedExpressions, getWordKey(word));
+  }
+  getStudyState().currentIndex = 0;
+  renderSelectionModalTable();
+  persistAppState();
+  applyFilters({ preserveSession: false });
+}
+
+function clearAllCurrentLevelWords() {
+  const levelKey = getCurrentLevelKey();
+  const studyState = getStudyState();
+  for (const word of getWordsForLevel(levelKey)) {
+    removeValue(studyState.learnedExpressions, getWordKey(word));
+  }
+  studyState.currentIndex = 0;
+  renderSelectionModalTable();
+  persistAppState();
+  applyFilters({ preserveSession: false });
+}
+
+function openStatsModal() {
+  renderStats();
+  elements.statsModal.hidden = false;
+}
+
+function closeStatsModal() {
+  elements.statsModal.hidden = true;
+}
+
+function openBankModal() {
+  syncBankControls();
+  updateFilterButtons();
+  renderTable();
+  elements.bankModal.hidden = false;
+}
+
+function openCurrentLevelBank() {
+  const studyState = getStudyState();
+  const currentLevel = getCurrentRoadmapLevel();
+
+  if (!currentLevel?.key) {
+    openBankModal();
+    return;
+  }
+
+  studyState.bankLevelFilter = currentLevel.key;
+  openBankModal();
+  persistAppState();
+}
+
+function closeBankModal() {
+  elements.bankModal.hidden = true;
+  if (state.mode === "list") {
+    state.mode = "flashcard";
+    updateModeButtons();
+    persistAppState();
+  }
+}
+
+function renderOverviewContent() {
+  const counts = getLevelCounts();
+  const rows = state.levels
+    .map((level) => {
+      const total = counts.get(level.key) || 0;
+      const learned = getLearnedWordsCount(level.key);
+      const percent = total ? Math.round((learned / total) * 100) : 0;
+
+      return `
+        <div class="overview-row" data-overview-level="${escapeHtml(level.key)}">
+          <div>
+            <strong>${escapeHtml(level.label)}</strong>
+            <p>${formatNumber(learned)} / ${formatNumber(total)} từ</p>
+          </div>
+          <div class="overview-row__bar">
+            <span style="width: ${percent}%"></span>
+          </div>
+          <b>${percent}%</b>
+        </div>
+      `;
+    })
+    .join("");
+
+  elements.overviewContent.innerHTML = `
+    <p class="overview-note">Tổng số từ hiện có: ${formatNumber(state.words.length)}. Popup này thay cho việc click trực tiếp vào bảng JLPT Level cũ.</p>
+    <div class="overview-grid">${rows}</div>
+  `;
+}
+
+function logView(word) {
+  const studyState = getStudyState();
+  if (studyState.lastLoggedViewExpression === getWordKey(word)) {
+    return;
+  }
+
+  studyState.lastLoggedViewExpression = getWordKey(word);
+  logAction("view", word);
+}
+
+function logAction(action, word) {
+  const studyState = getStudyState();
+  studyState.localActionLogs.push({
+    id:
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`,
+    userId: state.activeUserId,
+    wordKey: getWordKey(word),
+    expression: word.expression,
+    action,
+    word: {
+      id: getWordKey(word),
+      wordKey: getWordKey(word),
+      sequenceNumber: word.sequenceNumber,
+      expression: word.expression,
+      reading: word.reading,
+      meaning: word.meaning,
+      level: word.level,
+      levelLabel: word.levelLabel,
+      tags: word.tags,
+    },
+    metadata: {
+      userId: state.activeUserId,
+      level: word.level,
+      mode: state.mode,
+      filterMode: studyState.filterMode,
+      currentLevel: getCurrentRoadmapLevel()?.key || null,
+      statsRange: studyState.statsRange,
+      sessionOrder: studyState.sessionOrder,
+      currentIndex: studyState.currentIndex,
+      sessionSize: state.sessionWords.length,
+      sequenceNumber: word.sequenceNumber,
+      isLearned: studyState.learnedExpressions.includes(getWordKey(word)),
+      isStarred: studyState.starredExpressions.includes(getWordKey(word)),
+    },
+    createdAt: new Date().toISOString(),
+  });
+  persistAppState();
+
+  fetch("/api/actions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: state.activeUserId,
+      expression: word.expression,
+      action,
+      metadata: {
+        userId: state.activeUserId,
+        wordKey: getWordKey(word),
+        sequenceNumber: word.sequenceNumber,
+        level: word.level,
+        mode: state.mode,
+        filterMode: studyState.filterMode,
+      },
+    }),
+  })
+    .then(() => renderStats())
+    .catch(() => renderLocalStats());
+}
+
+async function renderStats() {
+  const studyState = getStudyState();
+
+  try {
+    const response = await fetch(
+      `/api/stats?range=${encodeURIComponent(studyState.statsRange)}&user_id=${encodeURIComponent(state.activeUserId)}`,
+    );
+    if (!response.ok) {
+      throw new Error("stats unavailable");
+    }
+
+    const payload = await response.json();
+    const rows = payload.rows || [];
+    if (!rows.length) {
+      renderLocalStats();
+      return;
+    }
+
+    renderStatsPayload(rows, payload.totals || summarizeActionRows(rows));
+  } catch (_error) {
+    renderLocalStats();
+  }
+}
+
+function renderLocalStats() {
+  const studyState = getStudyState();
+  const rows = summarizeLocalActionRows();
+  const totals = summarizeActionRows(rows);
+  if (!rows.length) {
+    elements.studyStats.innerHTML = `
+      <dl>
+        <div><dt>Learned now</dt><dd>${formatNumber(getLearnedWordsCount())}</dd></div>
+        <div><dt>Starred now</dt><dd>${formatNumber(studyState.starredExpressions.length)}</dd></div>
+        <div><dt>Batch</dt><dd>${formatNumber(state.sessionWords.length)}</dd></div>
+      </dl>
+      <p class="stats-note">Chưa có action log cho user hiện tại.</p>
+    `;
+    return;
+  }
+
+  renderStatsPayload(rows, totals, "Local logs");
+}
+
+function renderStatsPayload(rows, totals, sourceLabel = "MySQL logs") {
+  const studyState = getStudyState();
+  elements.studyStats.innerHTML = `
+    <div class="stats-source">${sourceLabel}</div>
+    <section class="stats-current">
+      <p>Thông tin hiện trạng</p>
+      <dl>
+        <div><dt>User</dt><dd>${escapeHtml(getActiveUser()?.name || "-")}</dd></div>
+        <div><dt>Learned hiện tại</dt><dd>${formatNumber(getLearnedWordsCount())}</dd></div>
+        <div><dt>Đang đánh sao</dt><dd>${formatNumber(studyState.starredExpressions.length)}</dd></div>
+      </dl>
+    </section>
+    <dl class="stats-summary-grid">
+      <div><dt>Total actions</dt><dd>${formatNumber(Number(totals.total_actions || 0))}</dd></div>
+      <div><dt>Views</dt><dd>${formatNumber(Number(totals.view_count || 0))}</dd></div>
+      <div><dt>Learned</dt><dd>${formatNumber(Number(totals.learned_count || 0))}</dd></div>
+      <div><dt>Not yet</dt><dd>${formatNumber(Number(totals.unlearned_count || 0))}</dd></div>
+      <div><dt>Stars</dt><dd>${formatNumber(Number(totals.favorite_count || 0))}</dd></div>
+      <div><dt>Unstars</dt><dd>${formatNumber(Number(totals.unfavorite_count || 0))}</dd></div>
+    </dl>
+  `;
+}
+
+function summarizeActionRows(rows) {
+  return rows.reduce(
+    (summary, row) => ({
+      total_actions: summary.total_actions + Number(row.total_actions || 0),
+      view_count: summary.view_count + Number(row.view_count || 0),
+      learned_count: summary.learned_count + Number(row.learned_count || 0),
+      unlearned_count: summary.unlearned_count + Number(row.unlearned_count || 0),
+      favorite_count: summary.favorite_count + Number(row.favorite_count || 0),
+      unfavorite_count:
+        summary.unfavorite_count + Number(row.unfavorite_count || 0),
+    }),
+    {
+      total_actions: 0,
+      view_count: 0,
+      learned_count: 0,
+      unlearned_count: 0,
+      favorite_count: 0,
+      unfavorite_count: 0,
+    },
+  );
+}
+
+function summarizeLocalActionRows() {
+  const studyState = getStudyState();
+  const rowsByBucket = new Map();
+  for (const log of studyState.localActionLogs) {
+    const bucket = getLocalStatsBucket(log.createdAt);
+    if (!bucket) {
+      continue;
+    }
+
+    if (!rowsByBucket.has(bucket.key)) {
+      rowsByBucket.set(bucket.key, {
+        bucket: bucket.label,
+        bucket_start: bucket.start,
+        total_actions: 0,
+        view_count: 0,
+        learned_count: 0,
+        unlearned_count: 0,
+        favorite_count: 0,
+        unfavorite_count: 0,
+      });
+    }
+
+    const row = rowsByBucket.get(bucket.key);
+    row.total_actions += 1;
+    if (log.action === "view") row.view_count += 1;
+    if (log.action === "learned") row.learned_count += 1;
+    if (log.action === "unlearned") row.unlearned_count += 1;
+    if (log.action === "favorite") row.favorite_count += 1;
+    if (log.action === "unfavorite") row.unfavorite_count += 1;
+  }
+
+  return [...rowsByBucket.values()]
+    .sort((a, b) => String(b.bucket_start).localeCompare(String(a.bucket_start)))
+    .slice(0, 12);
+}
+
+function getLearnedWordsForLevel(levelKey) {
+  const viewCounts = getViewCounts();
+
+  return state.words
+    .filter(
+      (word) => word.level === levelKey && isWordLearned(word),
+    )
+    .map((word) => ({
+      ...word,
+      viewCount: viewCounts.get(getWordKey(word)) || 0,
+    }))
+    .sort((left, right) => {
+      if (right.viewCount !== left.viewCount) {
+        return right.viewCount - left.viewCount;
+      }
+      return left.sequenceNumber - right.sequenceNumber;
+    });
+}
+
+function renderLevelModalTable() {
+  const words = getLearnedWordsForLevel(state.levelModalLevelKey).filter((word) =>
+    matchesSearchQuery(word, state.levelModalQuery),
+  );
+
+  elements.levelModalBody.innerHTML = words.length
+    ? words
+        .map(
+          (word) => `
+            <tr data-word-key="${escapeHtml(getWordKey(word))}">
+              <td><strong>#${formatNumber(word.sequenceNumber)} ${renderStar(word)}${escapeHtml(word.expression)}</strong></td>
+              <td>${escapeHtml(word.reading)}</td>
+              <td>${escapeHtml(word.meaning)}</td>
+              <td>${formatNumber(word.viewCount)}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `
+        <tr>
+          <td colspan="4">Không có từ nào khớp với search hiện tại.</td>
+        </tr>
+      `;
+
+  for (const row of elements.levelModalBody.querySelectorAll("tr[data-word-key]")) {
+    row.addEventListener("dblclick", () => {
+      const word = getWordByReference(row.dataset.wordKey);
+      if (!word) {
+        return;
+      }
+
+      openWordModal(word);
+    });
+  }
+}
+
+function getLocalStatsBucket(createdAt) {
+  const studyState = getStudyState();
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  if (studyState.statsRange === "month") {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return {
+      key: `${year}-${month}`,
+      label: `${year}-${month}`,
+      start: `${year}-${month}-01`,
+    };
+  }
+
+  if (studyState.statsRange === "week") {
+    const weekStart = new Date(date);
+    const day = weekStart.getDay() || 7;
+    weekStart.setDate(weekStart.getDate() - day + 1);
+    const year = weekStart.getFullYear();
+    const month = String(weekStart.getMonth() + 1).padStart(2, "0");
+    const dayOfMonth = String(weekStart.getDate()).padStart(2, "0");
+    return {
+      key: `${year}-${month}-${dayOfMonth}`,
+      label: `${year}-${month}-${dayOfMonth}`,
+      start: `${year}-${month}-${dayOfMonth}`,
+    };
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return {
+    key: `${year}-${month}-${day}`,
+    label: `${year}-${month}-${day}`,
+    start: `${year}-${month}-${day}`,
+  };
+}
+
+function updateSearchQuery(rawValue) {
+  const studyState = getStudyState();
+  studyState.query = String(rawValue || "").trim().toLowerCase();
+  studyState.currentIndex = 0;
+  syncStudySearchInput();
+  applyFilters({ preserveSession: false });
+}
+
+function updateBankQuery(rawValue) {
+  const studyState = getStudyState();
+  studyState.bankQuery = String(rawValue || "").trim().toLowerCase();
+  syncBankControls();
+  renderTable();
+  persistAppState();
+}
+
+function syncStudySearchInput() {
+  const studyState = getStudyState();
+  elements.searchInput.value = studyState.query || "";
+}
+
+function syncBankControls() {
+  const studyState = getStudyState();
+  elements.bankSearchInput.value = studyState.bankQuery || "";
+  elements.bankLevelFilter.value = studyState.bankLevelFilter;
+  elements.bankStatusFilter.value = studyState.bankStatusFilter;
+  elements.bankMinViews.value = String(studyState.bankMinViews);
+}
+
+function syncGrammarControls() {
+  const studyState = getStudyState();
+  if (elements.grammarSearchInput) {
+    elements.grammarSearchInput.value = studyState.grammarQuery || "";
+  }
+  if (elements.grammarLevelSelect) {
+    elements.grammarLevelSelect.value = getActiveGrammarLevel();
+  }
+}
+
+function handleStudyFilterButtonClick(event) {
+  const button = event.target.closest("[data-filter]");
+  if (!button) {
+    return;
+  }
+
+  const studyState = getStudyState();
+  studyState.filterMode = button.dataset.filter;
+  studyState.currentIndex = 0;
+  updateFilterButtons();
+  closeSettingsPanel();
+  applyFilters({ preserveSession: false });
+}
+
+function getStudyState() {
+  ensureUserState(state.activeUserId);
+  return state.userStatesById[state.activeUserId];
+}
+
+function getActiveUser() {
+  return state.users.find((user) => user.id === state.activeUserId) || null;
+}
+
+function ensureAllUserStates() {
+  for (const user of state.users) {
+    ensureUserState(user.id);
+  }
+}
+
+function ensureUserState(userId) {
+  if (!userId) {
+    return;
+  }
+
+  if (!state.userStatesById[userId]) {
+    state.userStatesById[userId] = createDefaultStudyState();
+  }
+}
+
+function createDefaultStudyState() {
+  return {
+    query: "",
+    bankQuery: "",
+    bankLevelFilter: "all",
+    bankStatusFilter: "all",
+    bankMinViews: 0,
+    grammarLevel: "",
+    grammarQuery: "",
+    grammarItemLink: "",
+    filterMode: "all",
+    statsRange: "day",
+    sessionOrder: "random",
+    currentIndex: 0,
+    selectedListExpression: "",
+    studySelectionsByLevel: {},
+    sessionExpressions: [],
+    learnedExpressions: [],
+    starredExpressions: [],
+    seenExpressions: [],
+    localActionLogs: [],
+    lastLoggedViewExpression: "",
+    suppressNextViewLog: false,
+  };
+}
+
+function normalizeStoredUserStates(value) {
+  const normalized = {};
+  if (!value || typeof value !== "object") {
+    return normalized;
+  }
+
+  for (const [userId, studyState] of Object.entries(value)) {
+    normalized[userId] = normalizeStudyState(studyState);
+  }
+
+  return normalized;
+}
+
+function normalizeStudyState(value) {
+  const raw = value && typeof value === "object" ? value : {};
+  return {
+    query: String(raw.query || ""),
+    bankQuery: String(raw.bankQuery || ""),
+    bankLevelFilter: String(raw.bankLevelFilter || "all"),
+    bankStatusFilter: ["all", "starred", "unstarred", "learned", "unlearned"].includes(raw.bankStatusFilter)
+      ? raw.bankStatusFilter
+      : "all",
+    bankMinViews: Math.max(0, Number(raw.bankMinViews || 0)),
+    grammarLevel: String(raw.grammarLevel || ""),
+    grammarQuery: String(raw.grammarQuery || "").trim().toLowerCase(),
+    grammarItemLink: String(raw.grammarItemLink || ""),
+    filterMode: ["all", "starred", "unstarred", "learned", "unlearned"].includes(raw.filterMode)
+      ? raw.filterMode
+      : "all",
+    statsRange: ["day", "week", "month"].includes(raw.statsRange)
+      ? raw.statsRange
+      : "day",
+    sessionOrder: raw.sessionOrder === "ordered" ? "ordered" : "random",
+    currentIndex: Number(raw.currentIndex || 0),
+    selectedListExpression: normalizeWordReference(raw.selectedListExpression || ""),
+    studySelectionsByLevel: normalizeStudySelections(raw.studySelectionsByLevel),
+    sessionExpressions: normalizeWordReferenceArray(raw.sessionExpressions),
+    learnedExpressions: normalizeWordReferenceArray(raw.learnedExpressions),
+    starredExpressions: normalizeWordReferenceArray(raw.starredExpressions),
+    seenExpressions: normalizeWordReferenceArray(raw.seenExpressions),
+    localActionLogs: Array.isArray(raw.localActionLogs) ? raw.localActionLogs : [],
+    lastLoggedViewExpression: normalizeWordReference(raw.lastLoggedViewExpression || ""),
+    suppressNextViewLog: Boolean(raw.suppressNextViewLog),
+  };
+}
+
+function normalizeStringArray(value) {
+  return Array.isArray(value)
+    ? [...new Set(value.map((item) => String(item)).filter(Boolean))]
+    : [];
+}
+
+function normalizeWordReference(value) {
+  const word = getWordByReference(value);
+  return word ? getWordKey(word) : String(value || "");
+}
+
+function normalizeWordReferenceArray(value) {
+  return [...new Set(normalizeStringArray(value).map((item) => normalizeWordReference(item)).filter(Boolean))];
+}
+
+function normalizeStudySelections(value) {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const normalized = {};
+  for (const [levelKey, sequenceNumbers] of Object.entries(value)) {
+    normalized[levelKey] = [
+      ...new Set(
+        (Array.isArray(sequenceNumbers) ? sequenceNumbers : [])
+          .map((item) => Number(item))
+          .filter((item) => item > 0),
+      ),
+    ].sort((left, right) => left - right);
+  }
+
+  return normalized;
+}
+
+function addUniqueValue(list, value) {
+  if (!list.includes(value)) {
+    list.push(value);
+  }
+}
+
+function removeValue(list, value) {
+  const index = list.indexOf(value);
+  if (index >= 0) {
+    list.splice(index, 1);
+  }
+}
+
+function sortLevels(levels) {
+  return [...levels].sort((left, right) => {
+    return LEVEL_ORDER.indexOf(left.key) - LEVEL_ORDER.indexOf(right.key);
+  });
 }
 
 function shuffle(items) {
-  for (let index = items.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
-    [items[index], items[randomIndex]] = [items[randomIndex], items[index]];
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
   }
-  return items;
+  return result;
 }
 
 function formatNumber(value) {
-  return new Intl.NumberFormat("en-US").format(value);
+  return new Intl.NumberFormat("en-US").format(Number(value || 0));
 }
 
 function escapeHtml(value) {
-  return value
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -323,4 +2219,22 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-init();
+function highlightExpression(sentence, expression) {
+  const safeSentence = escapeHtml(sentence);
+  const safeExpression = escapeHtml(expression);
+  if (!safeExpression) {
+    return safeSentence;
+  }
+
+  return safeSentence.replaceAll(safeExpression, `<strong>${safeExpression}</strong>`);
+}
+
+function renderError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  document.body.innerHTML = `
+    <main style="padding: 32px; font-family: sans-serif;">
+      <h1>Application error</h1>
+      <p>${escapeHtml(message)}</p>
+    </main>
+  `;
+}

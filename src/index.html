@@ -3,179 +3,685 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Learn JP Wordlist</title>
+    <title>Kotoba Engawa</title>
     <meta
       name="description"
-      content="Static website for studying Japanese vocabulary from local JLPT CSV wordlists."
+      content="Study Japanese vocabulary from local JLPT CSV wordlists through a local Node.js server."
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="site-header">
-      <div class="site-header__inner">
-        <a class="site-brand" href="./index.html">日本語NET Wordlist</a>
-        <nav class="site-nav">
-          <a href="#flashcard-panel">Flashcard</a>
-          <a href="#list-panel">Word Bank</a>
-          <a href="#study-sidebar">Study Tools</a>
-        </nav>
-      </div>
-    </header>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar__primary">
+          <a class="brand" href="/">
+            <span class="brand__mark">言</span>
+            <span>
+              <strong>Kotoba Engawa</strong>
+              <small>JLPT word study</small>
+            </span>
+          </a>
 
-    <div class="page-shell">
-      <div class="breadcrumb">
-        <span>Home</span>
-        <span>/</span>
-        <span>JLPT</span>
-        <span>/</span>
-        <span>Wordlist</span>
-      </div>
+          <div class="topbar__copy">
+            <!-- <p class="topbar__eyebrow">Study Workspace</p> -->
+            <h1>Study the roadmap, one word at a time.</h1>
+            <p>
+              Each session stays small and clear, so you always know where you
+              are on the path from N5 to N1.
+            </p>
+          </div>
+        </div>
 
-      <main class="page-layout">
-        <section class="main-column">
-          <article class="article-card">
-            <div class="article-card__head">
-              <p class="article-label">JLPT Vocabulary</p>
-              <h1>日本語の単語をレベル別に学習する</h1>
-              <p class="article-lead">
-                Giao diện này đã được đổi sang kiểu bài viết giống `sample.html`:
-                nội dung chính ở giữa, phần hỗ trợ học tập ở sidebar bên phải,
-                nhưng dữ liệu vẫn load hoàn toàn từ file tĩnh trong project.
-              </p>
+        <div class="topbar__secondary">
+          <div class="topbar-actions">
+            <div class="toolbar-row">
+              <div class="mode-switch" aria-label="Study mode">
+                <button
+                  type="button"
+                  class="mode-switch__button is-active"
+                  data-mode="flashcard"
+                >
+                  Cards
+                </button>
+                <button
+                  type="button"
+                  class="mode-switch__button"
+                  data-mode="list"
+                >
+                  List
+                </button>
+                <button
+                  type="button"
+                  class="mode-switch__button"
+                  data-mode="grammar"
+                >
+                  Grammar
+                </button>
+              </div>
+              <button
+                type="button"
+                class="icon-button"
+                id="stats-toggle-btn"
+                aria-label="Open study stats"
+              >
+                <span class="icon-chart" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                  <b></b>
+                </span>
+                <span>Stats</span>
+              </button>
+              <button
+                type="button"
+                class="icon-button"
+                id="bank-toggle-btn"
+                aria-label="Open word bank"
+              >
+                <span class="icon-stack" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                </span>
+                <span>Words</span>
+              </button>
+              <label class="user-switcher">
+                <span>User</span>
+                <select id="user-select"></select>
+              </label>
             </div>
 
-            <div class="article-meta">
-              <div class="meta-box">
-                <span class="meta-box__label">Tổng từ</span>
-                <strong class="meta-box__value" data-stat="totalWords">-</strong>
-              </div>
-              <div class="meta-box">
-                <span class="meta-box__label">Level</span>
-                <strong class="meta-box__value" data-stat="totalLevels">-</strong>
-              </div>
-              <div class="meta-box">
-                <span class="meta-box__label">Đang lọc</span>
-                <strong class="meta-box__value" data-stat="visibleWords">-</strong>
+            <div class="top-stats" aria-label="Wordlist summary">
+              <button
+                type="button"
+                class="stat-tile stat-tile--button"
+                id="total-words-button"
+              >
+                <span>Total words</span>
+                <strong data-stat="totalWords">-</strong>
+              </button>
+              <button
+                type="button"
+                class="stat-tile stat-tile--button"
+                id="current-level-button"
+              >
+                <span>Current level</span>
+                <strong data-stat="currentLevel">-</strong>
+              </button>
+              <div class="stat-tile">
+                <span>Active pool</span>
+                <strong data-stat="visibleWords">-</strong>
               </div>
             </div>
+          </div>
+        </div>
+      </header>
 
-            <section class="content-block">
-              <h2>Mục tiêu học từ</h2>
-              <div class="note-card">
-                <p>
-                  Chọn level JLPT, tìm theo kana hoặc nghĩa, sau đó học theo
-                  dạng flashcard hoặc xem danh sách từ chi tiết.
-                </p>
+      <main class="study-layout">
+        <aside class="tool-panel roadmap-panel" id="roadmap-panel">
+          <div class="panel-heading panel-heading--compact">
+            <p>Roadmap</p>
+            <h1>Lộ trình JLPT</h1>
+          </div>
+
+          <section class="roadmap-summary" id="roadmap-summary">
+            <strong>Đang tải...</strong>
+            <p>Chuẩn bị lộ trình học theo cấp độ.</p>
+          </section>
+
+          <div class="roadmap-list" id="roadmap-list"></div>
+        </aside>
+
+        <section class="focus-area" id="focus-card">
+          <div class="section-heading">
+            <div>
+              <p>Focus Card</p>
+              <div class="focus-title-row">
+                <h2>今日の言葉</h2>
+                <button
+                  id="action-info-btn"
+                  class="title-info-button"
+                  type="button"
+                  aria-label="Show study guide"
+                  title="Study guide"
+                >
+                  i
+                </button>
               </div>
-            </section>
+            </div>
+            <div class="heading-tools">
+              <label class="focus-search" aria-label="Search current study">
+                <span>Search current study</span>
+                <input
+                  id="search-input"
+                  type="search"
+                  placeholder="語彙, ごい, vocabulary..."
+                  autocomplete="off"
+                />
+              </label>
+              <span id="card-position" class="card-position-badge">-</span>
+            </div>
+          </div>
 
-            <section class="content-block" id="flashcard-panel">
-              <div class="section-title">
-                <h2>Flashcard</h2>
-                <p id="card-position" class="section-title__meta">-</p>
-              </div>
-
-              <article class="flashcard" id="flashcard" tabindex="0" role="button">
-                <div class="flashcard__face flashcard__face--front">
-                  <p class="flashcard__label">Mặt trước</p>
-                  <h3 id="card-expression">Đang tải...</h3>
-                  <p id="card-reading" class="flashcard__reading"></p>
+          <article class="flashcard" id="flashcard" tabindex="0" role="button">
+            <div class="card-corner-tools" aria-label="Card tools">
+              <button
+                id="settings-btn"
+                class="card-tool-button"
+                type="button"
+                title="Study filters"
+                aria-label="Study filters"
+                aria-expanded="false"
+              >
+                ⚙
+              </button>
+              <button
+                id="favorite-btn"
+                class="card-tool-button favorite-button"
+                type="button"
+                title="Toggle favorite (S)"
+                aria-label="Toggle favorite"
+              >
+                ☆
+              </button>
+              <div id="card-settings-panel" class="card-settings-panel" hidden>
+                <div class="settings-panel__head">
+                  <p>Settings</p>
+                  <strong>Thẻ ghi nhớ</strong>
                 </div>
-                <div class="flashcard__face flashcard__face--back">
-                  <p class="flashcard__label">Mặt sau</p>
-                  <p id="card-meaning" class="flashcard__meaning"></p>
-                  <div id="card-tags" class="tag-list"></div>
-                </div>
-              </article>
-
-              <div class="card-actions">
-                <button id="prev-btn" class="button button--ghost" type="button">
-                  Trước
-                </button>
-                <button id="flip-btn" class="button button--primary" type="button">
-                  Lật thẻ
-                </button>
-                <button id="next-btn" class="button button--ghost" type="button">
-                  Sau
-                </button>
+                <section class="settings-section">
+                  <span>Filter</span>
+                  <div class="filter-grid" id="card-filter">
+                    <button class="is-active" data-filter="all" type="button">
+                      All
+                    </button>
+                    <button data-filter="starred" type="button">Starred</button>
+                    <button data-filter="unstarred" type="button">
+                      No star
+                    </button>
+                    <button data-filter="learned" type="button">Learned</button>
+                    <button data-filter="unlearned" type="button">
+                      Not yet
+                    </button>
+                  </div>
+                </section>
+                <section class="settings-section">
+                  <span>Đánh dấu đã thuộc</span>
+                  <button
+                    id="study-selection-btn"
+                    class="archive-reset-button archive-reset-button--neutral"
+                    type="button"
+                  >
+                    <strong>Quản lý từ đã thuộc</strong>
+                    <small
+                      >Đánh dấu nhanh các từ đã thuộc trong level hiện tại cho
+                      user hiện tại.</small
+                    >
+                  </button>
+                </section>
+                <section class="settings-section">
+                  <span>Khởi động lại Thẻ ghi nhớ</span>
+                  <div class="restart-options">
+                    <button data-restart-session="random" type="button">
+                      <strong>Ngẫu nhiên</strong>
+                      <small
+                        >Trộn lại tối đa 50 từ trong cấp độ hiện tại.</small
+                      >
+                    </button>
+                    <button data-restart-session="ordered" type="button">
+                      <strong>Theo thứ tự</strong>
+                      <small
+                        >Học theo thứ tự file CSV trong cấp độ hiện tại.</small
+                      >
+                    </button>
+                  </div>
+                </section>
+                <section class="settings-section settings-section--danger">
+                  <span>Hành trình học</span>
+                  <button
+                    id="archive-reset-btn"
+                    class="archive-reset-button"
+                    type="button"
+                  >
+                    <strong>Archive và reset</strong>
+                    <small
+                      >Lưu lịch sử học của user hiện tại rồi bắt đầu lại từ
+                      N5.</small
+                    >
+                  </button>
+                </section>
               </div>
-            </section>
-
-            <section class="content-block" id="list-panel">
-              <div class="section-title">
-                <h2>Danh sách từ</h2>
-                <p id="results-summary" class="section-title__meta">-</p>
-              </div>
-
-              <div id="empty-state" class="empty-state" hidden>
-                Không có từ nào khớp với bộ lọc hiện tại.
-              </div>
-
-              <div class="table-wrap">
-                <table class="word-table" id="word-table">
-                  <thead>
-                    <tr>
-                      <th>Từ</th>
-                      <th>Reading</th>
-                      <th>Meaning</th>
-                      <th>Level</th>
-                    </tr>
-                  </thead>
-                  <tbody id="word-table-body"></tbody>
-                </table>
-              </div>
-            </section>
+            </div>
+            <div class="flashcard__front flashcard__face">
+              <span class="flashcard__label">表</span>
+              <h3 id="card-expression">Đang tải...</h3>
+              <p id="card-reading" class="flashcard__reading"></p>
+            </div>
+            <div class="flashcard__back flashcard__face">
+              <span class="flashcard__label">裏</span>
+              <p id="card-meaning" class="flashcard__meaning"></p>
+              <div id="card-tags" class="tag-list"></div>
+            </div>
           </article>
+
+          <div class="examples-panel">
+            <div class="examples-heading">
+              <p>Examples</p>
+              <span>Ngữ cảnh để nhớ từ nhanh hơn</span>
+            </div>
+            <div id="examples-list" class="examples-list">
+              <p>Loading examples...</p>
+            </div>
+          </div>
         </section>
 
-        <aside class="sidebar" id="study-sidebar">
-          <section class="sidebar-card">
-            <h2>Study Tools</h2>
-            <label class="field">
-              <span>Tìm kiếm</span>
+        <section class="focus-area grammar-area" id="grammar-area" hidden>
+          <div class="section-heading section-heading--grammar">
+            <div>
+              <p>Grammar Studio</p>
+              <div class="focus-title-row">
+                <h2>文法の窓</h2>
+              </div>
+            </div>
+            <div class="heading-tools heading-tools--grammar">
+              <label class="focus-search" aria-label="Search grammar">
+                <span>Search grammar</span>
+                <input
+                  id="grammar-search-input"
+                  type="search"
+                  placeholder="〜にかかっては, grammar..."
+                  autocomplete="off"
+                />
+              </label>
+              <label class="field field--compact">
+                <span>Level</span>
+                <select id="grammar-level-select"></select>
+              </label>
+            </div>
+          </div>
+
+          <div class="grammar-layout">
+            <aside class="grammar-list-panel">
+              <div class="grammar-list-panel__summary">
+                <strong id="grammar-summary">-</strong>
+                <a
+                  id="grammar-open-link"
+                  class="grammar-open-link"
+                  href="#"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Mở bài gốc
+                </a>
+              </div>
+              <div id="grammar-list" class="grammar-list"></div>
+            </aside>
+
+            <section class="grammar-viewer">
+              <div class="grammar-viewer__meta">
+                <p id="grammar-current-level">-</p>
+                <h3 id="grammar-current-title">Chọn một mẫu ngữ pháp</h3>
+                <div id="grammar-current-name" class="grammar-current-name">
+                  -
+                </div>
+              </div>
+              <div class="grammar-frame-wrap">
+                <iframe
+                  id="grammar-frame"
+                  title="Grammar lesson preview"
+                  loading="lazy"
+                  referrerpolicy="no-referrer"
+                ></iframe>
+                <div class="grammar-frame-overlay">
+                  <p>
+                    Một số website có thể chặn nhúng bằng iframe. Nếu khung
+                    không hiển thị, hãy dùng nút <strong>Mở bài gốc</strong>.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <div id="action-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-action-close></div>
+        <article
+          class="modal__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="action-modal-title"
+        >
+          <button
+            class="modal__close"
+            data-action-close
+            type="button"
+            aria-label="Close"
+          >
+            x
+          </button>
+          <p class="modal__eyebrow">Study Guide</p>
+          <h2 id="action-modal-title">How this session works</h2>
+          <dl class="action-help-list">
+            <div>
+              <dt>Up</dt>
+              <dd>
+                Marks the word as learned and removes it from the current batch.
+              </dd>
+            </div>
+            <div>
+              <dt>Left / Right</dt>
+              <dd>Moves backward or forward inside the current batch.</dd>
+            </div>
+            <div>
+              <dt>Down</dt>
+              <dd>Keeps the word in the batch so it appears again later.</dd>
+            </div>
+            <div>
+              <dt>S</dt>
+              <dd>Stars the word for extra review.</dd>
+            </div>
+          </dl>
+          <div
+            class="gamepad-actions gamepad-actions--showcase"
+            aria-label="Card controls preview"
+          >
+            <button
+              class="gamepad-button gamepad-button--up"
+              type="button"
+              disabled
+            >
+              Up: Learned
+            </button>
+            <button
+              class="gamepad-button gamepad-button--left"
+              type="button"
+              title="Previous"
+              disabled
+            >
+              <span aria-hidden="true">‹</span>
+            </button>
+            <button
+              class="gamepad-button gamepad-button--right"
+              type="button"
+              title="Next"
+              disabled
+            >
+              <span aria-hidden="true">›</span>
+            </button>
+            <button
+              class="gamepad-button gamepad-button--down"
+              type="button"
+              disabled
+            >
+              Down: Review again
+            </button>
+          </div>
+          <div class="action-warning" role="note" aria-label="Learned rule">
+            <strong>Learned rule</strong>
+            <p>
+              A word can feel familiar after about 5 views, but in this app it
+              is counted as learned only when you confirm it with Up.
+            </p>
+          </div>
+        </article>
+      </div>
+
+      <div id="word-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-modal-close></div>
+        <article
+          class="modal__panel modal__panel--word"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <button
+            class="modal__close"
+            data-modal-close
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p class="modal__eyebrow">Vocabulary Detail</p>
+          <h2 id="modal-title">-</h2>
+          <dl class="modal__details">
+            <div>
+              <dt>Reading</dt>
+              <dd id="modal-reading">-</dd>
+            </div>
+            <div>
+              <dt>Meaning</dt>
+              <dd id="modal-meaning">-</dd>
+            </div>
+            <div>
+              <dt>Level</dt>
+              <dd id="modal-level">-</dd>
+            </div>
+          </dl>
+          <section class="modal__examples">
+            <p class="modal__eyebrow">Examples</p>
+            <div id="modal-examples-list" class="examples-list">
+              <p>Loading examples...</p>
+            </div>
+          </section>
+        </article>
+      </div>
+
+      <div id="overview-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-overview-close></div>
+        <article
+          class="modal__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="overview-title"
+        >
+          <button
+            class="modal__close"
+            data-overview-close
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p class="modal__eyebrow">JLPT Overview</p>
+          <h2 id="overview-title">Wordlist Summary</h2>
+          <div id="overview-content" class="overview-content">
+            <p>Loading...</p>
+          </div>
+        </article>
+      </div>
+
+      <div id="level-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-level-close></div>
+        <article
+          class="modal__panel modal__panel--wide"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="level-modal-title"
+        >
+          <button
+            class="modal__close"
+            data-level-close
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p class="modal__eyebrow">Current Level Progress</p>
+          <h2 id="level-modal-title">-</h2>
+          <p id="level-modal-summary" class="overview-note">-</p>
+          <label class="field">
+            <span>Search</span>
+            <input
+              id="level-search-input"
+              type="search"
+              placeholder="Tìm trong các từ đã thuộc..."
+              autocomplete="off"
+            />
+          </label>
+          <div class="table-wrap table-wrap--modal">
+            <table class="word-table">
+              <thead>
+                <tr>
+                  <th>Word</th>
+                  <th>Reading</th>
+                  <th>Meaning</th>
+                  <th>Views</th>
+                </tr>
+              </thead>
+              <tbody id="level-modal-body"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <div id="selection-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-selection-close></div>
+        <article
+          class="modal__panel modal__panel--wide"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="selection-modal-title"
+        >
+          <button
+            class="modal__close"
+            data-selection-close
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p class="modal__eyebrow">Study Selection</p>
+          <h2 id="selection-modal-title">-</h2>
+          <p id="selection-modal-summary" class="overview-note">-</p>
+          <div class="selection-toolbar">
+            <button id="selection-select-all-btn" type="button">
+              Đánh dấu tất cả đã thuộc
+            </button>
+            <button id="selection-clear-btn" type="button">
+              Bỏ đánh dấu tất cả
+            </button>
+          </div>
+          <div class="table-wrap table-wrap--modal">
+            <table class="word-table">
+              <thead>
+                <tr>
+                  <th>Use</th>
+                  <th>No.</th>
+                  <th>Word</th>
+                  <th>Reading</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody id="selection-modal-body"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <div id="stats-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-stats-close></div>
+        <article
+          class="modal__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="stats-modal-title"
+        >
+          <button
+            class="modal__close"
+            data-stats-close
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p class="modal__eyebrow">Study Stats</p>
+          <h2 id="stats-modal-title">Learning Activity</h2>
+          <strong id="results-summary">-</strong>
+          <div class="stats-range" id="stats-range">
+            <button class="is-active" data-range="day" type="button">
+              Day
+            </button>
+            <button data-range="week" type="button">Week</button>
+            <button data-range="month" type="button">Month</button>
+          </div>
+          <div id="study-stats" class="study-stats">
+            <p>Loading stats...</p>
+          </div>
+        </article>
+      </div>
+
+      <div id="bank-modal" class="modal" hidden>
+        <div class="modal__backdrop" data-bank-close></div>
+        <article
+          class="modal__panel modal__panel--wide"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bank-modal-title"
+        >
+          <button
+            class="modal__close"
+            data-bank-close
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p class="modal__eyebrow">Word Bank</p>
+          <h2 id="bank-modal-title">Vocabulary</h2>
+          <div class="bank-modal__controls">
+            <label class="field field--wide">
+              <span>Search</span>
               <input
-                id="search-input"
+                id="bank-search-input"
                 type="search"
-                placeholder="Ví dụ: あう, blue, meet..."
+                placeholder="語彙, ごい, vocabulary..."
                 autocomplete="off"
               />
             </label>
+            <label class="field">
+              <span>Level</span>
+              <select id="bank-level-filter"></select>
+            </label>
+            <label class="field">
+              <span>Status</span>
+              <select id="bank-status-filter">
+                <option value="all">All</option>
+                <option value="starred">Starred</option>
+                <option value="unstarred">No star</option>
+                <option value="learned">Learned</option>
+                <option value="unlearned">Not yet</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Views (&gt;)</span>
+              <input
+                id="bank-min-views"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+              />
+            </label>
+          </div>
 
-            <div class="field">
-              <span>JLPT level</span>
-              <div class="level-grid" id="level-filters"></div>
-            </div>
+          <div id="empty-state" class="empty-state" hidden>
+            Không có từ nào khớp với điều kiện hiện tại.
+          </div>
 
-            <div class="field">
-              <span>Chế độ học</span>
-              <div class="segmented-control" id="study-mode">
-                <button class="is-active" data-mode="flashcard" type="button">
-                  Flashcard
-                </button>
-                <button data-mode="list" type="button">Danh sách</button>
-              </div>
-            </div>
-
-            <div class="actions">
-              <button id="random-btn" class="button button--primary" type="button">
-                Từ ngẫu nhiên
-              </button>
-              <button id="shuffle-btn" class="button button--ghost" type="button">
-                Trộn bộ lọc hiện tại
-              </button>
-            </div>
-          </section>
-
-          <section class="sidebar-card sidebar-card--muted">
-            <h2>Mẹo học</h2>
-            <ul class="tips">
-              <li>Đọc expression trước, sau đó tự nhớ reading và meaning.</li>
-              <li>Dùng list mode khi cần quét nhanh cả bộ từ của một level.</li>
-              <li>Dùng nút random để tránh học theo thứ tự cố định.</li>
-            </ul>
-          </section>
-        </aside>
-      </main>
+          <div class="table-wrap table-wrap--modal">
+            <table class="word-table" id="word-table">
+              <thead>
+                <tr>
+                  <th>Word</th>
+                  <th>Reading</th>
+                  <th>Meaning</th>
+                  <th>Level</th>
+                  <th>Views</th>
+                </tr>
+              </thead>
+              <tbody id="word-table-body"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
     </div>
 
     <script type="module" src="./app.js"></script>

@@ -1,0 +1,16 @@
+{
+  "name": "learn-jp-wordlist",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "yarn@1.22.22",
+  "scripts": {
+    "build": "node scripts/build-wordlist.mjs",
+    "dev": "yarn build && node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mysql2": "^3.12.0"
+  }
+}
