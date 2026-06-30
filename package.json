@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node scripts/build-wordlist.mjs",
     "dev": "yarn build && node server.js",
-    "start": "node server.js"
+    "start": "yarn build && node server.js"
   },
   "dependencies": {
     "express": "^4.21.2",
